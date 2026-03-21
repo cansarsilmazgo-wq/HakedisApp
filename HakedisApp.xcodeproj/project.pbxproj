@@ -22,6 +22,10 @@
 		S002 /* ContractorPortalView.swift */ = {isa = PBXBuildFile; fileRef = C002; };
 		S003 /* RevisionViews.swift */ = {isa = PBXBuildFile; fileRef = C003; };
 		S004 /* ComparisonAndGallery.swift */ = {isa = PBXBuildFile; fileRef = C004; };
+		S005 = {isa = PBXBuildFile; fileRef = C005; };
+		S006 = {isa = PBXBuildFile; fileRef = C006; };
+		S007 = {isa = PBXBuildFile; fileRef = C007; };
+		S008 = {isa = PBXBuildFile; fileRef = C008; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +45,10 @@
 		C002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPortalView.swift; path = HakedisApp/Views/Contractor/ContractorPortalView.swift; sourceTree = "<group>"; };
 		C003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RevisionViews.swift; path = HakedisApp/Views/Contracts/RevisionViews.swift; sourceTree = "<group>"; };
 		C004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ComparisonAndGallery.swift; path = HakedisApp/Views/Hakedis/ComparisonAndGallery.swift; sourceTree = "<group>"; };
+		C005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFView.swift; path = HakedisApp/Views/Hakedis/PDFView.swift; sourceTree = "<group>"; };
+		C006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = HakedisApp/Views/Shared/NotificationManager.swift; sourceTree = "<group>"; };
+		C007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
+		C008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -66,6 +74,10 @@
 				A009,
 				A010,
 				A011,
+				C008,
+				C007,
+				C006,
+				C005,
 				C004,
 				C003,
 				C002,
@@ -140,6 +152,10 @@
 				B009,
 				B010,
 				B011,
+				S008,
+				S007,
+				S006,
+				S005,
 				S004 /* ComparisonAndGallery.swift in Sources */,
 				S003 /* RevisionViews.swift in Sources */,
 				S002 /* ContractorPortalView.swift in Sources */,

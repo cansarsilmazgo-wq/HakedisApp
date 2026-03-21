@@ -264,6 +264,7 @@ struct HakedisDetailView: View {
                 }
             }
         }
+        .toolbar { ToolbarItem(placement: .topBarTrailing) { HakedisShareButton(hakedis: hakedis) } }
         .navigationTitle(hakedis.periodName)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingAddPayment) {

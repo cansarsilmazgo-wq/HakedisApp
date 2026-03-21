@@ -23,6 +23,7 @@ struct DashboardView: View {
         return dailyEntries.filter { calendar.isDateInToday($0.date) }
     }
 
+        @State private var showingSearch = false
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -100,6 +101,12 @@ struct DashboardView: View {
             }
             .background(Color.hakedisBackground)
             .navigationTitle("Ana Ekran")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showingSearch = true } label: { Image(systemName: "magnifyingglass") }
+                }
+            }
+            .sheet(isPresented: $showingSearch) { UniversalSearchView() }
         }
     }
 }
@@ -108,6 +115,7 @@ struct DashboardView: View {
 struct HakedisRowCard: View {
     let hakedis: Hakedis
 
+        @State private var showingSearch = false
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -133,6 +141,7 @@ struct HakedisRowCard: View {
 struct PaymentAlertCard: View {
     let hakedis: Hakedis
 
+        @State private var showingSearch = false
     var body: some View {
         HStack {
             Image(systemName: "exclamationmark.circle.fill")
@@ -164,6 +173,7 @@ struct ProjectMiniCard: View {
         return items.reduce(0) { $0 + $1.completionPercentage } / Double(items.count)
     }
 
+        @State private var showingSearch = false
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
