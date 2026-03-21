@@ -67,17 +67,17 @@ struct ContractorRow: View {
             if !contractor.contactPerson.isEmpty {
                 Text(contractor.contactPerson)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
             HStack {
                 Text("\(contractor.contracts.count) sözleşme")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Spacer()
                 if totalOwed > 0 {
                     Text("Bekleyen: \(totalOwed.currencyFormatted)")
                         .font(.caption.bold())
-                        .foregroundStyle(.hakedisDanger)
+                        .foregroundColor(.hakedisDanger)
                 }
             }
         }
@@ -174,18 +174,18 @@ struct ContractorDetailView: View {
                 }
                 LabeledContent("Ödenen") {
                     Text(totalPaid.currencyFormatted)
-                        .foregroundStyle(.hakedisSuccess)
+                        .foregroundColor(.hakedisSuccess)
                 }
                 LabeledContent("Kalan") {
                     Text((totalInvoiced - totalPaid).currencyFormatted)
-                        .foregroundStyle(.hakedisDanger)
+                        .foregroundColor(.hakedisDanger)
                         .bold()
                 }
             }
 
             Section("Sözleşmeler") {
                 if contractor.contracts.isEmpty {
-                    Text("Sözleşme yok").foregroundStyle(.secondary)
+                    Text("Sözleşme yok").foregroundColor(.secondary)
                 } else {
                     ForEach(contractor.contracts) { contract in
                         NavigationLink(destination: ContractDetailView(contract: contract)) {

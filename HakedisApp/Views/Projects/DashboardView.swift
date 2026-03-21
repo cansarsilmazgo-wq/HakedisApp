@@ -115,7 +115,7 @@ struct HakedisRowCard: View {
                     .font(.subheadline.bold())
                 Text(hakedis.periodName)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
@@ -136,18 +136,18 @@ struct PaymentAlertCard: View {
     var body: some View {
         HStack {
             Image(systemName: "exclamationmark.circle.fill")
-                .foregroundStyle(.hakedisDanger)
+                .foregroundColor(.hakedisDanger)
             VStack(alignment: .leading, spacing: 4) {
                 Text(hakedis.contract?.title ?? "—")
                     .font(.subheadline.bold())
                 Text(hakedis.periodName)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
             Spacer()
             Text(hakedis.remainingAmount.currencyFormatted)
                 .font(.subheadline.bold())
-                .foregroundStyle(.hakedisDanger)
+                .foregroundColor(.hakedisDanger)
         }
         .padding(14)
         .background(Color.hakedisCard)
@@ -175,13 +175,13 @@ struct ProjectMiniCard: View {
             if !project.location.isEmpty {
                 Text(project.location)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
             HStack {
                 ProgressBarView(progress: totalCompletion, color: .hakedisOrange)
                 Text(totalCompletion.percentFormatted)
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                     .frame(width: 40, alignment: .trailing)
             }
         }

@@ -26,12 +26,12 @@ struct HakedisListRow: View {
             HStack {
                 Text("Net: \(hakedis.netAmount.currencyFormatted)")
                     .font(.caption.bold())
-                    .foregroundStyle(.hakedisOrange)
+                    .foregroundColor(.hakedisOrange)
                 Spacer()
                 if hakedis.remainingAmount > 0 && hakedis.status != .draft {
                     Text("Kalan: \(hakedis.remainingAmount.currencyFormatted)")
                         .font(.caption)
-                        .foregroundStyle(.hakedisDanger)
+                        .foregroundColor(.hakedisDanger)
                 }
             }
         }
@@ -64,13 +64,13 @@ struct AddHakedisView: View {
                 Section("Bilgi") {
                     Text("Hakediş oluşturulduğunda, seçilen dönemdeki tüm günlük girişler otomatik olarak hesaplanır.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                     Text("Sözleşme: \(contract.title)")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                     Text("Taşeron: \(contract.contractor?.name ?? "—")")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                 }
             }
             .navigationTitle("Yeni Hakediş")
@@ -161,7 +161,7 @@ struct HakedisDetailView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Brüt Tutar")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundColor(.secondary)
                             Text(hakedis.grossAmount.currencyFormatted)
                                 .font(.title3.bold())
                         }
@@ -172,18 +172,18 @@ struct HakedisDetailView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Teminat Kesintisi")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundColor(.secondary)
                             Text(hakedis.retentionAmount.currencyFormatted)
                                 .font(.subheadline)
-                                .foregroundStyle(.hakedisDanger)
+                                .foregroundColor(.hakedisDanger)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 4) {
                             Text("Net Hakediş")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundColor(.secondary)
                             Text(hakedis.netAmount.currencyFormatted)
                                 .font(.subheadline.bold())
-                                .foregroundStyle(.hakedisOrange)
+                                .foregroundColor(.hakedisOrange)
                         }
                     }
                     if hakedis.totalPaid > 0 {
@@ -191,18 +191,18 @@ struct HakedisDetailView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Ödenen")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.caption).foregroundColor(.secondary)
                                 Text(hakedis.totalPaid.currencyFormatted)
                                     .font(.subheadline)
-                                    .foregroundStyle(.hakedisSuccess)
+                                    .foregroundColor(.hakedisSuccess)
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 4) {
                                 Text("Kalan")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.caption).foregroundColor(.secondary)
                                 Text(hakedis.remainingAmount.currencyFormatted)
                                     .font(.subheadline.bold())
-                                    .foregroundStyle(hakedis.remainingAmount > 0 ? .hakedisDanger : .hakedisSuccess)
+                                    .foregroundColor(hakedis.remainingAmount > 0 ? .hakedisDanger : .hakedisSuccess)
                             }
                         }
                     }
@@ -219,7 +219,7 @@ struct HakedisDetailView: View {
             Section("İş Kalemleri") {
                 if hakedis.items.isEmpty {
                     Text("Bu dönemde yapılan iş bulunmadı")
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                         .font(.subheadline)
                 } else {
                     ForEach(hakedis.items) { item in
@@ -232,20 +232,20 @@ struct HakedisDetailView: View {
             Section {
                 if hakedis.payments.isEmpty {
                     Text("Henüz ödeme yapılmadı")
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                 } else {
-                    ForEach(hakedis.payments.sorted { $0.paymentDate > $1.paymentDate }) { payment in
+                    ForEach(hakedis.payments.sorted { $0.paymentDate > $1.paymentDate }, id: \.id) { payment in
                         HStack {
                             VStack(alignment: .leading) {
-                                Text(payment.description.isEmpty ? "Ödeme" : payment.description)
+                                Text(payment.paymentDescription.isEmpty ? "Ödeme" : payment.paymentDescription)
                                     .font(.subheadline)
                                 Text(payment.paymentDate.shortFormatted)
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.caption).foregroundColor(.secondary)
                             }
                             Spacer()
                             Text(payment.amount.currencyFormatted)
                                 .font(.subheadline.bold())
-                                .foregroundStyle(.hakedisSuccess)
+                                .foregroundColor(.hakedisSuccess)
                         }
                     }
                 }
@@ -258,7 +258,7 @@ struct HakedisDetailView: View {
                             showingAddPayment = true
                         } label: {
                             Image(systemName: "plus.circle.fill")
-                                .foregroundStyle(.hakedisOrange)
+                                .foregroundColor(.hakedisOrange)
                         }
                     }
                 }
@@ -291,7 +291,7 @@ struct HakedisStatusWorkflow: View {
                             .frame(width: 10, height: 10)
                         Text(status.rawValue)
                             .font(.system(size: 9))
-                            .foregroundStyle(isActive ? .hakedisOrange : (isPast ? .hakedisSuccess : .secondary))
+                            .foregroundColor(isActive ? .hakedisOrange : (isPast ? .hakedisSuccess : .secondary))
                             .multilineTextAlignment(.center)
                             .frame(width: 56)
                     }
@@ -360,34 +360,34 @@ struct HakedisItemRow: View {
             HStack {
                 Text("[\(item.workItemCode)]")
                     .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Text(item.workItemName)
                     .font(.subheadline.bold())
                     .lineLimit(1)
             }
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Önceki").font(.caption2).foregroundStyle(.secondary)
+                    Text("Önceki").font(.caption2).foregroundColor(.secondary)
                     Text("\(item.previousQuantity.quantityFormatted) \(item.unit)")
                         .font(.caption)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Bu Dönem").font(.caption2).foregroundStyle(.hakedisOrange)
+                    Text("Bu Dönem").font(.caption2).foregroundColor(.hakedisOrange)
                     Text("\(item.currentQuantity.quantityFormatted) \(item.unit)")
                         .font(.caption.bold())
-                        .foregroundStyle(.hakedisOrange)
+                        .foregroundColor(.hakedisOrange)
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Kümülatif").font(.caption2).foregroundStyle(.secondary)
+                    Text("Kümülatif").font(.caption2).foregroundColor(.secondary)
                     Text("\(item.cumulativeQuantity.quantityFormatted) \(item.unit)")
                         .font(.caption)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Tutar").font(.caption2).foregroundStyle(.secondary)
+                    Text("Tutar").font(.caption2).foregroundColor(.secondary)
                     Text(item.periodAmount.currencyFormatted)
                         .font(.caption.bold())
-                        .foregroundStyle(.primary)
+                        .foregroundColor(.primary)
                 }
             }
         }
@@ -420,7 +420,7 @@ struct AddPaymentView: View {
                         TextField("0,00", text: $amount)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
-                        Text("₺").foregroundStyle(.secondary)
+                        Text("₺").foregroundColor(.secondary)
                     }
                     DatePicker("Ödeme Tarihi", selection: $paymentDate, displayedComponents: .date)
                     TextField("Açıklama", text: $description)
@@ -428,7 +428,7 @@ struct AddPaymentView: View {
                 Section("Kalan Tutar") {
                     Text(hakedis.remainingAmount.currencyFormatted)
                         .font(.headline)
-                        .foregroundStyle(.hakedisDanger)
+                        .foregroundColor(.hakedisDanger)
                 }
             }
             .navigationTitle("Ödeme Ekle")
@@ -448,7 +448,7 @@ struct AddPaymentView: View {
 
     private func save() {
         let amt = Double(amount.replacingOccurrences(of: ",", with: ".")) ?? 0
-        let payment = Payment(amount: amt, paymentDate: paymentDate, description: description)
+        let payment = Payment(amount: amt, paymentDate: paymentDate, paymentDescription: description)
         payment.hakedis = hakedis
         hakedis.payments.append(payment)
         if hakedis.remainingAmount - amt <= 0 {

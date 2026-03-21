@@ -1,0 +1,231 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B001 /* HakedisApp.swift */ = {isa = PBXBuildFile; fileRef = A001; };
+		B002 /* ContentView.swift */ = {isa = PBXBuildFile; fileRef = A002; };
+		B003 /* Models.swift */ = {isa = PBXBuildFile; fileRef = A003; };
+		B004 /* DesignSystem.swift */ = {isa = PBXBuildFile; fileRef = A004; };
+		B005 /* DashboardView.swift */ = {isa = PBXBuildFile; fileRef = A005; };
+		B006 /* ProjectViews.swift */ = {isa = PBXBuildFile; fileRef = A006; };
+		B007 /* ReportsView.swift */ = {isa = PBXBuildFile; fileRef = A007; };
+		B008 /* ContractorViews.swift */ = {isa = PBXBuildFile; fileRef = A008; };
+		B009 /* ContractViews.swift */ = {isa = PBXBuildFile; fileRef = A009; };
+		B010 /* DailyEntryViews.swift */ = {isa = PBXBuildFile; fileRef = A010; };
+		B011 /* HakedisViews.swift */ = {isa = PBXBuildFile; fileRef = A011; };
+		S001 /* SearchFilterView.swift */ = {isa = PBXBuildFile; fileRef = C001; };
+		S002 /* ContractorPortalView.swift */ = {isa = PBXBuildFile; fileRef = C002; };
+		S003 /* RevisionViews.swift */ = {isa = PBXBuildFile; fileRef = C003; };
+		S004 /* ComparisonAndGallery.swift */ = {isa = PBXBuildFile; fileRef = C004; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisApp.swift; path = HakedisApp/HakedisApp.swift; sourceTree = "<group>"; };
+		A002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = HakedisApp/ContentView.swift; sourceTree = "<group>"; };
+		A003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = HakedisApp/Models/Models.swift; sourceTree = "<group>"; };
+		A004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DesignSystem.swift; path = HakedisApp/Views/Shared/DesignSystem.swift; sourceTree = "<group>"; };
+		A005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = HakedisApp/Views/Projects/DashboardView.swift; sourceTree = "<group>"; };
+		A006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectViews.swift; path = HakedisApp/Views/Projects/ProjectViews.swift; sourceTree = "<group>"; };
+		A007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReportsView.swift; path = HakedisApp/Views/Projects/ReportsView.swift; sourceTree = "<group>"; };
+		A008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorViews.swift; path = HakedisApp/Views/Contracts/ContractorViews.swift; sourceTree = "<group>"; };
+		A009 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractViews.swift; path = HakedisApp/Views/Contracts/ContractViews.swift; sourceTree = "<group>"; };
+		A010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DailyEntryViews.swift; path = HakedisApp/Views/DailyEntry/DailyEntryViews.swift; sourceTree = "<group>"; };
+		A011 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisViews.swift; path = HakedisApp/Views/Hakedis/HakedisViews.swift; sourceTree = "<group>"; };
+		PROD1 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchFilterView.swift; path = HakedisApp/Views/Shared/SearchFilterView.swift; sourceTree = "<group>"; };
+		C002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPortalView.swift; path = HakedisApp/Views/Contractor/ContractorPortalView.swift; sourceTree = "<group>"; };
+		C003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RevisionViews.swift; path = HakedisApp/Views/Contracts/RevisionViews.swift; sourceTree = "<group>"; };
+		C004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ComparisonAndGallery.swift; path = HakedisApp/Views/Hakedis/ComparisonAndGallery.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		ROOT = {
+			isa = PBXGroup;
+			children = (
+				GRP1,
+				GRP2,
+			);
+			sourceTree = "<group>";
+		};
+		GRP1 = {
+			isa = PBXGroup;
+			children = (
+				A001,
+				A002,
+				A003,
+				A004,
+				A005,
+				A006,
+				A007,
+				A008,
+				A009,
+				A010,
+				A011,
+				C004,
+				C003,
+				C002,
+				C001,
+			);
+			name = HakedisApp;
+			sourceTree = "<group>";
+		};
+		GRP2 = {
+			isa = PBXGroup;
+			children = (
+				PROD1,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TGT1 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CFGLST1;
+			buildPhases = (
+				PHS1,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HakedisApp;
+			productName = HakedisApp;
+			productReference = PROD1;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJ = {
+			isa = PBXProject;
+			buildConfigurationList = CFGLST2;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = tr;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				tr,
+				Base,
+			);
+			mainGroup = ROOT;
+			productRefGroup = GRP2;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TGT1,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		PHS1 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B001,
+				B002,
+				B003,
+				B004,
+				B005,
+				B006,
+				B007,
+				B008,
+				B009,
+				B010,
+				B011,
+				S004 /* ComparisonAndGallery.swift in Sources */,
+				S003 /* RevisionViews.swift in Sources */,
+				S002 /* ContractorPortalView.swift in Sources */,
+				S001 /* SearchFilterView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CFG1 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CFG2 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		CFG3 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Saha fotograflari icin gerekli";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CFG4 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CFGLST1 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFG3,
+				CFG4,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CFGLST2 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CFG1,
+				CFG2,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = PROJ;
+}

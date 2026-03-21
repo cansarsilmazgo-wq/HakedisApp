@@ -85,10 +85,10 @@ struct DateChip: View {
             VStack(spacing: 2) {
                 Text(dayAbbr)
                     .font(.caption2)
-                    .foregroundStyle(isSelected ? .white : .secondary)
+                    .foregroundColor(isSelected ? .white : .secondary)
                 Text(dayNumber)
                     .font(.subheadline.bold())
-                    .foregroundStyle(isSelected ? .white : .primary)
+                    .foregroundColor(isSelected ? .white : .primary)
             }
             .frame(width: 44, height: 52)
             .background(isSelected ? Color.hakedisOrange : Color.clear)
@@ -123,31 +123,31 @@ struct DailyEntryRow: View {
                     if let workItem = entry.workItem {
                         Text(workItem.contract?.contractor?.name ?? "—")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
                     }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("\(entry.quantity.quantityFormatted) \(entry.workItem?.unit ?? "")")
                         .font(.subheadline.bold())
-                        .foregroundStyle(.hakedisOrange)
+                        .foregroundColor(.hakedisOrange)
                     if !entry.location.isEmpty {
                         Text(entry.location)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
             if !entry.notes.isEmpty {
                 Text(entry.notes)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                     .lineLimit(2)
             }
             if !entry.photoData.isEmpty {
                 Label("\(entry.photoData.count) fotoğraf", systemImage: "photo")
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
         }
         .padding(.vertical, 4)
@@ -201,7 +201,7 @@ struct AddDailyEntryView: View {
                 Section("İş Kalemi Seç") {
                     if contracts.isEmpty {
                         Text("Önce sözleşme ve iş kalemi tanımlayın")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
                             .font(.subheadline)
                     } else {
                         Picker("Sözleşme", selection: $selectedContract) {
@@ -232,7 +232,7 @@ struct AddDailyEntryView: View {
                             .keyboardType(.decimalPad)
                         if let item = selectedWorkItem {
                             Text(item.unit)
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.secondary)
                         }
                     }
                     TextField("Mahal / Kat / Blok", text: $location)
@@ -245,20 +245,20 @@ struct AddDailyEntryView: View {
                             Label("Sözleşme miktarı", systemImage: "doc")
                             Spacer()
                             Text("\(item.contractedQuantity.quantityFormatted) \(item.unit)")
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.secondary)
                         }
                         HStack {
                             Label("Bugüne kadar yapılan", systemImage: "checkmark.circle")
                             Spacer()
                             Text("\(item.completedQuantity.quantityFormatted) \(item.unit)")
-                                .foregroundStyle(.hakedisSuccess)
+                                .foregroundColor(.hakedisSuccess)
                         }
                         HStack {
                             Label("Kalan", systemImage: "clock")
                             Spacer()
                             let remaining = item.remainingQuantity - parsedQuantity
                             Text("\(remaining.quantityFormatted) \(item.unit)")
-                                .foregroundStyle(remaining < 0 ? .hakedisDanger : .primary)
+                                .foregroundColor(remaining < 0 ? .hakedisDanger : .primary)
                         }
                     }
                 }
@@ -274,7 +274,7 @@ struct AddDailyEntryView: View {
                     PhotosPicker(selection: $selectedPhotos, maxSelectionCount: 5,
                                 matching: .images) {
                         Label("Fotoğraf Ekle", systemImage: "camera")
-                            .foregroundStyle(.hakedisOrange)
+                            .foregroundColor(.hakedisOrange)
                     }
                     .onChange(of: selectedPhotos) { _, newItems in
                         loadPhotos(newItems)

@@ -12,15 +12,15 @@ struct ContractRow: View {
             HStack {
                 Text(contract.contractor?.name ?? "Taşeron yok")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Spacer()
                 Text(contract.totalContractAmount.currencyFormatted)
                     .font(.caption.bold())
-                    .foregroundStyle(.hakedisOrange)
+                    .foregroundColor(.hakedisOrange)
             }
             Text("\(contract.workItems.count) iş kalemi")
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.secondary)
         }
         .padding(.vertical, 4)
     }
@@ -55,7 +55,7 @@ struct AddContractView: View {
                 Section("Taşeron *") {
                     if contractors.isEmpty {
                         Text("Önce taşeron ekleyin")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
                     } else {
                         Picker("Taşeron Seç", selection: $selectedContractor) {
                             Text("Seçiniz").tag(Optional<Contractor>.none)
@@ -129,14 +129,14 @@ struct ContractDetailView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Toplam Tutar")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundColor(.secondary)
                             Text(contract.totalContractAmount.currencyFormatted)
                                 .font(.title2.bold())
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
                             Text("Teminat")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundColor(.secondary)
                             Text("%\(Int(contract.retentionRate))")
                                 .font(.headline)
                         }
@@ -155,7 +155,7 @@ struct ContractDetailView: View {
                     } label: {
                         Label("İş Kalemi Ekle", systemImage: "plus.circle")
                     }
-                    .foregroundStyle(.hakedisOrange)
+                    .foregroundColor(.hakedisOrange)
                 } else {
                     ForEach(contract.workItems) { item in
                         NavigationLink(destination: WorkItemDetailView(workItem: item)) {
@@ -174,7 +174,7 @@ struct ContractDetailView: View {
                         showingAddWorkItem = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.hakedisOrange)
+                            .foregroundColor(.hakedisOrange)
                     }
                 }
             }
@@ -187,7 +187,7 @@ struct ContractDetailView: View {
                     } label: {
                         Label("Hakediş Oluştur", systemImage: "doc.badge.plus")
                     }
-                    .foregroundStyle(.hakedisOrange)
+                    .foregroundColor(.hakedisOrange)
                 } else {
                     ForEach(contract.hakedisler.sorted { $0.createdAt > $1.createdAt }) { hakedis in
                         NavigationLink(destination: HakedisDetailView(hakedis: hakedis)) {
@@ -203,7 +203,7 @@ struct ContractDetailView: View {
                         showingAddHakedis = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.hakedisOrange)
+                            .foregroundColor(.hakedisOrange)
                     }
                 }
             }
@@ -228,18 +228,18 @@ struct WorkItemRow: View {
             HStack {
                 Text("[\(workItem.code)]")
                     .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Text(workItem.name)
                     .font(.subheadline.bold())
             }
             HStack {
                 Text("\(workItem.completedQuantity.quantityFormatted) / \(workItem.contractedQuantity.quantityFormatted) \(workItem.unit)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Spacer()
                 Text(workItem.completionPercentage.percentFormatted)
                     .font(.caption.bold())
-                    .foregroundStyle(workItem.completionPercentage >= 100 ? .hakedisSuccess : .hakedisOrange)
+                    .foregroundColor(workItem.completionPercentage >= 100 ? .hakedisSuccess : .hakedisOrange)
             }
             ProgressBarView(
                 progress: workItem.completionPercentage,
@@ -291,7 +291,7 @@ struct AddWorkItemView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
-                        Text(unit).foregroundStyle(.secondary)
+                        Text(unit).foregroundColor(.secondary)
                     }
                     HStack {
                         Text("Birim Fiyat *")
@@ -300,7 +300,7 @@ struct AddWorkItemView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
-                        Text("₺").foregroundStyle(.secondary)
+                        Text("₺").foregroundColor(.secondary)
                     }
                 }
 
@@ -309,7 +309,7 @@ struct AddWorkItemView: View {
                     Section("Toplam Tutar") {
                         Text((price * qty).currencyFormatted)
                             .font(.headline)
-                            .foregroundStyle(.hakedisOrange)
+                            .foregroundColor(.hakedisOrange)
                     }
                 }
             }
@@ -361,27 +361,27 @@ struct WorkItemDetailView: View {
                         Spacer()
                         Text(workItem.completionPercentage.percentFormatted)
                             .bold()
-                            .foregroundStyle(.hakedisOrange)
+                            .foregroundColor(.hakedisOrange)
                     }
                     ProgressBarView(progress: workItem.completionPercentage, color: .hakedisOrange)
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Yapılan").font(.caption).foregroundStyle(.secondary)
+                            Text("Yapılan").font(.caption).foregroundColor(.secondary)
                             Text("\(workItem.completedQuantity.quantityFormatted) \(workItem.unit)")
                                 .font(.subheadline.bold())
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text("Sözleşme").font(.caption).foregroundStyle(.secondary)
+                            Text("Sözleşme").font(.caption).foregroundColor(.secondary)
                             Text("\(workItem.contractedQuantity.quantityFormatted) \(workItem.unit)")
                                 .font(.subheadline.bold())
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text("Kalan").font(.caption).foregroundStyle(.secondary)
+                            Text("Kalan").font(.caption).foregroundColor(.secondary)
                             Text("\(workItem.remainingQuantity.quantityFormatted) \(workItem.unit)")
                                 .font(.subheadline.bold())
-                                .foregroundStyle(workItem.remainingQuantity < 0 ? .hakedisDanger : .primary)
+                                .foregroundColor(workItem.remainingQuantity < 0 ? .hakedisDanger : .primary)
                         }
                     }
                 }
@@ -391,7 +391,7 @@ struct WorkItemDetailView: View {
             Section("Günlük Girişler") {
                 if workItem.dailyEntries.isEmpty {
                     Text("Henüz giriş yapılmadı")
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                 } else {
                     ForEach(workItem.dailyEntries.sorted { $0.date > $1.date }) { entry in
                         HStack {
@@ -401,13 +401,13 @@ struct WorkItemDetailView: View {
                                 if !entry.location.isEmpty {
                                     Text(entry.location)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundColor(.secondary)
                                 }
                             }
                             Spacer()
                             Text("\(entry.quantity.quantityFormatted) \(workItem.unit)")
                                 .font(.subheadline)
-                                .foregroundStyle(.hakedisOrange)
+                                .foregroundColor(.hakedisOrange)
                         }
                     }
                 }

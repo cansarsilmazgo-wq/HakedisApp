@@ -63,10 +63,10 @@ struct ReportsView: View {
                                 Spacer()
                                 Text("\(count) adet")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundColor(.secondary)
                                 Text(total.currencyFormatted)
                                     .font(.subheadline.bold())
-                                    .foregroundStyle(.hakedisOrange)
+                                    .foregroundColor(.hakedisOrange)
                             }
                         }
                     }
@@ -86,11 +86,11 @@ struct FinancialRow: View {
         HStack {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.secondary)
             Spacer()
             Text(value.currencyFormatted)
                 .font(.subheadline.bold())
-                .foregroundStyle(color)
+                .foregroundColor(color)
         }
     }
 }
@@ -117,17 +117,17 @@ struct ProjectReportRow: View {
                 Spacer()
                 Text(completionRate.percentFormatted)
                     .font(.caption.bold())
-                    .foregroundStyle(.hakedisOrange)
+                    .foregroundColor(.hakedisOrange)
             }
             ProgressBarView(progress: completionRate, color: .hakedisOrange)
             HStack {
                 Text("Hakediş: \(totalHakedis.currencyFormatted)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Spacer()
                 Text("Sözleşme: \(totalContract.currencyFormatted)")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
         }
         .padding(.vertical, 4)
@@ -151,19 +151,19 @@ struct ContractorReportRow: View {
                 .font(.subheadline.bold())
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Hakediş").font(.caption2).foregroundStyle(.secondary)
+                    Text("Hakediş").font(.caption2).foregroundColor(.secondary)
                     Text(totalInvoiced.currencyFormatted).font(.caption.bold())
                 }
                 Spacer()
                 VStack(alignment: .center, spacing: 2) {
-                    Text("Ödenen").font(.caption2).foregroundStyle(.secondary)
-                    Text(totalPaid.currencyFormatted).font(.caption).foregroundStyle(.hakedisSuccess)
+                    Text("Ödenen").font(.caption2).foregroundColor(.secondary)
+                    Text(totalPaid.currencyFormatted).font(.caption).foregroundColor(.hakedisSuccess)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("Kalan").font(.caption2).foregroundStyle(.secondary)
+                    Text("Kalan").font(.caption2).foregroundColor(.secondary)
                     Text(totalPending.currencyFormatted).font(.caption.bold())
-                        .foregroundStyle(totalPending > 0 ? .hakedisDanger : .hakedisSuccess)
+                        .foregroundColor(totalPending > 0 ? .hakedisDanger : .hakedisSuccess)
                 }
             }
         }

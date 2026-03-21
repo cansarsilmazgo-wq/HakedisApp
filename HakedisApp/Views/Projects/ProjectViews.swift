@@ -81,17 +81,17 @@ struct ProjectRow: View {
             if !project.location.isEmpty {
                 Label(project.location, systemImage: "mappin")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
             HStack {
                 Text("\(contractCount) sözleşme")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
                 Spacer()
                 if totalAmount > 0 {
                     Text(totalAmount.currencyFormatted)
                         .font(.caption.bold())
-                        .foregroundStyle(.hakedisOrange)
+                        .foregroundColor(.hakedisOrange)
                 }
             }
         }
@@ -172,7 +172,7 @@ struct ProjectDetailView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text("Toplam Sözleşme")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .font(.caption).foregroundColor(.secondary)
                             Text(project.contracts.reduce(0) { $0 + $1.totalContractAmount }.currencyFormatted)
                                 .font(.title3.bold())
                         }
@@ -183,11 +183,11 @@ struct ProjectDetailView: View {
                     if !project.location.isEmpty {
                         Label(project.location, systemImage: "mappin.circle")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
                     }
                     Label(project.startDate.shortFormatted, systemImage: "calendar")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 4)
             }
@@ -196,7 +196,7 @@ struct ProjectDetailView: View {
             Section {
                 if project.contracts.isEmpty {
                     Text("Henüz sözleşme eklenmedi")
-                        .foregroundStyle(.secondary)
+                        .foregroundColor(.secondary)
                         .font(.subheadline)
                 } else {
                     ForEach(project.contracts) { contract in
@@ -213,7 +213,7 @@ struct ProjectDetailView: View {
                         showingAddContract = true
                     } label: {
                         Image(systemName: "plus.circle.fill")
-                            .foregroundStyle(.hakedisOrange)
+                            .foregroundColor(.hakedisOrange)
                     }
                 }
             }
