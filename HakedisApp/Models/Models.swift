@@ -63,6 +63,7 @@ final class Contract {
     var retentionRate: Double
     var advanceRate: Double
     var completionDeadline: Date?
+    var kdvRate: Double
     var dailyPenaltyRate: Double
     var maxPenaltyRate: Double
     var project: Project?
@@ -77,6 +78,7 @@ final class Contract {
         self.retentionRate = retentionRate
         self.advanceRate = advanceRate
         self.completionDeadline = nil
+        self.kdvRate = 0.0
         self.dailyPenaltyRate = 0.0
         self.maxPenaltyRate = 20.0
         self.workItems = []
@@ -188,13 +190,34 @@ final class Hakedis {
     }
 
     var grossAmount: Double { items.reduce(0) { $0 + $1.periodAmount } }
+
     var retentionAmount: Double {
-        guard let rate = contract?.retentionRate else { return 0 }
+        guard let rate = contract?.retentionRate, rate > 0 else { return 0 }
         return grossAmount * (rate / 100)
     }
-    var netAmount: Double { grossAmount - retentionAmount }
+
+    /// Avans kesintisi: brüt × avans oranı
+    var advanceDeduction: Double {
+        guard let rate = contract?.advanceRate, rate > 0 else { return 0 }
+        return grossAmount * (rate / 100)
+    }
+
+    /// Teminat ve avans sonrası KDV matrahı
+    var netAmount: Double { grossAmount - retentionAmount - advanceDeduction }
+
+    /// KDV tutarı (net × kdv oranı)
+    var kdvAmount: Double {
+        guard let rate = contract?.kdvRate, rate > 0 else { return 0 }
+        return netAmount * (rate / 100)
+    }
+
+    /// Ödenecek toplam (net + KDV)
+    var totalWithKDV: Double { netAmount + kdvAmount }
+
     var totalPaid: Double { payments.reduce(0) { $0 + $1.amount } }
-    var remainingAmount: Double { netAmount - totalPaid }
+
+    /// Kalan ödeme (KDV dahil toplam – ödenen)
+    var remainingAmount: Double { totalWithKDV - totalPaid }
 
     /// Ödeme gecikme günü (vade tarihi geçmişse ve hâlâ ödenmemişse)
     var daysOverdue: Int {

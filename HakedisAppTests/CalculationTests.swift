@@ -226,7 +226,91 @@ final class CalculationTests: XCTestCase {
         XCTAssertFalse(hakedis.isOverdue)
     }
 
+    // MARK: - KDV & Avans Kesintisi
+
+    func test_advanceDeduction() throws {
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 0, advanceRate: 20, kdvRate: 0)
+        let item = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // brüt=100000, avans=%20=20000, teminat=0, net=80000
+        XCTAssertEqual(hakedis.grossAmount, 100_000)
+        XCTAssertEqual(hakedis.advanceDeduction, 20_000, "%20 avans")
+        XCTAssertEqual(hakedis.netAmount, 80_000)
+    }
+
+    func test_kdvCalculation() throws {
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 10, advanceRate: 0, kdvRate: 20)
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // brüt=100000, teminat=%10=10000, net=90000, KDV=%20=18000, toplam=108000
+        XCTAssertEqual(hakedis.retentionAmount, 10_000)
+        XCTAssertEqual(hakedis.netAmount, 90_000)
+        XCTAssertEqual(hakedis.kdvAmount, 18_000, "%20 KDV")
+        XCTAssertEqual(hakedis.totalWithKDV, 108_000)
+    }
+
+    func test_fullDeductions_retentionPlusAdvancePlusKDV() throws {
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 10, advanceRate: 20, kdvRate: 20)
+        let item = HakedisItem(workItemName: "Sıva", workItemCode: "01",
+                               unit: "m²", unitPrice: 100, previousQuantity: 0, currentQuantity: 1_000)
+        insertItems([item], into: hakedis)
+        // brüt=100000, teminat=%10=10000, avans=%20=20000, net=70000, KDV=%20=14000, toplam=84000
+        XCTAssertEqual(hakedis.grossAmount, 100_000)
+        XCTAssertEqual(hakedis.retentionAmount, 10_000)
+        XCTAssertEqual(hakedis.advanceDeduction, 20_000)
+        XCTAssertEqual(hakedis.netAmount, 70_000)
+        XCTAssertEqual(hakedis.kdvAmount, 14_000)
+        XCTAssertEqual(hakedis.totalWithKDV, 84_000)
+    }
+
+    func test_remainingAmount_withKDV() throws {
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 0, advanceRate: 0, kdvRate: 20)
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // totalWithKDV=120000, ödeme=50000, kalan=70000
+        let payment = Payment(amount: 50_000)
+        payment.hakedis = hakedis
+        hakedis.payments.append(payment)
+        context.insert(payment)
+        XCTAssertEqual(hakedis.totalWithKDV, 120_000)
+        XCTAssertEqual(hakedis.remainingAmount, 70_000)
+    }
+
+    func test_zeroKDV_noKDVAmount() throws {
+        let (hakedis, _) = try makeHakedis(retentionRate: 10)
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        XCTAssertEqual(hakedis.kdvAmount, 0, "KDV oranı 0 ise KDV tutarı da 0 olmalı")
+        XCTAssertEqual(hakedis.totalWithKDV, hakedis.netAmount)
+    }
+
     // MARK: - Helpers
+
+    private func makeHakedisWithRates(retentionRate: Double, advanceRate: Double,
+                                       kdvRate: Double) throws -> (Hakedis, Contract) {
+        let contractor = Contractor(name: "Test Taşeron")
+        let project = Project(name: "Test Proje")
+        let contract = Contract(title: "Test Sözleşme",
+                                retentionRate: retentionRate, advanceRate: advanceRate)
+        contract.kdvRate = kdvRate
+        contract.contractor = contractor
+        contract.project = project
+        project.contracts.append(contract)
+        let jan1  = Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 1))!
+        let jan31 = Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 31))!
+        let hakedis = Hakedis(periodName: "Ocak 2025", periodStart: jan1, periodEnd: jan31)
+        hakedis.contract = contract
+        contract.hakedisler.append(hakedis)
+        context.insert(contractor)
+        context.insert(project)
+        context.insert(contract)
+        context.insert(hakedis)
+        return (hakedis, contract)
+    }
 
     private func makeHakedis(retentionRate: Double) throws -> (Hakedis, Contract) {
         let contractor = Contractor(name: "Test Taşeron")

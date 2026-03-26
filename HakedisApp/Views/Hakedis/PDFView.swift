@@ -195,10 +195,9 @@ struct HakedisPDFGenerator {
             y = drawRow(label: "Teminat Kesintisi (%\(Int(hakedis.contract?.retentionRate ?? 0)))",
                         value: "−\(hakedis.retentionAmount.currencyFormatted)", y: y, isRed: true)
 
-            if let contract = hakedis.contract, contract.advanceRate > 0 {
-                let advance = hakedis.grossAmount * (contract.advanceRate / 100)
-                y = drawRow(label: "Avans Kesintisi (%\(Int(contract.advanceRate)))",
-                            value: "−\(advance.currencyFormatted)", y: y, isRed: true)
+            if hakedis.advanceDeduction > 0 {
+                y = drawRow(label: "Avans Kesintisi (%\(Int(hakedis.contract?.advanceRate ?? 0)))",
+                            value: "−\(hakedis.advanceDeduction.currencyFormatted)", y: y, isRed: true)
             }
 
             if let contract = hakedis.contract, contract.delayPenalty() > 0 {
@@ -206,7 +205,15 @@ struct HakedisPDFGenerator {
                             value: "−\(contract.delayPenalty().currencyFormatted)", y: y, isRed: true)
             }
 
-            // Net amount bar
+            // KDV
+            if hakedis.kdvAmount > 0 {
+                y = drawRow(label: "KDV Matrahı",
+                            value: hakedis.netAmount.currencyFormatted, y: y)
+                y = drawRow(label: "KDV (%\(Int(hakedis.contract?.kdvRate ?? 0)))",
+                            value: hakedis.kdvAmount.currencyFormatted, y: y)
+            }
+
+            // Net/Toplam bar
             y += 6
             orange.setFill()
             UIBezierPath(rect: CGRect(x: margin, y: y, width: pageWidth - margin * 2, height: 36)).fill()
@@ -214,8 +221,10 @@ struct HakedisPDFGenerator {
                 .font: UIFont.boldSystemFont(ofSize: 13),
                 .foregroundColor: UIColor.white
             ]
-            "NET HAKEDİŞ".draw(at: CGPoint(x: margin + 10, y: y + 11), withAttributes: netAttr)
-            let nv = hakedis.netAmount.currencyFormatted
+            let netLabel = hakedis.kdvAmount > 0 ? "KDV DAHİL TOPLAM" : "NET HAKEDİŞ"
+            let netValue = hakedis.kdvAmount > 0 ? hakedis.totalWithKDV : hakedis.netAmount
+            netLabel.draw(at: CGPoint(x: margin + 10, y: y + 11), withAttributes: netAttr)
+            let nv = netValue.currencyFormatted
             let ns = (nv as NSString).size(withAttributes: netAttr)
             nv.draw(at: CGPoint(x: pageWidth - margin - ns.width - 10, y: y + 11), withAttributes: netAttr)
             y += 44

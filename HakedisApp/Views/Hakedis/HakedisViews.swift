@@ -27,7 +27,9 @@ struct HakedisListRow: View {
                 StatusBadge(text: hakedis.status.rawValue, color: statusColor)
             }
             HStack {
-                Text("Net: \(hakedis.netAmount.currencyFormatted)")
+                Text(hakedis.kdvAmount > 0
+                     ? "Toplam (KDV): \(hakedis.totalWithKDV.currencyFormatted)"
+                     : "Net: \(hakedis.netAmount.currencyFormatted)")
                     .font(.caption.bold())
                     .foregroundColor(.hakedisOrange)
                 Spacer()
@@ -195,21 +197,48 @@ struct HakedisDetailView: View {
                         StatusBadge(text: hakedis.status.rawValue, color: statusColor)
                     }
                     Divider()
-                    HStack {
+                    // Kesintiler
+                    HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Teminat Kesintisi")
+                            Text("Teminat (%\(Int(hakedis.contract?.retentionRate ?? 0)))")
                                 .font(.caption).foregroundColor(.secondary)
-                            Text(hakedis.retentionAmount.currencyFormatted)
-                                .font(.subheadline)
-                                .foregroundColor(.hakedisDanger)
+                            Text("−\(hakedis.retentionAmount.currencyFormatted)")
+                                .font(.subheadline).foregroundColor(.hakedisDanger)
+                        }
+                        if hakedis.advanceDeduction > 0 {
+                            Spacer()
+                            VStack(alignment: .center, spacing: 4) {
+                                Text("Avans (%\(Int(hakedis.contract?.advanceRate ?? 0)))")
+                                    .font(.caption).foregroundColor(.secondary)
+                                Text("−\(hakedis.advanceDeduction.currencyFormatted)")
+                                    .font(.subheadline).foregroundColor(.hakedisWarning)
+                            }
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 4) {
-                            Text("Net Hakediş")
+                            Text(hakedis.kdvAmount > 0 ? "Net (KDV Hariç)" : "Net Hakediş")
                                 .font(.caption).foregroundColor(.secondary)
                             Text(hakedis.netAmount.currencyFormatted)
-                                .font(.subheadline.bold())
-                                .foregroundColor(.hakedisOrange)
+                                .font(.subheadline.bold()).foregroundColor(.hakedisOrange)
+                        }
+                    }
+                    // KDV
+                    if hakedis.kdvAmount > 0 {
+                        Divider()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("KDV (%\(Int(hakedis.contract?.kdvRate ?? 0)))")
+                                    .font(.caption).foregroundColor(.secondary)
+                                Text(hakedis.kdvAmount.currencyFormatted)
+                                    .font(.subheadline)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("KDV Dahil Toplam")
+                                    .font(.caption).foregroundColor(.secondary)
+                                Text(hakedis.totalWithKDV.currencyFormatted)
+                                    .font(.subheadline.bold()).foregroundColor(.hakedisOrange)
+                            }
                         }
                     }
                     if hakedis.totalPaid > 0 {
@@ -219,8 +248,7 @@ struct HakedisDetailView: View {
                                 Text("Ödenen")
                                     .font(.caption).foregroundColor(.secondary)
                                 Text(hakedis.totalPaid.currencyFormatted)
-                                    .font(.subheadline)
-                                    .foregroundColor(.hakedisSuccess)
+                                    .font(.subheadline).foregroundColor(.hakedisSuccess)
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 4) {

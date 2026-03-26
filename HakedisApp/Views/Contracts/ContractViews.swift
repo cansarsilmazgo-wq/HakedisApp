@@ -70,6 +70,7 @@ struct AddContractView: View {
     @State private var contractDate = Date()
     @State private var retentionRate = 10.0
     @State private var advanceRate = 0.0
+    @State private var kdvRate = 0.0
     @State private var selectedContractor: Contractor?
     @State private var hasDeadline = false
     @State private var completionDeadline = Date()
@@ -102,7 +103,7 @@ struct AddContractView: View {
                     }
                 }
 
-                Section("Kesinti Oranları") {
+                Section {
                     HStack {
                         Text("Teminat Oranı")
                         Spacer()
@@ -121,6 +122,22 @@ struct AddContractView: View {
                             .frame(width: 60)
                         Text("%")
                     }
+                    HStack {
+                        Text("KDV Oranı")
+                        Spacer()
+                        Picker("KDV", selection: $kdvRate) {
+                            Text("KDV Yok").tag(0.0)
+                            Text("%1").tag(1.0)
+                            Text("%10").tag(10.0)
+                            Text("%20").tag(20.0)
+                        }
+                        .pickerStyle(.menu)
+                    }
+                } header: {
+                    Text("Kesinti ve Vergi Oranları")
+                } footer: {
+                    Text("KDV, teminat ve avans kesintisi yapıldıktan sonraki net tutara uygulanır.")
+                        .font(.caption)
                 }
 
                 Section("Gecikme Cezası") {
@@ -166,6 +183,7 @@ struct AddContractView: View {
     private func save() {
         let contract = Contract(title: title, contractDate: contractDate,
                                 retentionRate: retentionRate, advanceRate: advanceRate)
+        contract.kdvRate = kdvRate
         contract.project = project
         contract.contractor = selectedContractor
         if hasDeadline {
@@ -208,11 +226,29 @@ struct ContractDetailView: View {
                                 .font(.title2.bold())
                         }
                         Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("Teminat")
-                                .font(.caption).foregroundColor(.secondary)
-                            Text("%\(Int(contract.retentionRate))")
-                                .font(.headline)
+                        HStack(spacing: 12) {
+                            VStack(alignment: .trailing) {
+                                Text("Teminat")
+                                    .font(.caption).foregroundColor(.secondary)
+                                Text("%\(Int(contract.retentionRate))")
+                                    .font(.headline)
+                            }
+                            if contract.advanceRate > 0 {
+                                VStack(alignment: .trailing) {
+                                    Text("Avans")
+                                        .font(.caption).foregroundColor(.secondary)
+                                    Text("%\(Int(contract.advanceRate))")
+                                        .font(.headline).foregroundColor(.hakedisWarning)
+                                }
+                            }
+                            if contract.kdvRate > 0 {
+                                VStack(alignment: .trailing) {
+                                    Text("KDV")
+                                        .font(.caption).foregroundColor(.secondary)
+                                    Text("%\(Int(contract.kdvRate))")
+                                        .font(.headline).foregroundColor(.hakedisOrange)
+                                }
+                            }
                         }
                     }
                     LabeledContent("Taşeron", value: contract.contractor?.name ?? "—")

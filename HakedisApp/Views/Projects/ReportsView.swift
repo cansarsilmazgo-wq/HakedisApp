@@ -15,6 +15,8 @@ struct ReportsView: View {
         projects.flatMap { $0.contracts }.reduce(0) { $0 + $1.totalContractAmount }
     }
     private var totalInvoiced: Double { hakedisler.reduce(0) { $0 + $1.netAmount } }
+    private var totalKDV: Double { hakedisler.reduce(0) { $0 + $1.kdvAmount } }
+    private var totalWithKDV: Double { hakedisler.reduce(0) { $0 + $1.totalWithKDV } }
     private var totalPaid: Double { hakedisler.reduce(0) { $0 + $1.totalPaid } }
     private var totalPending: Double {
         hakedisler.filter { $0.status == .approved }.reduce(0) { $0 + $1.remainingAmount }
@@ -102,10 +104,14 @@ struct ReportsView: View {
     private var summaryCards: some View {
         VStack(spacing: 14) {
             FinancialRow(label: "Toplam Sözleşme Değeri", value: totalContractValue, color: .primary)
-            FinancialRow(label: "Toplam Hakediş Kesildi", value: totalInvoiced, color: .hakedisOrange)
-            FinancialRow(label: "Toplam Ödenen", value: totalPaid, color: .hakedisSuccess)
+            FinancialRow(label: "Toplam Net Hakediş",     value: totalInvoiced,     color: .hakedisOrange)
+            if totalKDV > 0 {
+                FinancialRow(label: "Toplam KDV",         value: totalKDV,          color: .secondary)
+                FinancialRow(label: "KDV Dahil Toplam",   value: totalWithKDV,      color: .hakedisOrange)
+            }
+            FinancialRow(label: "Toplam Ödenen",          value: totalPaid,         color: .hakedisSuccess)
             Divider()
-            FinancialRow(label: "Bekleyen Ödeme", value: totalPending, color: .hakedisDanger)
+            FinancialRow(label: "Bekleyen Ödeme",         value: totalPending,      color: .hakedisDanger)
         }
         .padding(.vertical, 4)
     }
