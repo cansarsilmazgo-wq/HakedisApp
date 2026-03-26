@@ -1,8 +1,11 @@
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
     @State private var showingSearch = false
     @StateObject private var networkMonitor = NetworkMonitor.shared
+    @Query private var projects: [Project]
+    @Query private var hakedisler: [Hakedis]
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -36,6 +39,13 @@ struct ContentView: View {
 
             NetworkStatusBanner()
                 .animation(.easeInOut, value: networkMonitor.isConnected)
+        }
+        .task { WidgetDataManager.update(projects: projects, hakedisler: hakedisler) }
+        .onChange(of: hakedisler.count) {
+            WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
+        }
+        .onChange(of: projects.count) {
+            WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
         }
     }
 }

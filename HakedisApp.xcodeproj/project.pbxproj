@@ -30,6 +30,9 @@
 		S007 /* OfflineSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C007 /* OfflineSyncManager.swift */; };
 		S008 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C008 /* SettingsView.swift */; };
 		S009 /* CSVManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C009 /* CSVManager.swift */; };
+		S010 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C010 /* WidgetDataManager.swift */; };
+		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
+		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,16 +57,32 @@
 		C007 /* OfflineSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
 		C008 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
 		C009 /* CSVManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CSVManager.swift; path = HakedisApp/Views/Shared/CSVManager.swift; sourceTree = "<group>"; };
+		C010 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetDataManager.swift; path = HakedisApp/Views/Shared/WidgetDataManager.swift; sourceTree = "<group>"; };
+		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
+		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
+		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
+		PROD2 /* HakedisWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HakedisWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		PROD1 /* HakedisApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		WGRP1 /* Widget */ = {
+			isa = PBXGroup;
+			children = (
+				W001 /* HakedisWidget.swift */,
+				W002 /* Info.plist */,
+				W003 /* HakedisWidget.entitlements */,
+			);
+			name = Widget;
+			sourceTree = "<group>";
+		};
 		GRP1 /* HakedisApp */ = {
 			isa = PBXGroup;
 			children = (
 				BED3D08F2F721561002B3563 /* HakedisApp.entitlements */,
 				PLIST1 /* GoogleService-Info.plist */,
+				C010 /* WidgetDataManager.swift */,
 				A001 /* HakedisApp.swift */,
 				A002 /* ContentView.swift */,
 				A003 /* Models.swift */,
@@ -92,6 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				PROD1 /* HakedisApp.app */,
+				PROD2 /* HakedisWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,6 +120,7 @@
 			isa = PBXGroup;
 			children = (
 				GRP1 /* HakedisApp */,
+				WGRP1 /* Widget */,
 				GRP2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -107,16 +128,33 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		TGT2 /* HakedisWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = WCFGLST1 /* Build configuration list for PBXNativeTarget "HakedisWidget" */;
+			buildPhases = (
+				WPS1 /* Sources (Widget) */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HakedisWidget;
+			productName = HakedisWidget;
+			productReference = PROD2 /* HakedisWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		TGT1 /* HakedisApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */;
 			buildPhases = (
 				PHS1 /* Sources */,
 				PHS2 /* Frameworks */,
+				PHS3 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				TDEP1 /* HakedisWidget */,
 			);
 			name = HakedisApp;
 			packageProductDependencies = (
@@ -131,16 +169,44 @@
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
+/* Begin PBXContainerItemProxy section */
+		CIP1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PROJ /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = TGT2;
+			remoteInfo = HakedisWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		TDEP1 /* HakedisWidget */ = {
+			isa = PBXTargetDependency;
+			target = TGT2 /* HakedisWidget */;
+			targetProxy = CIP1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 		PROJ /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				TargetAttributes = {
 					TGT1 = {
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
 							com.apple.CloudKit = {
 								enabled = 1;
 							};
 							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
+					};
+					TGT2 = {
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
 								enabled = 1;
 							};
 						};
@@ -165,6 +231,7 @@
 			projectRoot = "";
 			targets = (
 				TGT1 /* HakedisApp */,
+				TGT2 /* HakedisWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -187,6 +254,7 @@
 				B011 /* HakedisViews.swift in Sources */,
 				S008 /* SettingsView.swift in Sources */,
 				S009 /* CSVManager.swift in Sources */,
+				S010 /* WidgetDataManager.swift in Sources */,
 				S007 /* OfflineSyncManager.swift in Sources */,
 				S006 /* NotificationManager.swift in Sources */,
 				S005 /* PDFView.swift in Sources */,
@@ -194,6 +262,31 @@
 				S003 /* RevisionViews.swift in Sources */,
 				S002 /* ContractorPortalView.swift in Sources */,
 				S001 /* SearchFilterView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		PHS3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				WB002 /* HakedisWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		WPS1 /* Sources (Widget) */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				WB001 /* HakedisWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +403,66 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+		WCFG1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/Widget/HakedisWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HakedisApp/Widget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.widget;
+				PRODUCT_NAME = HakedisWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		WCFG2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/Widget/HakedisWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HakedisApp/Widget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.widget;
+				PRODUCT_NAME = HakedisWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		WCFGLST1 /* Build configuration list for PBXNativeTarget "HakedisWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				WCFG1 /* Debug */,
+				WCFG2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 
 /* Begin XCRemoteSwiftPackageReference section */
 		SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
