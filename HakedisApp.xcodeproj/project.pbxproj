@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		TB001 /* CalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T001 /* CalculationTests.swift */; };
+		TB002 /* StatusTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T002 /* StatusTransitionTests.swift */; };
+		TB003 /* CRUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T003 /* CRUDTests.swift */; };
+		TB004 /* Models.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
 		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
 		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
 		SPM_BF2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP2 /* FirebaseCrashlytics */; };
@@ -63,6 +67,10 @@
 		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
 		PROD2 /* HakedisWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HakedisWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		PROD1 /* HakedisApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		PROD3 /* HakedisAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HakedisAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		T001 /* CalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTests.swift; sourceTree = "<group>"; };
+		T002 /* StatusTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusTransitionTests.swift; sourceTree = "<group>"; };
+		T003 /* CRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDTests.swift; sourceTree = "<group>"; };
 		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -112,8 +120,20 @@
 			children = (
 				PROD1 /* HakedisApp.app */,
 				PROD2 /* HakedisWidget.appex */,
+				PROD3 /* HakedisAppTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		TGRP /* HakedisAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				T001 /* CalculationTests.swift */,
+				T002 /* StatusTransitionTests.swift */,
+				T003 /* CRUDTests.swift */,
+			);
+			name = HakedisAppTests;
+			path = HakedisAppTests;
 			sourceTree = "<group>";
 		};
 		ROOT = {
@@ -121,6 +141,7 @@
 			children = (
 				GRP1 /* HakedisApp */,
 				WGRP1 /* Widget */,
+				TGRP /* HakedisAppTests */,
 				GRP2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -142,6 +163,21 @@
 			productName = HakedisWidget;
 			productReference = PROD2 /* HakedisWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		TTGT /* HakedisAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = TCFGLST /* Build configuration list for PBXNativeTarget "HakedisAppTests" */;
+			buildPhases = (
+				TPHS1 /* Sources (Tests) */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HakedisAppTests;
+			productName = HakedisAppTests;
+			productReference = PROD3 /* HakedisAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		TGT1 /* HakedisApp */ = {
 			isa = PBXNativeTarget;
@@ -177,6 +213,13 @@
 			remoteGlobalIDString = TGT2;
 			remoteInfo = HakedisWidget;
 		};
+		TCIP1 /* PBXContainerItemProxy (Tests) */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PROJ /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = TGT1;
+			remoteInfo = HakedisApp;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXTargetDependency section */
@@ -184,6 +227,11 @@
 			isa = PBXTargetDependency;
 			target = TGT2 /* HakedisWidget */;
 			targetProxy = CIP1 /* PBXContainerItemProxy */;
+		};
+		TTDEP1 /* HakedisApp */ = {
+			isa = PBXTargetDependency;
+			target = TGT1 /* HakedisApp */;
+			targetProxy = TCIP1 /* PBXContainerItemProxy (Tests) */;
 		};
 /* End PBXTargetDependency section */
 
@@ -232,6 +280,7 @@
 			targets = (
 				TGT1 /* HakedisApp */,
 				TGT2 /* HakedisWidget */,
+				TTGT /* HakedisAppTests */,
 			);
 		};
 /* End PBXProject section */
@@ -262,6 +311,17 @@
 				S003 /* RevisionViews.swift in Sources */,
 				S002 /* ContractorPortalView.swift in Sources */,
 				S001 /* SearchFilterView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		TPHS1 /* Sources (Tests) */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				TB004 /* Models.swift in TestSources */,
+				TB001 /* CalculationTests.swift in Sources */,
+				TB002 /* StatusTransitionTests.swift in Sources */,
+				TB003 /* CRUDTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -306,6 +366,40 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		TCFG1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.tests;
+				PRODUCT_NAME = HakedisAppTests;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		TCFG2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.tests;
+				PRODUCT_NAME = HakedisAppTests;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		CFG1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -340,6 +434,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 857PAZCN89;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Saha fotograflari icin gerekli";
@@ -367,6 +462,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 857PAZCN89;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -384,6 +480,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		TCFGLST /* Build configuration list for PBXNativeTarget "HakedisAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TCFG1 /* Debug */,
+				TCFG2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
