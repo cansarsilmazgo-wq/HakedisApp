@@ -23,7 +23,9 @@ struct HakedisApp: App {
     }()
 
     init() {
-        FirebaseApp.configure()
+        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+            FirebaseApp.configure()
+        }
     }
 
     var body: some Scene {
