@@ -29,6 +29,7 @@
 		S006 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C006 /* NotificationManager.swift */; };
 		S007 /* OfflineSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C007 /* OfflineSyncManager.swift */; };
 		S008 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C008 /* SettingsView.swift */; };
+		S009 /* CSVManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C009 /* CSVManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +53,7 @@
 		C006 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = HakedisApp/Views/Shared/NotificationManager.swift; sourceTree = "<group>"; };
 		C007 /* OfflineSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
 		C008 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
+		C009 /* CSVManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CSVManager.swift; path = HakedisApp/Views/Shared/CSVManager.swift; sourceTree = "<group>"; };
 		PROD1 /* HakedisApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -74,6 +76,7 @@
 				A010 /* DailyEntryViews.swift */,
 				A011 /* HakedisViews.swift */,
 				C008 /* SettingsView.swift */,
+				C009 /* CSVManager.swift */,
 				C007 /* OfflineSyncManager.swift */,
 				C006 /* NotificationManager.swift */,
 				C005 /* PDFView.swift */,
@@ -183,6 +186,7 @@
 				B010 /* DailyEntryViews.swift in Sources */,
 				B011 /* HakedisViews.swift in Sources */,
 				S008 /* SettingsView.swift in Sources */,
+				S009 /* CSVManager.swift in Sources */,
 				S007 /* OfflineSyncManager.swift in Sources */,
 				S006 /* NotificationManager.swift in Sources */,
 				S005 /* PDFView.swift in Sources */,

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import UniformTypeIdentifiers
 
 struct ReportsView: View {
     @Query private var projects: [Project]
@@ -73,7 +74,26 @@ struct ReportsView: View {
                 }
             }
             .navigationTitle("Raporlar")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        exportItem = ShareableCSV(
+                            content: CSVExporter.exportHakedisler(hakedisler),
+                            filename: "hakedis_raporu_\(exportDateString()).csv"
+                        )
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(hakedisler.isEmpty)
+                }
+            }
         }
+    }
+
+    @State private var exportItem: ShareableCSV?
+
+    private func exportDateString() -> String {
+        let f = DateFormatter(); f.dateFormat = "yyyyMMdd"; return f.string(from: Date())
     }
 }
 

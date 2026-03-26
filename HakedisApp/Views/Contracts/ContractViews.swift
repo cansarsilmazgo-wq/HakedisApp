@@ -1,6 +1,38 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - ShareableCSV
+struct ShareableCSV: Transferable, Identifiable {
+    let id = UUID()
+    let content: String
+    let filename: String
+
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(exportedContentType: .commaSeparatedText) { csv in
+            Data(csv.content.utf8)
+        }
+    }
+}
+
+extension View {
+    func shareSheet(item: Binding<ShareableCSV?>) -> some View {
+        sheet(item: item) { csv in
+            if let url = csv.temporaryURL() {
+                ShareSheet(items: [url])
+                    .ignoresSafeArea()
+            }
+        }
+    }
+}
+
+extension ShareableCSV {
+    func temporaryURL() -> URL? {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try? content.write(to: url, atomically: true, encoding: .utf8)
+        return url
+    }
+}
+
 // MARK: - Contract Row
 struct ContractRow: View {
     let contract: Contract
@@ -155,6 +187,10 @@ struct ContractDetailView: View {
     @State private var showingAddWorkItem = false
     @State private var showingAddHakedis = false
     @State private var showingPenaltyCalc = false
+    @State private var showingCSVPicker = false
+    @State private var csvImportResult: CSVImportResult?
+    @State private var showingImportPreview = false
+    @State private var exportItem: ShareableCSV?
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
@@ -219,6 +255,12 @@ struct ContractDetailView: View {
                         Label("İş Kalemi Ekle", systemImage: "plus.circle")
                     }
                     .foregroundColor(.hakedisOrange)
+                    Button {
+                        showingCSVPicker = true
+                    } label: {
+                        Label("CSV'den İçe Aktar", systemImage: "doc.badge.arrow.up")
+                    }
+                    .foregroundColor(.hakedisOrange)
                 } else {
                     ForEach(contract.workItems) { item in
                         NavigationLink(destination: WorkItemDetailView(workItem: item)) {
@@ -233,6 +275,23 @@ struct ContractDetailView: View {
                 HStack {
                     Text("İş Kalemleri (Pozlar)")
                     Spacer()
+                    if !contract.workItems.isEmpty {
+                        Button {
+                            exportItem = ShareableCSV(
+                                content: CSVExporter.exportWorkItems(contract),
+                                filename: "\(contract.title)_pozlar.csv"
+                            )
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    Button {
+                        showingCSVPicker = true
+                    } label: {
+                        Image(systemName: "doc.badge.arrow.up")
+                            .foregroundColor(.hakedisOrange)
+                    }
                     Button {
                         showingAddWorkItem = true
                     } label: {
@@ -282,6 +341,33 @@ struct ContractDetailView: View {
         .sheet(isPresented: $showingPenaltyCalc) {
             DelayPenaltyCalculatorView(contract: contract)
         }
+        .sheet(isPresented: $showingCSVPicker) {
+            CSVDocumentPicker { content in
+                let result = WorkItemCSVParser.parse(content)
+                csvImportResult = result
+                showingCSVPicker = false
+                if !result.rows.isEmpty {
+                    showingImportPreview = true
+                }
+            }
+        }
+        .sheet(isPresented: $showingImportPreview) {
+            if let result = csvImportResult {
+                CSVImportPreviewView(result: result) { rows in
+                    for row in rows {
+                        let item = WorkItem(
+                            code: row.code, name: row.name, unit: row.unit,
+                            unitPrice: row.unitPrice, contractedQuantity: row.contractedQuantity,
+                            location: row.location
+                        )
+                        item.contract = contract
+                        contract.workItems.append(item)
+                        modelContext.insert(item)
+                    }
+                }
+            }
+        }
+        .shareSheet(item: $exportItem)
     }
 }
 
