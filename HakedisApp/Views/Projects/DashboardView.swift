@@ -3,16 +3,17 @@ import SwiftData
 
 struct DashboardView: View {
     @Query private var projects: [Project]
-    @Query(filter: #Predicate<Project> { $0.status == .active })
-    private var activeProjects: [Project]
-    @Query(filter: #Predicate<Hakedis> { $0.status == .pendingApproval })
-    private var pendingHakedisler: [Hakedis]
-    @Query(filter: #Predicate<Hakedis> { $0.status == .approved })
-    private var approvedHakedisler: [Hakedis]
+    @Query private var hakedisler: [Hakedis]
     @Query private var dailyEntries: [DailyEntry]
 
+    private var activeProjects: [Project] {
+        projects.filter { $0.status == .active }
+    }
+    private var pendingHakedisler: [Hakedis] {
+        hakedisler.filter { $0.status == .pendingApproval }
+    }
     private var overduePayments: [Hakedis] {
-        approvedHakedisler.filter { $0.remainingAmount > 0 }
+        hakedisler.filter { $0.status == .approved && $0.remainingAmount > 0 }
     }
 
     private var todayEntries: [DailyEntry] {
