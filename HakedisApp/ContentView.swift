@@ -23,6 +23,15 @@ struct ContentView: View {
                     .tabItem { Label("Ayarlar", systemImage: "gear") }
             }
             .tint(.hakedisOrange)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingSearch = true
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                }
+            }
             .sheet(isPresented: $showingSearch) { UniversalSearchView() }
 
             NetworkStatusBanner()
