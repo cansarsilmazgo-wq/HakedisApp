@@ -131,6 +131,18 @@
 		PROJ /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				TargetAttributes = {
+					TGT1 = {
+						SystemCapabilities = {
+							com.apple.CloudKit = {
+								enabled = 1;
+							};
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
+					};
+				};
 			};
 			buildConfigurationList = CFGLST2 /* Build configuration list for PBXProject "HakedisApp" */;
 			compatibilityVersion = "Xcode 14.0";

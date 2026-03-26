@@ -1,5 +1,6 @@
 import SwiftUI
 import Network
+import CloudKit
 
 class NetworkMonitor: ObservableObject {
     static let shared = NetworkMonitor()
@@ -24,6 +25,77 @@ class NetworkMonitor: ObservableObject {
     }
 }
 
+class CloudKitSyncMonitor: ObservableObject {
+    static let shared = CloudKitSyncMonitor()
+
+    @Published var accountStatus: CKAccountStatus = .couldNotDetermine
+    @Published var lastSyncDate: Date? = UserDefaults.standard.object(forKey: "lastCloudKitSync") as? Date
+
+    private let container = CKContainer(identifier: "iCloud.com.hakedis.app")
+
+    init() {
+        checkAccountStatus()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(checkAccountStatus),
+            name: .CKAccountChanged,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleRemoteChange),
+            name: NSNotification.Name(rawValue: "NSPersistentStoreRemoteChangeNotification"),
+            object: nil
+        )
+    }
+
+    @objc func checkAccountStatus() {
+        container.accountStatus { [weak self] status, _ in
+            DispatchQueue.main.async {
+                self?.accountStatus = status
+            }
+        }
+    }
+
+    @objc private func handleRemoteChange() {
+        DispatchQueue.main.async {
+            self.lastSyncDate = Date()
+            UserDefaults.standard.set(self.lastSyncDate, forKey: "lastCloudKitSync")
+        }
+    }
+
+    var statusText: String {
+        switch accountStatus {
+        case .available:      return "iCloud Aktif"
+        case .noAccount:      return "iCloud Hesabı Yok"
+        case .restricted:     return "iCloud Kısıtlı"
+        case .couldNotDetermine: return "Durum Belirsiz"
+        case .temporarilyUnavailable: return "Geçici Olarak Kullanılamıyor"
+        @unknown default:     return "Bilinmiyor"
+        }
+    }
+
+    var statusColor: Color {
+        switch accountStatus {
+        case .available:      return .hakedisSuccess
+        case .noAccount:      return .hakedisDanger
+        case .restricted:     return .hakedisDanger
+        case .temporarilyUnavailable: return .hakedisWarning
+        default:              return .secondary
+        }
+    }
+
+    var statusIcon: String {
+        switch accountStatus {
+        case .available:      return "icloud.fill"
+        case .noAccount:      return "icloud.slash.fill"
+        case .restricted:     return "exclamationmark.icloud.fill"
+        case .temporarilyUnavailable: return "icloud.and.arrow.up"
+        default:              return "questionmark.circle"
+        }
+    }
+}
+
 struct NetworkStatusBanner: View {
     @StateObject private var monitor = NetworkMonitor.shared
 
@@ -45,21 +117,52 @@ struct NetworkStatusBanner: View {
 }
 
 struct OfflineSyncSettingsView: View {
-    @StateObject private var monitor = NetworkMonitor.shared
+    @StateObject private var network = NetworkMonitor.shared
+    @StateObject private var cloudKit = CloudKitSyncMonitor.shared
+
+    private var lastSyncText: String {
+        guard let date = cloudKit.lastSyncDate else { return "Henüz sync yapılmadı" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: "tr_TR")
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
 
     var body: some View {
         Form {
             Section("Bağlantı Durumu") {
                 HStack {
-                    Image(systemName: monitor.isConnected ? "wifi" : "wifi.slash")
-                        .foregroundColor(monitor.isConnected ? .hakedisSuccess : .hakedisDanger)
-                    Text(monitor.isConnected ? "Bağlı" : "Çevrimdışı")
+                    Image(systemName: network.isConnected ? "wifi" : "wifi.slash")
+                        .foregroundColor(network.isConnected ? .hakedisSuccess : .hakedisDanger)
+                    Text(network.isConnected ? "Bağlı" : "Çevrimdışı")
                     Spacer()
-                    if monitor.isConnected {
-                        Text(monitor.connectionType == .wifi ? "Wi-Fi" : "Mobil")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    if network.isConnected {
+                        Text(network.connectionType == .wifi ? "Wi-Fi" : "Mobil")
+                            .font(.caption).foregroundColor(.secondary)
                     }
+                }
+            }
+
+            Section("iCloud Sync") {
+                HStack {
+                    Image(systemName: cloudKit.statusIcon)
+                        .foregroundColor(cloudKit.statusColor)
+                    Text(cloudKit.statusText)
+                    Spacer()
+                }
+                if cloudKit.accountStatus == .available {
+                    HStack {
+                        Image(systemName: "clock")
+                            .foregroundColor(.secondary)
+                            .frame(width: 20)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Son Sync").font(.subheadline)
+                            Text(lastSyncText).font(.caption).foregroundColor(.secondary)
+                        }
+                    }
+                }
+                if cloudKit.accountStatus == .noAccount {
+                    Text("Sync için iPhone'da Ayarlar → Apple Hesabı → iCloud → CloudKit bölümünden giriş yapın.")
+                        .font(.caption).foregroundColor(.secondary)
                 }
             }
 
@@ -77,12 +180,17 @@ struct OfflineSyncSettingsView: View {
             Section("Veri Saklama") {
                 InfoRow(icon: "internaldrive.fill", color: .hakedisOrange,
                     title: "SwiftData", subtitle: "Tüm veriler cihazda saklanır")
-                InfoRow(icon: "arrow.triangle.2.circlepath", color: .blue,
-                    title: "iCloud Sync", subtitle: "Yakında eklenecek")
+                InfoRow(icon: cloudKit.accountStatus == .available ? "icloud.fill" : "icloud.slash.fill",
+                    color: cloudKit.statusColor,
+                    title: "iCloud CloudKit",
+                    subtitle: cloudKit.accountStatus == .available
+                        ? "Aktif — cihazlar arası otomatik sync"
+                        : "Pasif — iCloud hesabı gerekli")
             }
         }
         .navigationTitle("Çevrimdışı & Sync")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { cloudKit.checkAccountStatus() }
     }
 }
 
