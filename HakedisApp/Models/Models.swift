@@ -164,6 +164,7 @@ final class Hakedis {
     var periodName: String
     var periodStart: Date
     var periodEnd: Date
+    var dueDate: Date?
     var status: HakedisStatus
     var notes: String
     var contract: Contract?
@@ -171,11 +172,12 @@ final class Hakedis {
     @Relationship(deleteRule: .cascade) var items: [HakedisItem]
     @Relationship(deleteRule: .cascade) var payments: [Payment]
 
-    init(periodName: String, periodStart: Date, periodEnd: Date) {
+    init(periodName: String, periodStart: Date, periodEnd: Date, dueDate: Date? = nil) {
         self.id = UUID()
         self.periodName = periodName
         self.periodStart = periodStart
         self.periodEnd = periodEnd
+        self.dueDate = dueDate
         self.status = .draft
         self.notes = ""
         self.items = []
@@ -191,6 +193,22 @@ final class Hakedis {
     var netAmount: Double { grossAmount - retentionAmount }
     var totalPaid: Double { payments.reduce(0) { $0 + $1.amount } }
     var remainingAmount: Double { netAmount - totalPaid }
+
+    /// Ödeme gecikme günü (vade tarihi geçmişse ve hâlâ ödenmemişse)
+    var daysOverdue: Int {
+        guard let due = dueDate, remainingAmount > 0, status != .paid else { return 0 }
+        let days = Calendar.current.dateComponents([.day], from: due, to: Date()).day ?? 0
+        return max(0, days)
+    }
+
+    /// Gecikme faizi (yasal oran: %9 yıllık → günlük %0.0246575)
+    var overdueInterest: Double {
+        guard daysOverdue > 0 else { return 0 }
+        let dailyRate = 9.0 / 365.0 / 100.0
+        return remainingAmount * dailyRate * Double(daysOverdue)
+    }
+
+    var isOverdue: Bool { daysOverdue > 0 }
 }
 
 enum HakedisStatus: String, Codable, CaseIterable {

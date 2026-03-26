@@ -3,19 +3,16 @@ import SwiftData
 
 struct DashboardView: View {
     @Query private var projects: [Project]
-    @Query private var hakedisler: [Hakedis]
+    @Query(filter: #Predicate<Project> { $0.status == .active })
+    private var activeProjects: [Project]
+    @Query(filter: #Predicate<Hakedis> { $0.status == .pendingApproval })
+    private var pendingHakedisler: [Hakedis]
+    @Query(filter: #Predicate<Hakedis> { $0.status == .approved })
+    private var approvedHakedisler: [Hakedis]
     @Query private var dailyEntries: [DailyEntry]
 
-    private var activeProjects: [Project] {
-        projects.filter { $0.status == .active }
-    }
-
-    private var pendingHakedisler: [Hakedis] {
-        hakedisler.filter { $0.status == .pendingApproval }
-    }
-
     private var overduePayments: [Hakedis] {
-        hakedisler.filter { $0.status == .approved && $0.remainingAmount > 0 }
+        approvedHakedisler.filter { $0.remainingAmount > 0 }
     }
 
     private var todayEntries: [DailyEntry] {
@@ -23,7 +20,7 @@ struct DashboardView: View {
         return dailyEntries.filter { calendar.isDateInToday($0.date) }
     }
 
-        @State private var showingSearch = false
+    @State private var showingSearch = false
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -115,7 +112,6 @@ struct DashboardView: View {
 struct HakedisRowCard: View {
     let hakedis: Hakedis
 
-        @State private var showingSearch = false
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -141,26 +137,46 @@ struct HakedisRowCard: View {
 struct PaymentAlertCard: View {
     let hakedis: Hakedis
 
-        @State private var showingSearch = false
     var body: some View {
-        HStack {
-            Image(systemName: "exclamationmark.circle.fill")
+        HStack(spacing: 10) {
+            Image(systemName: hakedis.isOverdue ? "exclamationmark.triangle.fill" : "exclamationmark.circle.fill")
                 .foregroundColor(.hakedisDanger)
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(hakedis.contract?.title ?? "—")
                     .font(.subheadline.bold())
                 Text(hakedis.periodName)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                if hakedis.isOverdue {
+                    Text("\(hakedis.daysOverdue) gün gecikme")
+                        .font(.caption.bold())
+                        .foregroundColor(.hakedisDanger)
+                } else if let due = hakedis.dueDate {
+                    let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: due).day ?? 0
+                    Text("Vade: \(due.shortFormatted)\(daysLeft > 0 ? " (\(daysLeft) gün)" : " — bugün")")
+                        .font(.caption)
+                        .foregroundColor(.hakedisWarning)
+                }
             }
             Spacer()
-            Text(hakedis.remainingAmount.currencyFormatted)
-                .font(.subheadline.bold())
-                .foregroundColor(.hakedisDanger)
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(hakedis.remainingAmount.currencyFormatted)
+                    .font(.subheadline.bold())
+                    .foregroundColor(.hakedisDanger)
+                if hakedis.overdueInterest > 0 {
+                    Text("+\(hakedis.overdueInterest.currencyFormatted) faiz")
+                        .font(.caption2)
+                        .foregroundColor(.hakedisDanger.opacity(0.7))
+                }
+            }
         }
         .padding(14)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(hakedis.isOverdue ? Color.hakedisDanger.opacity(0.3) : .clear, lineWidth: 1)
+        )
     }
 }
 
@@ -173,7 +189,6 @@ struct ProjectMiniCard: View {
         return items.reduce(0) { $0 + $1.completionPercentage } / Double(items.count)
     }
 
-        @State private var showingSearch = false
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {

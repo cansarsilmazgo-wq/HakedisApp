@@ -21,6 +21,9 @@ struct HakedisListRow: View {
                 Text(hakedis.periodName)
                     .font(.subheadline.bold())
                 Spacer()
+                if hakedis.isOverdue {
+                    StatusBadge(text: "\(hakedis.daysOverdue)g gecikme", color: .hakedisDanger)
+                }
                 StatusBadge(text: hakedis.status.rawValue, color: statusColor)
             }
             HStack {
@@ -33,6 +36,15 @@ struct HakedisListRow: View {
                         .font(.caption)
                         .foregroundColor(.hakedisDanger)
                 }
+            }
+            if let due = hakedis.dueDate, hakedis.status != .paid {
+                HStack(spacing: 4) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.caption2)
+                    Text("Vade: \(due.shortFormatted)")
+                        .font(.caption2)
+                }
+                .foregroundColor(hakedis.isOverdue ? .hakedisDanger : .secondary)
             }
         }
         .padding(.vertical, 4)
@@ -49,6 +61,8 @@ struct AddHakedisView: View {
     @State private var periodName = ""
     @State private var periodStart = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date()))!
     @State private var periodEnd = Date()
+    @State private var hasDueDate = true
+    @State private var dueDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
 
     var isValid: Bool { !periodName.trimmingCharacters(in: .whitespaces).isEmpty }
 
@@ -59,6 +73,13 @@ struct AddHakedisView: View {
                     TextField("Dönem Adı (örn: Ocak 2025)", text: $periodName)
                     DatePicker("Dönem Başlangıcı", selection: $periodStart, displayedComponents: .date)
                     DatePicker("Dönem Sonu", selection: $periodEnd, in: periodStart..., displayedComponents: .date)
+                }
+
+                Section("Ödeme Vadesi") {
+                    Toggle("Vade Tarihi Belirle", isOn: $hasDueDate)
+                    if hasDueDate {
+                        DatePicker("Vade Tarihi", selection: $dueDate, displayedComponents: .date)
+                    }
                 }
 
                 Section("Bilgi") {
@@ -96,7 +117,12 @@ struct AddHakedisView: View {
     }
 
     private func create() {
-        let hakedis = Hakedis(periodName: periodName, periodStart: periodStart, periodEnd: periodEnd)
+        let hakedis = Hakedis(
+            periodName: periodName,
+            periodStart: periodStart,
+            periodEnd: periodEnd,
+            dueDate: hasDueDate ? dueDate : nil
+        )
         hakedis.contract = contract
 
         // Auto-calculate: find previous hakedis cumulative quantities
@@ -208,6 +234,49 @@ struct HakedisDetailView: View {
                     }
                 }
                 .padding(.vertical, 6)
+            }
+
+            // Due Date / Overdue
+            if let due = hakedis.dueDate {
+                Section("Vade Bilgisi") {
+                    HStack {
+                        Label("Vade Tarihi", systemImage: "calendar.badge.clock")
+                        Spacer()
+                        Text(due.shortFormatted)
+                            .foregroundColor(hakedis.isOverdue ? .hakedisDanger : .primary)
+                    }
+                    if hakedis.isOverdue {
+                        HStack {
+                            Label("Gecikme", systemImage: "exclamationmark.triangle.fill")
+                                .foregroundColor(.hakedisDanger)
+                            Spacer()
+                            Text("\(hakedis.daysOverdue) gün")
+                                .foregroundColor(.hakedisDanger)
+                                .bold()
+                        }
+                        HStack {
+                            Label("Gecikme Faizi (%9 yıllık)", systemImage: "percent")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(hakedis.overdueInterest.currencyFormatted)
+                                .font(.caption.bold())
+                                .foregroundColor(.hakedisDanger)
+                        }
+                        Text("Toplam Alacak: \((hakedis.remainingAmount + hakedis.overdueInterest).currencyFormatted)")
+                            .font(.subheadline.bold())
+                            .foregroundColor(.hakedisDanger)
+                    } else if hakedis.status != .paid {
+                        let daysLeft = Calendar.current.dateComponents([.day], from: Date(), to: due).day ?? 0
+                        HStack {
+                            Label("Kalan Süre", systemImage: "hourglass")
+                                .foregroundColor(.hakedisWarning)
+                            Spacer()
+                            Text(daysLeft <= 0 ? "Bugün" : "\(daysLeft) gün")
+                                .foregroundColor(.hakedisWarning)
+                        }
+                    }
+                }
             }
 
             // Status Workflow

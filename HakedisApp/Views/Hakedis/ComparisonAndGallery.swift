@@ -1,5 +1,36 @@
 import SwiftUI
 import SwiftData
+import UIKit
+
+// MARK: - Thumbnail Cache
+private final class ThumbnailCache {
+    static let shared = ThumbnailCache()
+    private let cache: NSCache<NSString, UIImage> = {
+        let c = NSCache<NSString, UIImage>()
+        c.countLimit = 200
+        c.totalCostLimit = 50 * 1024 * 1024 // 50 MB
+        return c
+    }()
+
+    func thumbnail(for data: Data, key: String) -> UIImage? {
+        if let cached = cache.object(forKey: key as NSString) { return cached }
+        guard let original = UIImage(data: data) else { return nil }
+        let thumb = original.resized(toFit: 240)
+        cache.setObject(thumb, forKey: key as NSString)
+        return thumb
+    }
+}
+
+private extension UIImage {
+    func resized(toFit maxSide: CGFloat) -> UIImage {
+        let scale = min(maxSide / size.width, maxSide / size.height)
+        guard scale < 1 else { return self }
+        let newSize = CGSize(width: (size.width * scale).rounded(), height: (size.height * scale).rounded())
+        return UIGraphicsImageRenderer(size: newSize).image { _ in
+            draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+}
 
 struct HakedisComparisonView: View {
     let contract: Contract
@@ -113,7 +144,8 @@ struct PhotoGalleryView: View {
                                 }.padding(.horizontal)
                                 LazyVGrid(columns: columns, spacing: 2) {
                                     ForEach(entry.photoData.indices, id: \.self) { idx in
-                                        if let ui = UIImage(data: entry.photoData[idx]) {
+                                        let cacheKey = "\(entry.id.uuidString)_\(idx)"
+                                        if let ui = ThumbnailCache.shared.thumbnail(for: entry.photoData[idx], key: cacheKey) {
                                             Image(uiImage: ui).resizable().scaledToFill().frame(height: 120).clipped()
                                                 .onTapGesture { selectedItem = PhotoItem(data: entry.photoData[idx], entry: entry) }
                                         }

@@ -10,6 +10,7 @@ struct HakedisWidgetEntry: TimelineEntry {
     let date: Date
     let pendingAmount: Double
     let activeProjects: Int
+    let overdueCount: Int
     let lastHakedisName: String
     let lastHakedisStatus: String
     let lastHakedisAmount: Double
@@ -21,13 +22,14 @@ extension HakedisWidgetEntry {
             date: .now,
             pendingAmount: 125_000,
             activeProjects: 3,
+            overdueCount: 1,
             lastHakedisName: "Mart 2024 Hakedişi",
             lastHakedisStatus: "Onay Bekliyor",
             lastHakedisAmount: 85_000
         )
     }
     static var empty: HakedisWidgetEntry {
-        HakedisWidgetEntry(date: .now, pendingAmount: 0, activeProjects: 0,
+        HakedisWidgetEntry(date: .now, pendingAmount: 0, activeProjects: 0, overdueCount: 0,
                            lastHakedisName: "—", lastHakedisStatus: "—", lastHakedisAmount: 0)
     }
 }
@@ -53,6 +55,7 @@ struct HakedisWidgetProvider: TimelineProvider {
             date: .now,
             pendingAmount: d?.double(forKey: "widget_pending") ?? 0,
             activeProjects: d?.integer(forKey: "widget_activeProjects") ?? 0,
+            overdueCount: d?.integer(forKey: "widget_overdueCount") ?? 0,
             lastHakedisName: d?.string(forKey: "widget_lastHakedis") ?? "—",
             lastHakedisStatus: d?.string(forKey: "widget_lastStatus") ?? "—",
             lastHakedisAmount: d?.double(forKey: "widget_lastAmount") ?? 0
@@ -88,6 +91,12 @@ struct SmallWidgetView: View {
             HStack(spacing: 4) {
                 Image(systemName: "folder.fill").font(.caption2).foregroundStyle(.orange)
                 Text("\(entry.activeProjects) aktif proje").font(.caption2).foregroundStyle(.secondary)
+            }
+            if entry.overdueCount > 0 {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill").font(.caption2).foregroundStyle(.red)
+                    Text("\(entry.overdueCount) geciken").font(.caption2).foregroundStyle(.red)
+                }
             }
         }
         .padding()
