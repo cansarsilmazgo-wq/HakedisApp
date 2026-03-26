@@ -113,6 +113,7 @@ final class WorkItem {
     var unitPrice: Double
     var contractedQuantity: Double
     var location: String
+    var revisionHistory: [String]
     var contract: Contract?
     @Relationship(deleteRule: .cascade) var dailyEntries: [DailyEntry]
 
@@ -124,6 +125,7 @@ final class WorkItem {
         self.unitPrice = unitPrice
         self.contractedQuantity = contractedQuantity
         self.location = location
+        self.revisionHistory = []
         self.dailyEntries = []
     }
 

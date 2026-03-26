@@ -332,6 +332,13 @@ struct ContractDetailView: View {
         }
         .navigationTitle(contract.title)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: ContractRevisionHistoryView(contract: contract)) {
+                    Image(systemName: "clock.arrow.circlepath")
+                }
+            }
+        }
         .sheet(isPresented: $showingAddWorkItem) {
             AddWorkItemView(contract: contract)
         }

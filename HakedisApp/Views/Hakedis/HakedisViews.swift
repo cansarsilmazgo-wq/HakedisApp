@@ -336,6 +336,9 @@ struct HakedisDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 8) {
+                    NavigationLink(destination: HakedisPDFPreviewView(hakedis: hakedis)) {
+                        Image(systemName: "doc.richtext")
+                    }
                     WhatsAppShareButton(hakedis: hakedis)
                     HakedisShareButton(hakedis: hakedis)
                 }
