@@ -39,6 +39,10 @@ struct AddContractView: View {
     @State private var retentionRate = 10.0
     @State private var advanceRate = 0.0
     @State private var selectedContractor: Contractor?
+    @State private var hasDeadline = false
+    @State private var completionDeadline = Date()
+    @State private var dailyPenaltyRate = 0.1
+    @State private var maxPenaltyRate = 20.0
 
     var isValid: Bool {
         !title.trimmingCharacters(in: .whitespaces).isEmpty && selectedContractor != nil
@@ -86,6 +90,31 @@ struct AddContractView: View {
                         Text("%")
                     }
                 }
+
+                Section("Gecikme Cezası") {
+                    Toggle("Bitiş tarihi ve ceza oranı tanımla", isOn: $hasDeadline)
+                    if hasDeadline {
+                        DatePicker("Sözleşme Bitiş Tarihi", selection: $completionDeadline, displayedComponents: .date)
+                        HStack {
+                            Text("Günlük Ceza Oranı")
+                            Spacer()
+                            TextField("0.1", value: $dailyPenaltyRate, format: .number)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                            Text("%")
+                        }
+                        HStack {
+                            Text("Maksimum Ceza Tavanı")
+                            Spacer()
+                            TextField("20", value: $maxPenaltyRate, format: .number)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                            Text("%")
+                        }
+                    }
+                }
             }
             .navigationTitle("Yeni Sözleşme")
             .navigationBarTitleDisplayMode(.inline)
@@ -107,6 +136,11 @@ struct AddContractView: View {
                                 retentionRate: retentionRate, advanceRate: advanceRate)
         contract.project = project
         contract.contractor = selectedContractor
+        if hasDeadline {
+            contract.completionDeadline = completionDeadline
+            contract.dailyPenaltyRate = dailyPenaltyRate
+            contract.maxPenaltyRate = maxPenaltyRate
+        }
         selectedContractor?.contracts.append(contract)
         project.contracts.append(contract)
         modelContext.insert(contract)
@@ -120,6 +154,10 @@ struct ContractDetailView: View {
     let contract: Contract
     @State private var showingAddWorkItem = false
     @State private var showingAddHakedis = false
+    @State private var showingPenaltyCalc = false
+
+    private var delayDays: Int { contract.delayDays() }
+    private var isOverdue: Bool { delayDays > 0 }
 
     var body: some View {
         List {
@@ -143,6 +181,31 @@ struct ContractDetailView: View {
                     }
                     LabeledContent("Taşeron", value: contract.contractor?.name ?? "—")
                     LabeledContent("Tarih", value: contract.contractDate.shortFormatted)
+
+                    if let deadline = contract.completionDeadline {
+                        Divider()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Sözleşme Bitiş").font(.caption).foregroundColor(.secondary)
+                                Text(deadline.shortFormatted).font(.subheadline.bold())
+                            }
+                            Spacer()
+                            if isOverdue {
+                                StatusBadge(text: "\(delayDays) gün gecikme", color: .hakedisDanger)
+                            } else {
+                                let remaining = -delayDays
+                                StatusBadge(text: remaining == 0 ? "Bugün bitiyor" : "\(remaining) gün kaldı",
+                                            color: remaining <= 7 ? .hakedisWarning : .hakedisSuccess)
+                            }
+                        }
+                        Button {
+                            showingPenaltyCalc = true
+                        } label: {
+                            Label("Gecikme Cezası Hesapla", systemImage: "calendar.badge.exclamationmark")
+                                .font(.subheadline)
+                                .foregroundColor(isOverdue ? .hakedisDanger : .hakedisOrange)
+                        }
+                    }
                 }
                 .padding(.vertical, 4)
             }
@@ -216,6 +279,93 @@ struct ContractDetailView: View {
         .sheet(isPresented: $showingAddHakedis) {
             AddHakedisView(contract: contract)
         }
+        .sheet(isPresented: $showingPenaltyCalc) {
+            DelayPenaltyCalculatorView(contract: contract)
+        }
+    }
+}
+
+// MARK: - Delay Penalty Calculator
+struct DelayPenaltyCalculatorView: View {
+    let contract: Contract
+    @Environment(\.dismiss) private var dismiss
+    @State private var completionDate = Date()
+
+    private var deadline: Date { contract.completionDeadline ?? Date() }
+    private var delayDays: Int {
+        let d = Calendar.current.dateComponents([.day], from: deadline, to: completionDate).day ?? 0
+        return max(0, d)
+    }
+    private var contractAmount: Double { contract.totalContractAmount }
+    private var dailyPenalty: Double { contractAmount * (contract.dailyPenaltyRate / 100) }
+    private var rawPenalty: Double { dailyPenalty * Double(delayDays) }
+    private var maxPenalty: Double { contractAmount * (contract.maxPenaltyRate / 100) }
+    private var totalPenalty: Double { min(rawPenalty, maxPenalty) }
+    private var isCapped: Bool { rawPenalty > maxPenalty && delayDays > 0 }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Sözleşme") {
+                    LabeledContent("Sözleşme", value: contract.title)
+                    LabeledContent("Sözleşme Tutarı", value: contractAmount.currencyFormatted)
+                    LabeledContent("Bitiş Tarihi", value: deadline.shortFormatted)
+                    LabeledContent("Günlük Ceza Oranı", value: "%\(contract.dailyPenaltyRate.quantityFormatted)")
+                    LabeledContent("Maksimum Ceza Tavanı", value: "%\(Int(contract.maxPenaltyRate))")
+                }
+
+                Section("Fiili Tamamlanma") {
+                    DatePicker("Tamamlanma Tarihi", selection: $completionDate, displayedComponents: .date)
+                }
+
+                Section("Hesap Sonucu") {
+                    if delayDays == 0 {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill").foregroundColor(.hakedisSuccess)
+                            Text("Gecikme yok — ceza uygulanmaz")
+                                .foregroundColor(.hakedisSuccess)
+                        }
+                    } else {
+                        LabeledContent("Gecikme Süresi") {
+                            Text("\(delayDays) gün")
+                                .bold().foregroundColor(.hakedisDanger)
+                        }
+                        LabeledContent("Günlük Ceza Tutarı") {
+                            Text(dailyPenalty.currencyFormatted)
+                        }
+                        LabeledContent("Hesaplanan Ceza") {
+                            Text(rawPenalty.currencyFormatted)
+                                .foregroundColor(isCapped ? .secondary : .hakedisDanger)
+                        }
+                        if isCapped {
+                            LabeledContent("Uygulanan Ceza (Tavan)") {
+                                Text(totalPenalty.currencyFormatted)
+                                    .bold().foregroundColor(.hakedisDanger)
+                            }
+                            Text("Hesaplanan ceza maksimum ceza tavanını (%\(Int(contract.maxPenaltyRate))) aştığı için \(maxPenalty.currencyFormatted) uygulandı.")
+                                .font(.caption).foregroundColor(.secondary)
+                        } else {
+                            LabeledContent("Toplam Gecikme Cezası") {
+                                Text(totalPenalty.currencyFormatted)
+                                    .bold().foregroundColor(.hakedisDanger)
+                            }
+                        }
+                        Divider()
+                        LabeledContent("Ceza Sonrası Net Tutar") {
+                            Text((contractAmount - totalPenalty).currencyFormatted)
+                                .bold().foregroundColor(.hakedisOrange)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Gecikme Cezası")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kapat") { dismiss() }
+                }
+            }
+        }
     }
 }
 
@@ -250,6 +400,128 @@ struct WorkItemRow: View {
     }
 }
 
+// MARK: - Poz Şablon Kütüphanesi
+
+struct WorkItemTemplate {
+    let code: String
+    let name: String
+    let unit: String
+    let category: String
+}
+
+private let pozSablonlari: [WorkItemTemplate] = [
+    // Kazı / Dolgu
+    WorkItemTemplate(code: "16.001", name: "Makine ile kazı",           unit: "m³",  category: "Kazı/Dolgu"),
+    WorkItemTemplate(code: "16.002", name: "El ile kazı",               unit: "m³",  category: "Kazı/Dolgu"),
+    WorkItemTemplate(code: "16.003", name: "Granüler malzeme dolgu",    unit: "m³",  category: "Kazı/Dolgu"),
+    WorkItemTemplate(code: "16.004", name: "Geri dolgu ve sıkıştırma",  unit: "m³",  category: "Kazı/Dolgu"),
+    // Beton
+    WorkItemTemplate(code: "15.001", name: "C20/25 Beton (kalıpsız)",   unit: "m³",  category: "Beton"),
+    WorkItemTemplate(code: "15.002", name: "C25/30 Beton (kalıplı)",    unit: "m³",  category: "Beton"),
+    WorkItemTemplate(code: "15.003", name: "C30/37 Beton",              unit: "m³",  category: "Beton"),
+    WorkItemTemplate(code: "15.010", name: "Φ8-Φ12 Nervürlü çelik",    unit: "ton", category: "Beton"),
+    WorkItemTemplate(code: "15.011", name: "Φ14-Φ32 Nervürlü çelik",   unit: "ton", category: "Beton"),
+    WorkItemTemplate(code: "15.012", name: "Hasır çelik Q188",          unit: "ton", category: "Beton"),
+    WorkItemTemplate(code: "15.020", name: "Ahşap kalıp",               unit: "m²",  category: "Beton"),
+    // Duvar
+    WorkItemTemplate(code: "20.001", name: "Tuğla duvar (19x19x38)",   unit: "m²",  category: "Duvar"),
+    WorkItemTemplate(code: "20.002", name: "Gazbeton blok (10 cm)",     unit: "m²",  category: "Duvar"),
+    WorkItemTemplate(code: "20.003", name: "Gazbeton blok (20 cm)",     unit: "m²",  category: "Duvar"),
+    WorkItemTemplate(code: "20.004", name: "Briket duvar (19x19x38)",   unit: "m²",  category: "Duvar"),
+    // Sıva / Boya
+    WorkItemTemplate(code: "21.001", name: "İç cephe alçı sıva",       unit: "m²",  category: "Sıva/Boya"),
+    WorkItemTemplate(code: "21.002", name: "Dış cephe çimento sıva",   unit: "m²",  category: "Sıva/Boya"),
+    WorkItemTemplate(code: "21.003", name: "İç cephe su bazlı boya",   unit: "m²",  category: "Sıva/Boya"),
+    WorkItemTemplate(code: "21.004", name: "Dış cephe silikonlu boya", unit: "m²",  category: "Sıva/Boya"),
+    WorkItemTemplate(code: "21.005", name: "Alçıpan asma tavan",       unit: "m²",  category: "Sıva/Boya"),
+    // Zemin / Kaplama
+    WorkItemTemplate(code: "22.001", name: "Seramik zemin kaplama",    unit: "m²",  category: "Zemin"),
+    WorkItemTemplate(code: "22.002", name: "Granit zemin kaplama",     unit: "m²",  category: "Zemin"),
+    WorkItemTemplate(code: "22.003", name: "Laminant parke",           unit: "m²",  category: "Zemin"),
+    WorkItemTemplate(code: "22.004", name: "Şap (50 kg/m²)",           unit: "m²",  category: "Zemin"),
+    WorkItemTemplate(code: "22.005", name: "Mermer merdiven basamağı", unit: "adet", category: "Zemin"),
+    // Çatı
+    WorkItemTemplate(code: "23.001", name: "Alaturka kiremit çatı",   unit: "m²",  category: "Çatı"),
+    WorkItemTemplate(code: "23.002", name: "Trapez sac çatı kaplama", unit: "m²",  category: "Çatı"),
+    WorkItemTemplate(code: "23.003", name: "Isı yalıtımı XPS 5 cm",  unit: "m²",  category: "Çatı"),
+    WorkItemTemplate(code: "23.004", name: "Su yalıtımı 2 kat bitüm",unit: "m²",  category: "Çatı"),
+    // Doğrama
+    WorkItemTemplate(code: "24.001", name: "PVC pencere (çift cam)",       unit: "m²",  category: "Doğrama"),
+    WorkItemTemplate(code: "24.002", name: "Alüminyum sürgülü balkon kapı",unit: "m²",  category: "Doğrama"),
+    WorkItemTemplate(code: "24.003", name: "Ahşap iç kapı (PVC kaplı)",    unit: "adet", category: "Doğrama"),
+    WorkItemTemplate(code: "24.004", name: "Çelik dış kapı",               unit: "adet", category: "Doğrama"),
+    // Elektrik
+    WorkItemTemplate(code: "30.001", name: "Tesisat borusu + kablo",  unit: "m",    category: "Elektrik"),
+    WorkItemTemplate(code: "30.002", name: "Priz + anahtar montajı",  unit: "adet", category: "Elektrik"),
+    WorkItemTemplate(code: "30.003", name: "Elektrik panosu montajı", unit: "adet", category: "Elektrik"),
+    // Tesisat
+    WorkItemTemplate(code: "31.001", name: "PPR boru tesisatı Ø20",   unit: "m",    category: "Tesisat"),
+    WorkItemTemplate(code: "31.002", name: "PVC pis su borusu Ø100",  unit: "m",    category: "Tesisat"),
+    WorkItemTemplate(code: "31.003", name: "Banyo sıhhi tesisat seti",unit: "adet", category: "Tesisat"),
+    WorkItemTemplate(code: "31.004", name: "Mutfak evye + armatür",   unit: "adet", category: "Tesisat"),
+]
+
+struct WorkItemTemplatePicker: View {
+    @Environment(\.dismiss) private var dismiss
+    let onSelect: (WorkItemTemplate) -> Void
+
+    @State private var searchText = ""
+
+    private var filtered: [WorkItemTemplate] {
+        if searchText.isEmpty { return pozSablonlari }
+        return pozSablonlari.filter {
+            $0.name.localizedCaseInsensitiveContains(searchText) ||
+            $0.code.localizedCaseInsensitiveContains(searchText) ||
+            $0.category.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    private var groupedFiltered: [(String, [WorkItemTemplate])] {
+        let dict = Dictionary(grouping: filtered, by: \.category)
+        return dict.keys.sorted().map { ($0, dict[$0]!) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(groupedFiltered, id: \.0) { category, templates in
+                    Section(category) {
+                        ForEach(templates, id: \.code) { template in
+                            Button {
+                                onSelect(template)
+                                dismiss()
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(template.name)
+                                            .font(.subheadline)
+                                            .foregroundColor(.primary)
+                                        Text("[\(template.code)]  ·  \(template.unit)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.hakedisOrange)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            .searchable(text: $searchText, prompt: "Poz veya kategori ara...")
+            .navigationTitle("Poz Şablonları")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("İptal") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Add Work Item
 struct AddWorkItemView: View {
     @Environment(\.modelContext) private var modelContext
@@ -263,6 +535,7 @@ struct AddWorkItemView: View {
     @State private var unitPrice = ""
     @State private var contractedQuantity = ""
     @State private var location = ""
+    @State private var showingTemplatePicker = false
 
     let units = ["m²", "m³", "m", "adet", "ton", "kg", "lt", "saat", "gün"]
 
@@ -275,6 +548,18 @@ struct AddWorkItemView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Button {
+                        showingTemplatePicker = true
+                    } label: {
+                        Label("Şablondan Seç", systemImage: "list.bullet.rectangle")
+                            .foregroundColor(.hakedisOrange)
+                    }
+                } footer: {
+                    Text("Sık kullanılan pozları kütüphaneden seçerek hızlıca ekleyin.")
+                        .font(.caption)
+                }
+
                 Section("Poz Bilgileri") {
                     TextField("Poz No *", text: $code)
                     TextField("İş Kalemi Adı *", text: $name)
@@ -323,6 +608,13 @@ struct AddWorkItemView: View {
                     Button("Kaydet") { save() }
                         .disabled(!isValid)
                         .bold()
+                }
+            }
+            .sheet(isPresented: $showingTemplatePicker) {
+                WorkItemTemplatePicker { template in
+                    code = template.code
+                    name = template.name
+                    unit = template.unit
                 }
             }
         }

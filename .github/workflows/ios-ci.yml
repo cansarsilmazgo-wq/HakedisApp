@@ -1,0 +1,82 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # GoogleService-Info.plist'i GitHub Secret'tan oluştur
+      - name: Create GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICE_INFO: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_INFO" ]; then
+            echo "$GOOGLE_SERVICE_INFO" | base64 --decode > HakedisApp/GoogleService-Info.plist
+          else
+            echo "UYARI: GOOGLE_SERVICE_INFO_PLIST secret bulunamadı, placeholder kullanılıyor"
+          fi
+
+      # CocoaPods cache
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('**/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install CocoaPods
+        run: pod install --repo-update
+
+      # Xcode seçimi (macos-15 ile uyumlu)
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.3.app/Contents/Developer
+
+      - name: Show Build Settings
+        run: |
+          xcodebuild -workspace HakedisApp.xcworkspace \
+            -scheme HakedisApp \
+            -showBuildSettings | grep -E 'SWIFT_VERSION|PRODUCT_BUNDLE|IPHONEOS_DEPLOYMENT'
+
+      - name: Build (Simulator)
+        run: |
+          xcodebuild build \
+            -workspace HakedisApp.xcworkspace \
+            -scheme HakedisApp \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      - name: Test (Simulator)
+        run: |
+          xcodebuild test \
+            -workspace HakedisApp.xcworkspace \
+            -scheme HakedisApp \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty && exit ${PIPESTATUS[0]}
+
+      # Build başarısız olursa log yükle
+      - name: Upload Build Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            ~/Library/Logs/DiagnosticReports/
+            ~/Library/Developer/Xcode/DerivedData/**/Logs/
+          retention-days: 7

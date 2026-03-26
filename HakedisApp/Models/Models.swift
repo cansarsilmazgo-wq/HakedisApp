@@ -38,6 +38,7 @@ final class Contractor {
     var phone: String
     var email: String
     var taxNumber: String
+    var portalPassword: String
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var contracts: [Contract]
 
@@ -48,6 +49,7 @@ final class Contractor {
         self.phone = phone
         self.email = email
         self.taxNumber = taxNumber
+        self.portalPassword = ""
         self.createdAt = Date()
         self.contracts = []
     }
@@ -60,6 +62,9 @@ final class Contract {
     var contractDate: Date
     var retentionRate: Double
     var advanceRate: Double
+    var completionDeadline: Date?
+    var dailyPenaltyRate: Double
+    var maxPenaltyRate: Double
     var project: Project?
     var contractor: Contractor?
     @Relationship(deleteRule: .cascade) var workItems: [WorkItem]
@@ -71,8 +76,27 @@ final class Contract {
         self.contractDate = contractDate
         self.retentionRate = retentionRate
         self.advanceRate = advanceRate
+        self.completionDeadline = nil
+        self.dailyPenaltyRate = 0.0
+        self.maxPenaltyRate = 20.0
         self.workItems = []
         self.hakedisler = []
+    }
+
+    // Gecikme cezası hesabı
+    func delayPenalty(asOf date: Date = Date()) -> Double {
+        guard let deadline = completionDeadline, dailyPenaltyRate > 0 else { return 0 }
+        let days = Calendar.current.dateComponents([.day], from: deadline, to: date).day ?? 0
+        guard days > 0 else { return 0 }
+        let daily = totalContractAmount * (dailyPenaltyRate / 100)
+        let max = totalContractAmount * (maxPenaltyRate / 100)
+        return min(daily * Double(days), max)
+    }
+
+    func delayDays(asOf date: Date = Date()) -> Int {
+        guard let deadline = completionDeadline else { return 0 }
+        let days = Calendar.current.dateComponents([.day], from: deadline, to: date).day ?? 0
+        return max(0, days)
     }
 
     var totalContractAmount: Double {

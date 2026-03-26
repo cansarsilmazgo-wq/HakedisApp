@@ -140,6 +140,7 @@ struct AddContractorView: View {
 // MARK: - Contractor Detail
 struct ContractorDetailView: View {
     let contractor: Contractor
+    @State private var showingPasswordSheet = false
 
     private var allHakedisler: [Hakedis] {
         contractor.contracts.flatMap { $0.hakedisler }
@@ -165,6 +166,23 @@ struct ContractorDetailView: View {
                 }
                 if !contractor.taxNumber.isEmpty {
                     LabeledContent("Vergi No", value: contractor.taxNumber)
+                }
+            }
+
+            Section("Portal Şifresi") {
+                HStack {
+                    Image(systemName: contractor.portalPassword.isEmpty ? "lock.open" : "lock.fill")
+                        .foregroundColor(contractor.portalPassword.isEmpty ? .secondary : .hakedisOrange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(contractor.portalPassword.isEmpty ? "Şifre ayarlanmamış" : "Şifre aktif")
+                            .font(.subheadline)
+                        Text(contractor.portalPassword.isEmpty ? "Portal'a şifresiz erişilebilir" : "Portal girişinde şifre istenir")
+                            .font(.caption).foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Button("Değiştir") { showingPasswordSheet = true }
+                        .font(.subheadline)
+                        .foregroundColor(.hakedisOrange)
                 }
             }
 
@@ -197,5 +215,54 @@ struct ContractorDetailView: View {
         }
         .navigationTitle(contractor.name)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingPasswordSheet) {
+            PortalPasswordSheet(contractor: contractor)
+        }
+    }
+}
+
+// MARK: - Portal Password Sheet
+struct PortalPasswordSheet: View {
+    let contractor: Contractor
+    @Environment(\.dismiss) private var dismiss
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var showError = false
+
+    private var mismatch: Bool { !newPassword.isEmpty && newPassword != confirmPassword }
+    private var canSave: Bool { newPassword == confirmPassword }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    SecureField("Yeni Şifre", text: $newPassword)
+                        .textContentType(.newPassword)
+                    SecureField("Şifre Tekrar", text: $confirmPassword)
+                        .textContentType(.newPassword)
+                } footer: {
+                    if mismatch {
+                        Text("Şifreler eşleşmiyor").foregroundColor(.hakedisDanger)
+                    } else {
+                        Text("Boş bırakırsanız şifre koruması kaldırılır")
+                    }
+                }
+            }
+            .navigationTitle("Portal Şifresi")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("İptal") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") {
+                        contractor.portalPassword = newPassword
+                        dismiss()
+                    }
+                    .bold()
+                    .disabled(!canSave)
+                }
+            }
+        }
     }
 }

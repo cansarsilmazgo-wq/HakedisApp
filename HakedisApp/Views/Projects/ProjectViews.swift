@@ -164,6 +164,43 @@ struct ProjectDetailView: View {
     let project: Project
     @State private var showingAddContract = false
 
+    // MARK: Pursantaj Tahmini hesapları
+    private var allWorkItems: [WorkItem] {
+        project.contracts.flatMap { $0.workItems }
+    }
+
+    private var totalContractValue: Double {
+        allWorkItems.reduce(0) { $0 + $1.totalAmount }
+    }
+
+    private var totalCompletedValue: Double {
+        allWorkItems.reduce(0) { $0 + ($1.completedQuantity * $1.unitPrice) }
+    }
+
+    private var overallCompletion: Double {
+        guard totalContractValue > 0 else { return 0 }
+        return min((totalCompletedValue / totalContractValue) * 100, 100)
+    }
+
+    /// Son 30 günün ortalama günlük üretim değeri (₺/gün)
+    private var dailyPace: Double {
+        let cal = Calendar.current
+        let thirtyDaysAgo = cal.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        let recentValue = allWorkItems.reduce(0.0) { total, wi in
+            let entries = wi.dailyEntries.filter { $0.date >= thirtyDaysAgo }
+            return total + entries.reduce(0.0) { $0 + $1.quantity * wi.unitPrice }
+        }
+        return recentValue / 30.0
+    }
+
+    private var estimatedCompletionDate: Date? {
+        guard dailyPace > 0 else { return nil }
+        let remaining = totalContractValue - totalCompletedValue
+        guard remaining > 0 else { return nil }
+        let days = Int((remaining / dailyPace).rounded(.up))
+        return Calendar.current.date(byAdding: .day, value: days, to: Date())
+    }
+
     var body: some View {
         List {
             // Summary Section
@@ -190,6 +227,59 @@ struct ProjectDetailView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 4)
+            }
+
+            // Pursantaj Tahmini
+            if totalContractValue > 0 {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Genel Tamamlanma")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(overallCompletion.percentFormatted)
+                                .font(.headline)
+                                .foregroundColor(overallCompletion >= 100 ? .hakedisSuccess : .hakedisOrange)
+                        }
+                        ProgressBarView(
+                            progress: overallCompletion,
+                            color: overallCompletion >= 100 ? .hakedisSuccess : .hakedisOrange
+                        )
+                        if overallCompletion >= 100 {
+                            Label("Tüm işler tamamlandı", systemImage: "checkmark.circle.fill")
+                                .font(.subheadline)
+                                .foregroundColor(.hakedisSuccess)
+                        } else if let est = estimatedCompletionDate {
+                            Divider()
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Günlük Tempo (30g ort.)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text("\(dailyPace.currencyFormatted)/gün")
+                                        .font(.subheadline.bold())
+                                }
+                                Spacer()
+                                VStack(alignment: .trailing, spacing: 4) {
+                                    Text("Tahmini Bitiş")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                    Text(est.shortFormatted)
+                                        .font(.subheadline.bold())
+                                        .foregroundColor(.hakedisOrange)
+                                }
+                            }
+                        } else {
+                            Label("Tempo hesaplamak için günlük giriş yapın", systemImage: "info.circle")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                } header: {
+                    Text("Pursantaj Tahmini")
+                }
             }
 
             // Contracts

@@ -264,7 +264,14 @@ struct HakedisDetailView: View {
                 }
             }
         }
-        .toolbar { ToolbarItem(placement: .topBarTrailing) { HakedisShareButton(hakedis: hakedis) } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                HStack(spacing: 8) {
+                    WhatsAppShareButton(hakedis: hakedis)
+                    HakedisShareButton(hakedis: hakedis)
+                }
+            }
+        }
         .navigationTitle(hakedis.periodName)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingAddPayment) {

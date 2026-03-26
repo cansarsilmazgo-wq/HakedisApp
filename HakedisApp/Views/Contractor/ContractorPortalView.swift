@@ -5,6 +5,8 @@ struct ContractorPortalView: View {
     @Query private var contractors: [Contractor]
     @State private var selectedContractor: Contractor?
     @State private var isAuthenticated = false
+    @State private var pendingContractor: Contractor?
+    @State private var showingPasswordEntry = false
 
     var body: some View {
         NavigationStack {
@@ -17,6 +19,25 @@ struct ContractorPortalView: View {
                 loginView
             }
         }
+        .sheet(isPresented: $showingPasswordEntry) {
+            if let contractor = pendingContractor {
+                PortalLoginSheet(contractor: contractor) {
+                    selectedContractor = contractor
+                    isAuthenticated = true
+                    showingPasswordEntry = false
+                }
+            }
+        }
+    }
+
+    private func selectContractor(_ contractor: Contractor) {
+        if contractor.portalPassword.isEmpty {
+            selectedContractor = contractor
+            isAuthenticated = true
+        } else {
+            pendingContractor = contractor
+            showingPasswordEntry = true
+        }
     }
 
     var loginView: some View {
@@ -26,8 +47,8 @@ struct ContractorPortalView: View {
                     Image(systemName: "person.badge.shield.checkmark")
                         .font(.system(size: 56))
                         .foregroundColor(.hakedisOrange)
-                    Text("Taseron Girisi").font(.title.bold())
-                    Text("Hakedislerinizi gormek icin firmay secin")
+                    Text("Taşeron Girişi").font(.title.bold())
+                    Text("Hakedişlerinizi görmek için firmanızı seçin")
                         .font(.subheadline).foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
@@ -35,10 +56,7 @@ struct ContractorPortalView: View {
 
                 VStack(spacing: 12) {
                     ForEach(contractors) { contractor in
-                        Button {
-                            selectedContractor = contractor
-                            isAuthenticated = true
-                        } label: {
+                        Button { selectContractor(contractor) } label: {
                             HStack {
                                 Circle()
                                     .fill(Color.hakedisOrange.opacity(0.15))
@@ -55,7 +73,9 @@ struct ContractorPortalView: View {
                                     }
                                 }
                                 Spacer()
-                                Image(systemName: "chevron.right").foregroundColor(.secondary)
+                                Image(systemName: contractor.portalPassword.isEmpty ? "chevron.right" : "lock.fill")
+                                    .foregroundColor(contractor.portalPassword.isEmpty ? .secondary : .hakedisOrange)
+                                    .font(.caption)
                             }
                             .padding(16)
                             .background(Color(UIColor.secondarySystemGroupedBackground))
@@ -66,8 +86,8 @@ struct ContractorPortalView: View {
                     if contractors.isEmpty {
                         EmptyStateView(
                             icon: "person.2",
-                            title: "Taseron bulunamadi",
-                            subtitle: "Taseronlar sekmesinden once taseron ekleyin"
+                            title: "Taşeron bulunamadı",
+                            subtitle: "Taşeronlar sekmesinden önce taşeron ekleyin"
                         )
                     }
                 }
@@ -75,7 +95,80 @@ struct ContractorPortalView: View {
             }
         }
         .background(Color(UIColor.systemGroupedBackground))
-        .navigationTitle("Taseron Portali")
+        .navigationTitle("Taşeron Portali")
+    }
+}
+
+// MARK: - Portal Login Sheet
+struct PortalLoginSheet: View {
+    let contractor: Contractor
+    let onSuccess: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var enteredPassword = ""
+    @State private var failed = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 32) {
+                VStack(spacing: 12) {
+                    Circle()
+                        .fill(Color.hakedisOrange.opacity(0.15))
+                        .frame(width: 72, height: 72)
+                        .overlay(
+                            Text(String(contractor.name.prefix(2)).uppercased())
+                                .font(.title2.bold())
+                                .foregroundColor(.hakedisOrange)
+                        )
+                    Text(contractor.name).font(.title3.bold())
+                    Text("Portal şifrenizi girin").font(.subheadline).foregroundColor(.secondary)
+                }
+                .padding(.top, 32)
+
+                VStack(spacing: 12) {
+                    SecureField("Şifre", text: $enteredPassword)
+                        .textContentType(.password)
+                        .padding()
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal)
+
+                    if failed {
+                        Text("Hatalı şifre, tekrar deneyin")
+                            .font(.caption)
+                            .foregroundColor(.hakedisDanger)
+                    }
+
+                    Button {
+                        if enteredPassword == contractor.portalPassword {
+                            onSuccess()
+                        } else {
+                            failed = true
+                            enteredPassword = ""
+                        }
+                    } label: {
+                        Text("Giriş Yap")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(enteredPassword.isEmpty ? Color.secondary : Color.hakedisOrange)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .disabled(enteredPassword.isEmpty)
+                    .padding(.horizontal)
+                }
+
+                Spacer()
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            .navigationTitle("Giriş")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("İptal") { dismiss() }
+                }
+            }
+        }
     }
 }
 

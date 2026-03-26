@@ -3,121 +3,136 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B001 /* HakedisApp.swift */ = {isa = PBXBuildFile; fileRef = A001; };
-		B002 /* ContentView.swift */ = {isa = PBXBuildFile; fileRef = A002; };
-		B003 /* Models.swift */ = {isa = PBXBuildFile; fileRef = A003; };
-		B004 /* DesignSystem.swift */ = {isa = PBXBuildFile; fileRef = A004; };
-		B005 /* DashboardView.swift */ = {isa = PBXBuildFile; fileRef = A005; };
-		B006 /* ProjectViews.swift */ = {isa = PBXBuildFile; fileRef = A006; };
-		B007 /* ReportsView.swift */ = {isa = PBXBuildFile; fileRef = A007; };
-		B008 /* ContractorViews.swift */ = {isa = PBXBuildFile; fileRef = A008; };
-		B009 /* ContractViews.swift */ = {isa = PBXBuildFile; fileRef = A009; };
-		B010 /* DailyEntryViews.swift */ = {isa = PBXBuildFile; fileRef = A010; };
-		B011 /* HakedisViews.swift */ = {isa = PBXBuildFile; fileRef = A011; };
-		S001 /* SearchFilterView.swift */ = {isa = PBXBuildFile; fileRef = C001; };
-		S002 /* ContractorPortalView.swift */ = {isa = PBXBuildFile; fileRef = C002; };
-		S003 /* RevisionViews.swift */ = {isa = PBXBuildFile; fileRef = C003; };
-		S004 /* ComparisonAndGallery.swift */ = {isa = PBXBuildFile; fileRef = C004; };
-		S005 = {isa = PBXBuildFile; fileRef = C005; };
-		S006 = {isa = PBXBuildFile; fileRef = C006; };
-		S007 = {isa = PBXBuildFile; fileRef = C007; };
-		S008 = {isa = PBXBuildFile; fileRef = C008; };
+		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
+		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
+		SPM_BF2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP2 /* FirebaseCrashlytics */; };
+		B001 /* HakedisApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A001 /* HakedisApp.swift */; };
+		B002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002 /* ContentView.swift */; };
+		B003 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
+		B004 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A004 /* DesignSystem.swift */; };
+		B005 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A005 /* DashboardView.swift */; };
+		B006 /* ProjectViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A006 /* ProjectViews.swift */; };
+		B007 /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A007 /* ReportsView.swift */; };
+		B008 /* ContractorViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A008 /* ContractorViews.swift */; };
+		B009 /* ContractViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A009 /* ContractViews.swift */; };
+		B010 /* DailyEntryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A010 /* DailyEntryViews.swift */; };
+		B011 /* HakedisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A011 /* HakedisViews.swift */; };
+		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
+		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
+		S003 /* RevisionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003 /* RevisionViews.swift */; };
+		S004 /* ComparisonAndGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C004 /* ComparisonAndGallery.swift */; };
+		S005 /* PDFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C005 /* PDFView.swift */; };
+		S006 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C006 /* NotificationManager.swift */; };
+		S007 /* OfflineSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C007 /* OfflineSyncManager.swift */; };
+		S008 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C008 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		A001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisApp.swift; path = HakedisApp/HakedisApp.swift; sourceTree = "<group>"; };
-		A002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = HakedisApp/ContentView.swift; sourceTree = "<group>"; };
-		A003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = HakedisApp/Models/Models.swift; sourceTree = "<group>"; };
-		A004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DesignSystem.swift; path = HakedisApp/Views/Shared/DesignSystem.swift; sourceTree = "<group>"; };
-		A005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = HakedisApp/Views/Projects/DashboardView.swift; sourceTree = "<group>"; };
-		A006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectViews.swift; path = HakedisApp/Views/Projects/ProjectViews.swift; sourceTree = "<group>"; };
-		A007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReportsView.swift; path = HakedisApp/Views/Projects/ReportsView.swift; sourceTree = "<group>"; };
-		A008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorViews.swift; path = HakedisApp/Views/Contracts/ContractorViews.swift; sourceTree = "<group>"; };
-		A009 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractViews.swift; path = HakedisApp/Views/Contracts/ContractViews.swift; sourceTree = "<group>"; };
-		A010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DailyEntryViews.swift; path = HakedisApp/Views/DailyEntry/DailyEntryViews.swift; sourceTree = "<group>"; };
-		A011 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisViews.swift; path = HakedisApp/Views/Hakedis/HakedisViews.swift; sourceTree = "<group>"; };
-		PROD1 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchFilterView.swift; path = HakedisApp/Views/Shared/SearchFilterView.swift; sourceTree = "<group>"; };
-		C002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPortalView.swift; path = HakedisApp/Views/Contractor/ContractorPortalView.swift; sourceTree = "<group>"; };
-		C003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RevisionViews.swift; path = HakedisApp/Views/Contracts/RevisionViews.swift; sourceTree = "<group>"; };
-		C004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ComparisonAndGallery.swift; path = HakedisApp/Views/Hakedis/ComparisonAndGallery.swift; sourceTree = "<group>"; };
-		C005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFView.swift; path = HakedisApp/Views/Hakedis/PDFView.swift; sourceTree = "<group>"; };
-		C006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = HakedisApp/Views/Shared/NotificationManager.swift; sourceTree = "<group>"; };
-		C007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
-		C008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
+		A001 /* HakedisApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisApp.swift; path = HakedisApp/HakedisApp.swift; sourceTree = "<group>"; };
+		A002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = HakedisApp/ContentView.swift; sourceTree = "<group>"; };
+		A003 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = HakedisApp/Models/Models.swift; sourceTree = "<group>"; };
+		A004 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DesignSystem.swift; path = HakedisApp/Views/Shared/DesignSystem.swift; sourceTree = "<group>"; };
+		A005 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = HakedisApp/Views/Projects/DashboardView.swift; sourceTree = "<group>"; };
+		A006 /* ProjectViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectViews.swift; path = HakedisApp/Views/Projects/ProjectViews.swift; sourceTree = "<group>"; };
+		A007 /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReportsView.swift; path = HakedisApp/Views/Projects/ReportsView.swift; sourceTree = "<group>"; };
+		A008 /* ContractorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorViews.swift; path = HakedisApp/Views/Contracts/ContractorViews.swift; sourceTree = "<group>"; };
+		A009 /* ContractViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractViews.swift; path = HakedisApp/Views/Contracts/ContractViews.swift; sourceTree = "<group>"; };
+		A010 /* DailyEntryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DailyEntryViews.swift; path = HakedisApp/Views/DailyEntry/DailyEntryViews.swift; sourceTree = "<group>"; };
+		A011 /* HakedisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisViews.swift; path = HakedisApp/Views/Hakedis/HakedisViews.swift; sourceTree = "<group>"; };
+		BED3D08F2F721561002B3563 /* HakedisApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisApp.entitlements; path = HakedisApp/HakedisApp.entitlements; sourceTree = "<group>"; };
+		C001 /* SearchFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SearchFilterView.swift; path = HakedisApp/Views/Shared/SearchFilterView.swift; sourceTree = "<group>"; };
+		C002 /* ContractorPortalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPortalView.swift; path = HakedisApp/Views/Contractor/ContractorPortalView.swift; sourceTree = "<group>"; };
+		C003 /* RevisionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RevisionViews.swift; path = HakedisApp/Views/Contracts/RevisionViews.swift; sourceTree = "<group>"; };
+		C004 /* ComparisonAndGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ComparisonAndGallery.swift; path = HakedisApp/Views/Hakedis/ComparisonAndGallery.swift; sourceTree = "<group>"; };
+		C005 /* PDFView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PDFView.swift; path = HakedisApp/Views/Hakedis/PDFView.swift; sourceTree = "<group>"; };
+		C006 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NotificationManager.swift; path = HakedisApp/Views/Shared/NotificationManager.swift; sourceTree = "<group>"; };
+		C007 /* OfflineSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
+		C008 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
+		PROD1 /* HakedisApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		ROOT = {
+		GRP1 /* HakedisApp */ = {
 			isa = PBXGroup;
 			children = (
-				GRP1,
-				GRP2,
-			);
-			sourceTree = "<group>";
-		};
-		GRP1 = {
-			isa = PBXGroup;
-			children = (
-				A001,
-				A002,
-				A003,
-				A004,
-				A005,
-				A006,
-				A007,
-				A008,
-				A009,
-				A010,
-				A011,
-				C008,
-				C007,
-				C006,
-				C005,
-				C004,
-				C003,
-				C002,
-				C001,
+				BED3D08F2F721561002B3563 /* HakedisApp.entitlements */,
+				PLIST1 /* GoogleService-Info.plist */,
+				A001 /* HakedisApp.swift */,
+				A002 /* ContentView.swift */,
+				A003 /* Models.swift */,
+				A004 /* DesignSystem.swift */,
+				A005 /* DashboardView.swift */,
+				A006 /* ProjectViews.swift */,
+				A007 /* ReportsView.swift */,
+				A008 /* ContractorViews.swift */,
+				A009 /* ContractViews.swift */,
+				A010 /* DailyEntryViews.swift */,
+				A011 /* HakedisViews.swift */,
+				C008 /* SettingsView.swift */,
+				C007 /* OfflineSyncManager.swift */,
+				C006 /* NotificationManager.swift */,
+				C005 /* PDFView.swift */,
+				C004 /* ComparisonAndGallery.swift */,
+				C003 /* RevisionViews.swift */,
+				C002 /* ContractorPortalView.swift */,
+				C001 /* SearchFilterView.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
 		};
-		GRP2 = {
+		GRP2 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				PROD1,
+				PROD1 /* HakedisApp.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		ROOT = {
+			isa = PBXGroup;
+			children = (
+				GRP1 /* HakedisApp */,
+				GRP2 /* Products */,
+			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		TGT1 = {
+		TGT1 /* HakedisApp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CFGLST1;
+			buildConfigurationList = CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */;
 			buildPhases = (
-				PHS1,
+				PHS1 /* Sources */,
+				PHS2 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = HakedisApp;
+			packageProductDependencies = (
+				SPM_DEP0 /* FirebaseCore */,
+				SPM_DEP1 /* FirebaseAnalytics */,
+				SPM_DEP2 /* FirebaseCrashlytics */,
+			);
 			productName = HakedisApp;
-			productReference = PROD1;
+			productReference = PROD1 /* HakedisApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		PROJ = {
+		PROJ /* Project object */ = {
 			isa = PBXProject;
-			buildConfigurationList = CFGLST2;
+			attributes = {
+			};
+			buildConfigurationList = CFGLST2 /* Build configuration list for PBXProject "HakedisApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = tr;
 			hasScannedForEncodings = 0;
@@ -127,35 +142,38 @@
 				Base,
 			);
 			mainGroup = ROOT;
-			productRefGroup = GRP2;
+			packageReferences = (
+				SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			productRefGroup = GRP2 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				TGT1,
+				TGT1 /* HakedisApp */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
-		PHS1 = {
+		PHS1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B001,
-				B002,
-				B003,
-				B004,
-				B005,
-				B006,
-				B007,
-				B008,
-				B009,
-				B010,
-				B011,
-				S008,
-				S007,
-				S006,
-				S005,
+				B001 /* HakedisApp.swift in Sources */,
+				B002 /* ContentView.swift in Sources */,
+				B003 /* Models.swift in Sources */,
+				B004 /* DesignSystem.swift in Sources */,
+				B005 /* DashboardView.swift in Sources */,
+				B006 /* ProjectViews.swift in Sources */,
+				B007 /* ReportsView.swift in Sources */,
+				B008 /* ContractorViews.swift in Sources */,
+				B009 /* ContractViews.swift in Sources */,
+				B010 /* DailyEntryViews.swift in Sources */,
+				B011 /* HakedisViews.swift in Sources */,
+				S008 /* SettingsView.swift in Sources */,
+				S007 /* OfflineSyncManager.swift in Sources */,
+				S006 /* NotificationManager.swift in Sources */,
+				S005 /* PDFView.swift in Sources */,
 				S004 /* ComparisonAndGallery.swift in Sources */,
 				S003 /* RevisionViews.swift in Sources */,
 				S002 /* ContractorPortalView.swift in Sources */,
@@ -165,31 +183,55 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		PHS2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				SPM_BF0 /* FirebaseCore in Frameworks */,
+				SPM_BF1 /* FirebaseAnalytics in Frameworks */,
+				SPM_BF2 /* FirebaseCrashlytics in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin XCBuildConfiguration section */
-		CFG1 = {
+		CFG1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SWIFT_VERSION = 5.0;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		CFG2 = {
+		CFG2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				SWIFT_VERSION = 5.0;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
-		CFG3 = {
+		CFG3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/HakedisApp.entitlements;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 857PAZCN89;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Saha fotograflari icin gerekli";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -198,22 +240,33 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		CFG4 = {
+		CFG4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/HakedisApp.entitlements;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 857PAZCN89;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -222,26 +275,54 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CFGLST1 = {
+		CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CFG3,
-				CFG4,
+				CFG3 /* Debug */,
+				CFG4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CFGLST2 = {
+		CFGLST2 /* Build configuration list for PBXProject "HakedisApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CFG1,
-				CFG2,
+				CFG1 /* Debug */,
+				CFG2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		SPM_DEP0 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		SPM_DEP1 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		SPM_DEP2 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = PROJ;
+	rootObject = PROJ /* Project object */;
 }

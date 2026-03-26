@@ -25,6 +25,38 @@ struct HakedisShareButton: View {
     }
 }
 
+// MARK: - WhatsApp Paylaşım Kısayolu
+struct WhatsAppShareButton: View {
+    let hakedis: Hakedis
+    @State private var pdfItem: PDFFileItem?
+
+    private func generateAndShare() {
+        let data = HakedisPDFGenerator.generate(hakedis: hakedis)
+        let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).pdf")
+        try? data.write(to: url)
+        pdfItem = PDFFileItem(url: url)
+    }
+
+    var body: some View {
+        Button(action: generateAndShare) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.up.circle.fill")
+                Text("WhatsApp")
+                    .font(.subheadline.bold())
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color(red: 0.07, green: 0.73, blue: 0.36))
+            .clipShape(Capsule())
+        }
+        .sheet(item: $pdfItem) { item in
+            ShareSheet(items: [item.url])
+        }
+    }
+}
+
 struct HakedisPDFGenerator {
     static func generate(hakedis: Hakedis) -> Data {
         let pageWidth: CGFloat = 595.2
