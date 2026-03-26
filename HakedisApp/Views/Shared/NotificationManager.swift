@@ -5,6 +5,16 @@ class NotificationManager: ObservableObject {
     static let shared = NotificationManager()
     @Published var isAuthorized = false
 
+    var overdueAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "overdueAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "overdueAlertsEnabled") }
+    }
+
+    var approvalAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "approvalAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "approvalAlertsEnabled") }
+    }
+
     func requestPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
             DispatchQueue.main.async { self.isAuthorized = granted }
@@ -12,24 +22,24 @@ class NotificationManager: ObservableObject {
     }
 
     func scheduleHakedisReminder(hakedis: Hakedis) {
-        guard isAuthorized else { requestPermission(); return }
+        guard isAuthorized, approvalAlertsEnabled else { return }
         let content = UNMutableNotificationContent()
         content.title = "Hakediş Onay Bekliyor"
         content.body = "\(hakedis.periodName) hakedişi onayınızı bekliyor."
         content.sound = .default
         content.badge = 1
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(identifier: hakedis.id.uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
 
     func schedulePaymentOverdueAlert(hakedis: Hakedis, daysOverdue: Int) {
-        guard isAuthorized else { return }
+        guard isAuthorized, overdueAlertsEnabled else { return }
         let content = UNMutableNotificationContent()
         content.title = "Geciken Ödeme Uyarısı"
         content.body = "\(hakedis.contract?.contractor?.name ?? "Taşeron") - \(hakedis.periodName): \(daysOverdue) gündür ödeme bekleniyor."
         content.sound = .default
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(identifier: "overdue_\(hakedis.id.uuidString)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
@@ -57,8 +67,8 @@ class NotificationManager: ObservableObject {
 struct NotificationSettingsView: View {
     @StateObject private var manager = NotificationManager.shared
     @State private var dailyReminderEnabled = false
-    @State private var overdueAlertsEnabled = false
-    @State private var approvalAlertsEnabled = false
+    @AppStorage("overdueAlertsEnabled") private var overdueAlertsEnabled = false
+    @AppStorage("approvalAlertsEnabled") private var approvalAlertsEnabled = false
 
     var body: some View {
         Form {
@@ -84,12 +94,34 @@ struct NotificationSettingsView: View {
                     }
                 Toggle("Geciken Ödeme Uyarıları", isOn: $overdueAlertsEnabled)
                     .tint(.hakedisOrange)
+                    .onChange(of: overdueAlertsEnabled) { _, val in
+                        manager.overdueAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { $0.identifier.hasPrefix("overdue_") }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
                 Toggle("Hakediş Onay Bildirimleri", isOn: $approvalAlertsEnabled)
                     .tint(.hakedisOrange)
+                    .onChange(of: approvalAlertsEnabled) { _, val in
+                        manager.approvalAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { req in
+                                    !req.identifier.hasPrefix("overdue_") && req.identifier != "daily_reminder"
+                                }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
             }
 
             Section("Bilgi") {
                 Text("Günlük hatırlatıcı her gün saat 17:00'de saha girişi yapmanızı hatırlatır.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Geciken ödeme ve hakediş bildirimleri, ilgili işlem gerçekleştiğinde otomatik gönderilir.")
                     .font(.caption).foregroundColor(.secondary)
             }
         }
@@ -99,6 +131,11 @@ struct NotificationSettingsView: View {
             UNUserNotificationCenter.current().getNotificationSettings { settings in
                 DispatchQueue.main.async {
                     manager.isAuthorized = settings.authorizationStatus == .authorized
+                }
+            }
+            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                DispatchQueue.main.async {
+                    dailyReminderEnabled = requests.contains { $0.identifier == "daily_reminder" }
                 }
             }
         }

@@ -207,7 +207,7 @@ struct ContractorDashboardView: View {
                     HStack(spacing: 0) {
                         PortalStatItem(label: "Toplam", value: totalNet.currencyFormatted, color: .primary)
                         Divider().frame(height: 40)
-                        PortalStatItem(label: "Odenen", value: totalPaid.currencyFormatted, color: .hakedisSuccess)
+                        PortalStatItem(label: "Ödenen", value: totalPaid.currencyFormatted, color: .hakedisSuccess)
                         Divider().frame(height: 40)
                         PortalStatItem(label: "Bekleyen", value: totalPending.currencyFormatted, color: totalPending > 0 ? .hakedisDanger : .hakedisSuccess)
                     }
@@ -215,9 +215,9 @@ struct ContractorDashboardView: View {
                 .padding(.vertical, 4)
             }
 
-            Section("Hakedislerim") {
+            Section("Hakedişlerim") {
                 if allHakedisler.isEmpty {
-                    Text("Henuz hakedis yok").foregroundColor(.secondary)
+                    Text("Henüz hakediş yok").foregroundColor(.secondary)
                 } else {
                     ForEach(allHakedisler) { h in
                         NavigationLink(destination: ContractorHakedisDetailView(hakedis: h)) {
@@ -227,7 +227,7 @@ struct ContractorDashboardView: View {
                 }
             }
 
-            Section("Sozlesmelerim") {
+            Section("Sözleşmelerim") {
                 ForEach(contractor.contracts) { c in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(c.title).font(.subheadline.bold())
@@ -241,11 +241,11 @@ struct ContractorDashboardView: View {
                 }
             }
         }
-        .navigationTitle("Portalim")
+        .navigationTitle("Portalım")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Cikis") { onLogout() }.foregroundColor(.hakedisDanger)
+                Button("Çıkış") { onLogout() }.foregroundColor(.hakedisDanger)
             }
         }
     }
@@ -303,7 +303,7 @@ struct ContractorHakedisDetailView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Net Hakedis").font(.caption).foregroundColor(.secondary)
+                            Text("Net Hakediş").font(.caption).foregroundColor(.secondary)
                             Text(hakedis.netAmount.currencyFormatted).font(.title2.bold())
                         }
                         Spacer()
@@ -312,7 +312,7 @@ struct ContractorHakedisDetailView: View {
                     Divider()
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Brut").font(.caption).foregroundColor(.secondary)
+                            Text("Brüt").font(.caption).foregroundColor(.secondary)
                             Text(hakedis.grossAmount.currencyFormatted).font(.subheadline)
                         }
                         Spacer()
@@ -325,7 +325,7 @@ struct ContractorHakedisDetailView: View {
                 .padding(.vertical, 4)
             }
 
-            Section("Is Kalemleri") {
+            Section("İş Kalemleri") {
                 ForEach(hakedis.items) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
@@ -347,11 +347,11 @@ struct ContractorHakedisDetailView: View {
                     if objectionSubmitted {
                         HStack {
                             Image(systemName: "checkmark.circle.fill").foregroundColor(.hakedisSuccess)
-                            Text("Itiraziniz iletildi").foregroundColor(.hakedisSuccess)
+                            Text("İtirazınız iletildi").foregroundColor(.hakedisSuccess)
                         }
                     } else {
                         Button { showingObjection = true } label: {
-                            Label("Itiraz Bildir", systemImage: "exclamationmark.bubble")
+                            Label("İtiraz Bildir", systemImage: "exclamationmark.bubble")
                                 .foregroundColor(.hakedisDanger)
                         }
                     }
@@ -379,28 +379,45 @@ struct ObjectionView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Itiraz Kalemi") {
+                Section("İtiraz Kalemi") {
                     Picker("Kalem", selection: $selectedItem) {
-                        Text("Genel Itiraz").tag(Optional<HakedisItem>.none)
+                        Text("Genel İtiraz").tag(Optional<HakedisItem>.none)
                         ForEach(hakedis.items) { i in
                             Text("[\(i.workItemCode)] \(i.workItemName)").tag(Optional(i))
                         }
                     }
                 }
-                Section("Aciklama") {
+                Section("Açıklama") {
                     TextEditor(text: $text).frame(minHeight: 80)
                 }
             }
-            .navigationTitle("Itiraz Bildir")
+            .navigationTitle("İtiraz Bildir")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Iptal") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Gonder") { onSubmit() }
-                        .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
-                        .bold()
+                    Button("Gönder") {
+                        saveObjection()
+                        onSubmit()
+                    }
+                    .disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .bold()
                 }
             }
+        }
+    }
+
+    private func saveObjection() {
+        let key = "objection_\(hakedis.id.uuidString)"
+        let record: [String: String] = [
+            "hakedisId": hakedis.id.uuidString,
+            "hakedisName": hakedis.periodName,
+            "workItem": selectedItem?.workItemName ?? "Genel",
+            "text": text,
+            "date": ISO8601DateFormatter().string(from: Date())
+        ]
+        if let data = try? JSONEncoder().encode(record) {
+            UserDefaults.standard.set(data, forKey: key)
         }
     }
 }
