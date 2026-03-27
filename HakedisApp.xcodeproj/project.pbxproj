@@ -30,6 +30,7 @@
 		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
 		S012 /* ChangeOrderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C012 /* ChangeOrderViews.swift */; };
 		S013 /* ContractorPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C013 /* ContractorPerformanceView.swift */; };
+		S014 /* MilestoneViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C014 /* MilestoneViews.swift */; };
 		S003 /* RevisionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003 /* RevisionViews.swift */; };
 		S004 /* ComparisonAndGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C004 /* ComparisonAndGallery.swift */; };
 		S005 /* PDFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C005 /* PDFView.swift */; };
@@ -67,6 +68,7 @@
 		C010 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetDataManager.swift; path = HakedisApp/Views/Shared/WidgetDataManager.swift; sourceTree = "<group>"; };
 		C012 /* ChangeOrderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChangeOrderViews.swift; path = HakedisApp/Views/Contracts/ChangeOrderViews.swift; sourceTree = "<group>"; };
 		C013 /* ContractorPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPerformanceView.swift; path = HakedisApp/Views/Contracts/ContractorPerformanceView.swift; sourceTree = "<group>"; };
+		C014 /* MilestoneViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MilestoneViews.swift; path = HakedisApp/Views/Projects/MilestoneViews.swift; sourceTree = "<group>"; };
 		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
 		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
 		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
@@ -117,6 +119,7 @@
 				C003 /* RevisionViews.swift */,
 				C012 /* ChangeOrderViews.swift */,
 				C013 /* ContractorPerformanceView.swift */,
+				C014 /* MilestoneViews.swift */,
 				C002 /* ContractorPortalView.swift */,
 				C001 /* SearchFilterView.swift */,
 			);
@@ -320,6 +323,7 @@
 				S003 /* RevisionViews.swift in Sources */,
 				S012 /* ChangeOrderViews.swift in Sources */,
 				S013 /* ContractorPerformanceView.swift in Sources */,
+				S014 /* MilestoneViews.swift in Sources */,
 				S002 /* ContractorPortalView.swift in Sources */,
 				S001 /* SearchFilterView.swift in Sources */,
 			);

@@ -11,6 +11,7 @@ final class Project {
     var status: ProjectStatus
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var contracts: [Contract]
+    @Relationship(deleteRule: .cascade) var milestones: [Milestone]
 
     init(name: String, projectDescription: String = "", location: String = "", startDate: Date = Date()) {
         self.id = UUID()
@@ -21,6 +22,7 @@ final class Project {
         self.status = .active
         self.createdAt = Date()
         self.contracts = []
+        self.milestones = []
     }
 }
 
@@ -351,6 +353,53 @@ enum ChangeOrderStatus: String, Codable, CaseIterable {
     case pending  = "Beklemede"
     case approved = "Onaylandı"
     case rejected = "Reddedildi"
+}
+
+// MARK: - Milestone (İş Programı)
+
+@Model
+final class Milestone {
+    var id: UUID
+    var title: String
+    var plannedDate: Date
+    var actualDate: Date?
+    var notes: String
+    var isCritical: Bool
+    var project: Project?
+    var createdAt: Date
+
+    init(title: String, plannedDate: Date, notes: String = "", isCritical: Bool = false) {
+        self.id = UUID()
+        self.title = title
+        self.plannedDate = plannedDate
+        self.notes = notes
+        self.isCritical = isCritical
+        self.createdAt = Date()
+    }
+
+    var isCompleted: Bool { actualDate != nil }
+
+    var delayDays: Int {
+        if let actual = actualDate {
+            let days = Calendar.current.dateComponents([.day], from: plannedDate, to: actual).day ?? 0
+            return max(0, days)
+        }
+        guard Date() > plannedDate else { return 0 }
+        return Calendar.current.dateComponents([.day], from: plannedDate, to: Date()).day ?? 0
+    }
+
+    var daysUntilDue: Int {
+        guard actualDate == nil else { return 0 }
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: plannedDate).day ?? 0
+        return max(0, days)
+    }
+
+    var isOverdue: Bool { actualDate == nil && Date() > plannedDate }
+
+    var completedOnTime: Bool {
+        guard let actual = actualDate else { return false }
+        return actual <= plannedDate
+    }
 }
 
 // MARK: - Retention Release

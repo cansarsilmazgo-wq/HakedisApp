@@ -282,6 +282,35 @@ struct ProjectDetailView: View {
                 }
             }
 
+            // İş Programı
+            Section {
+                let milestones = project.milestones.sorted { $0.plannedDate < $1.plannedDate }
+                let overdueCnt = milestones.filter { $0.isOverdue }.count
+                let completedCnt = milestones.filter { $0.isCompleted }.count
+                NavigationLink(destination: MilestoneListView(project: project)) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("İş Programı")
+                                .font(.subheadline)
+                            Text("\(milestones.count) kilometre taşı • \(completedCnt) tamamlandı")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        if overdueCnt > 0 {
+                            StatusBadge(text: "\(overdueCnt) gecikti", color: .hakedisDanger)
+                        } else if !milestones.isEmpty {
+                            StatusBadge(
+                                text: milestones.isEmpty ? "—" : "\(Int(Double(completedCnt) / Double(milestones.count) * 100))%",
+                                color: .hakedisSuccess
+                            )
+                        }
+                    }
+                }
+            } header: {
+                Text("İş Programı")
+            }
+
             // Contracts
             Section {
                 if project.contracts.isEmpty {

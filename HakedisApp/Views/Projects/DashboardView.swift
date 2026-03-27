@@ -24,6 +24,14 @@ struct DashboardView: View {
     private var pendingChangeOrders: [ChangeOrder] {
         projects.flatMap { $0.contracts }.flatMap { $0.changeOrders }.filter { $0.status == .pending }
     }
+    private var overdueMilestones: [Milestone] {
+        projects.flatMap { $0.milestones }.filter { $0.isOverdue }
+    }
+    private var upcomingMilestones: [Milestone] {
+        projects.flatMap { $0.milestones }
+            .filter { !$0.isCompleted && !$0.isOverdue && $0.daysUntilDue <= 7 }
+            .sorted { $0.plannedDate < $1.plannedDate }
+    }
 
     private var todayEntries: [DailyEntry] {
         let calendar = Calendar.current
@@ -113,6 +121,26 @@ struct DashboardView: View {
                             SectionHeader("Onay Bekleyen Ek İş Emirleri")
                             ForEach(pendingChangeOrders.prefix(3)) { co in
                                 ChangeOrderAlertCard(changeOrder: co)
+                            }
+                        }
+                    }
+
+                    // Overdue Milestones
+                    if !overdueMilestones.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Geciken Kilometre Taşları")
+                            ForEach(overdueMilestones.prefix(3)) { ms in
+                                MilestoneAlertCard(milestone: ms)
+                            }
+                        }
+                    }
+
+                    // Upcoming Milestones (7 gün içinde)
+                    if !upcomingMilestones.isEmpty && overdueMilestones.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Yaklaşan Kilometre Taşları")
+                            ForEach(upcomingMilestones.prefix(3)) { ms in
+                                MilestoneAlertCard(milestone: ms)
                             }
                         }
                     }
