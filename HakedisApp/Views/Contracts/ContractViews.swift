@@ -284,13 +284,12 @@ struct ContractDetailView: View {
             }
 
             // Finansal Takip
-            if !contract.hakedisler.isEmpty {
-                Section("Finansal Takip") {
-                    // Bütçe kullanımı
+            Section("Finansal Takip") {
+                // Bütçe kullanımı (hakedis varsa)
+                if !contract.hakedisler.isEmpty {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
-                            Text("Bütçe Kullanımı")
-                                .font(.subheadline)
+                            Text("Bütçe Kullanımı").font(.subheadline)
                             Spacer()
                             Text(contract.budgetUtilization.percentFormatted)
                                 .font(.subheadline.bold())
@@ -345,6 +344,25 @@ struct ContractDetailView: View {
                                         .foregroundColor(contract.advanceBalance > 0 ? .hakedisWarning : .hakedisSuccess)
                                 }
                             }
+                        }
+                    }
+                }
+
+                // Ek İş Emirleri — her zaman göster
+                NavigationLink(destination: ChangeOrderListView(contract: contract)) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Ek İş Emirleri").font(.subheadline)
+                            let coCount = contract.changeOrders.count
+                            Text("\(coCount) emir\(contract.approvedChangeOrderAmount != 0 ? " · Onaylı: \(contract.approvedChangeOrderAmount.currencyFormatted)" : "")")
+                                .font(.caption).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        if contract.approvedChangeOrderAmount != 0 {
+                            let sign = contract.approvedChangeOrderAmount >= 0 ? "+" : ""
+                            Text("\(sign)\(contract.approvedChangeOrderAmount.currencyFormatted)")
+                                .font(.caption.bold())
+                                .foregroundColor(contract.approvedChangeOrderAmount >= 0 ? .hakedisWarning : .hakedisSuccess)
                         }
                     }
                 }

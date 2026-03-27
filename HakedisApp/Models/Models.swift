@@ -72,6 +72,7 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var workItems: [WorkItem]
     @Relationship(deleteRule: .cascade) var hakedisler: [Hakedis]
     @Relationship(deleteRule: .cascade) var retentionReleases: [RetentionRelease]
+    @Relationship(deleteRule: .cascade) var changeOrders: [ChangeOrder]
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -87,6 +88,7 @@ final class Contract {
         self.workItems = []
         self.hakedisler = []
         self.retentionReleases = []
+        self.changeOrders = []
     }
 
     // Gecikme cezası hesabı
@@ -125,6 +127,16 @@ final class Contract {
     // Avans takibi
     var totalAdvanceRecovered: Double { hakedisler.reduce(0) { $0 + $1.advanceDeduction } }
     var advanceBalance: Double        { advanceGiven - totalAdvanceRecovered }
+
+    // Ek iş emri takibi
+    var approvedChangeOrderAmount: Double {
+        changeOrders.filter { $0.status == .approved }.reduce(0) { $0 + $1.amount }
+    }
+    var pendingChangeOrderAmount: Double {
+        changeOrders.filter { $0.status == .pending }.reduce(0) { $0 + $1.amount }
+    }
+    /// Onaylı ek işler dahil efektif sözleşme tutarı
+    var effectiveContractAmount: Double { totalContractAmount + approvedChangeOrderAmount }
 }
 
 @Model
@@ -307,6 +319,38 @@ final class Payment {
         self.paymentDate = paymentDate
         self.paymentDescription = paymentDescription
     }
+}
+
+// MARK: - Change Order (Ek İş Emri)
+
+@Model
+final class ChangeOrder {
+    var id: UUID
+    var title: String
+    var changeDate: Date
+    var reason: String
+    var amount: Double          // pozitif = ek iş, negatif = keşif azaltması
+    var status: ChangeOrderStatus
+    var approvalNote: String
+    var contract: Contract?
+    var createdAt: Date
+
+    init(title: String, changeDate: Date = Date(), reason: String = "", amount: Double) {
+        self.id = UUID()
+        self.title = title
+        self.changeDate = changeDate
+        self.reason = reason
+        self.amount = amount
+        self.status = .pending
+        self.approvalNote = ""
+        self.createdAt = Date()
+    }
+}
+
+enum ChangeOrderStatus: String, Codable, CaseIterable {
+    case pending  = "Beklemede"
+    case approved = "Onaylandı"
+    case rejected = "Reddedildi"
 }
 
 // MARK: - Retention Release

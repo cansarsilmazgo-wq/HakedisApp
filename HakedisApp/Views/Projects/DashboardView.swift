@@ -21,6 +21,9 @@ struct DashboardView: View {
     private var nearBudgetContracts: [Contract] {
         projects.flatMap { $0.contracts }.filter { !$0.isOverBudget && $0.budgetUtilization >= 80 }
     }
+    private var pendingChangeOrders: [ChangeOrder] {
+        projects.flatMap { $0.contracts }.flatMap { $0.changeOrders }.filter { $0.status == .pending }
+    }
 
     private var todayEntries: [DailyEntry] {
         let calendar = Calendar.current
@@ -100,6 +103,16 @@ struct DashboardView: View {
                             SectionHeader("Bütçe Uyarısı")
                             ForEach(nearBudgetContracts.prefix(3)) { contract in
                                 BudgetAlarmCard(contract: contract)
+                            }
+                        }
+                    }
+
+                    // Pending Change Orders
+                    if !pendingChangeOrders.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Onay Bekleyen Ek İş Emirleri")
+                            ForEach(pendingChangeOrders.prefix(3)) { co in
+                                ChangeOrderAlertCard(changeOrder: co)
                             }
                         }
                     }
@@ -297,6 +310,39 @@ struct BudgetAlarmCard: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(contract.isOverBudget ? Color.hakedisDanger.opacity(0.3) : Color.hakedisWarning.opacity(0.3), lineWidth: 1)
+        )
+    }
+}
+
+struct ChangeOrderAlertCard: View {
+    let changeOrder: ChangeOrder
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "doc.badge.clock.fill")
+                .foregroundColor(.hakedisWarning)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(changeOrder.title).font(.subheadline.bold())
+                Text(changeOrder.contract?.title ?? "—")
+                    .font(.caption).foregroundColor(.secondary)
+                Text(changeOrder.changeDate.shortFormatted)
+                    .font(.caption2).foregroundColor(.secondary)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                let sign = changeOrder.amount >= 0 ? "+" : ""
+                Text("\(sign)\(changeOrder.amount.currencyFormatted)")
+                    .font(.caption.bold())
+                    .foregroundColor(changeOrder.amount >= 0 ? .hakedisWarning : .hakedisSuccess)
+                Text("Onay bekliyor").font(.caption2).foregroundColor(.secondary)
+            }
+        }
+        .padding(14)
+        .background(Color.hakedisCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.hakedisWarning.opacity(0.3), lineWidth: 1)
         )
     }
 }
