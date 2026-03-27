@@ -448,6 +448,247 @@ struct HakedisPDFGenerator {
     }
 }
 
+// MARK: - Project PDF Preview
+
+struct ProjectPDFReportView: View {
+    let project: Project
+    @State private var pdfData: Data?
+    @State private var shareURL: URL?
+    @State private var isSharing = false
+
+    var body: some View {
+        Group {
+            if let data = pdfData {
+                PDFKitView(data: data)
+            } else {
+                VStack(spacing: 16) {
+                    ProgressView()
+                    Text("PDF hazırlanıyor…").font(.subheadline).foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle("Proje Raporu")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    guard let data = pdfData else { return }
+                    let name = project.name.replacingOccurrences(of: " ", with: "_")
+                    let url = FileManager.default.temporaryDirectory
+                        .appendingPathComponent("\(name)_rapor.pdf")
+                    try? data.write(to: url)
+                    shareURL = url
+                    isSharing = true
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .disabled(pdfData == nil)
+            }
+        }
+        .sheet(isPresented: $isSharing) {
+            if let url = shareURL { ShareSheet(items: [url]) }
+        }
+        .onAppear {
+            DispatchQueue.global(qos: .userInitiated).async {
+                let data = ProjectPDFGenerator.generate(project: project)
+                DispatchQueue.main.async { pdfData = data }
+            }
+        }
+    }
+}
+
+// MARK: - Project PDF Generator
+
+struct ProjectPDFGenerator {
+    private static let pageWidth: CGFloat  = 595.2
+    private static let pageHeight: CGFloat = 841.8
+    private static let margin: CGFloat     = 36
+    private static let orange = UIColor(red: 0.96, green: 0.45, blue: 0.13, alpha: 1)
+
+    static func generate(project: Project) -> Data {
+        let renderer = UIGraphicsPDFRenderer(
+            bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+        )
+        let companyName = UserDefaults.standard.string(forKey: "companyName") ?? ""
+        var pageNumber = 1
+
+        return renderer.pdfData { ctx in
+            ctx.beginPage()
+            var y: CGFloat = 0
+
+            // Header
+            y = drawHeader(project: project, companyName: companyName)
+
+            // Proje Bilgileri
+            y = HakedisPDFGenerator.drawSection(title: "PROJE BİLGİLERİ", y: y)
+            y = HakedisPDFGenerator.drawRow(label: "Proje Adı",  value: project.name, y: y)
+            if !project.location.isEmpty {
+                y = HakedisPDFGenerator.drawRow(label: "Lokasyon", value: project.location, y: y)
+            }
+            y = HakedisPDFGenerator.drawRow(label: "Başlangıç", value: project.startDate.shortFormatted, y: y)
+            y = HakedisPDFGenerator.drawRow(label: "Durum",     value: project.status.rawValue, y: y)
+            y += 10
+
+            // Finansal Özet
+            let allHakedisler = project.contracts.flatMap { $0.hakedisler }
+            let totalContract = project.contracts.reduce(0.0) { $0 + $1.totalContractAmount }
+            let totalNet      = allHakedisler.reduce(0.0) { $0 + $1.netAmount }
+            let totalPaid     = allHakedisler.reduce(0.0) { $0 + $1.totalPaid }
+            let totalPending  = allHakedisler.filter { $0.status == .approved }.reduce(0.0) { $0 + $1.remainingAmount }
+            let pct           = totalContract > 0 ? min((totalNet / totalContract) * 100, 100) : 0
+
+            y = HakedisPDFGenerator.drawSection(title: "FİNANSAL ÖZET", y: y)
+            y = HakedisPDFGenerator.drawRow(label: "Toplam Sözleşme Değeri", value: totalContract.currencyFormatted, y: y)
+            y = HakedisPDFGenerator.drawRow(label: "Toplam Hakediş (Net)", value: totalNet.currencyFormatted, y: y)
+            y = HakedisPDFGenerator.drawRow(label: "Bütçe Kullanımı", value: String(format: "%.1f%%", pct), y: y)
+            y = HakedisPDFGenerator.drawRow(label: "Toplam Ödenen", value: totalPaid.currencyFormatted, y: y, isGreen: true)
+            if totalPending > 0 {
+                y = HakedisPDFGenerator.drawRow(label: "Onaylı Bekleyen Ödeme", value: totalPending.currencyFormatted, y: y, isRed: true)
+            }
+            y += 10
+
+            // Sözleşme Bazlı Tablo
+            y = HakedisPDFGenerator.drawSection(title: "SÖZLEŞMELER", y: y)
+            y = drawContractTableHeader(y: y)
+
+            for contract in project.contracts {
+                if y > pageHeight - 80 {
+                    drawPageFooter(page: pageNumber)
+                    pageNumber += 1
+                    ctx.beginPage()
+                    y = margin
+                    y = drawContractTableHeader(y: y)
+                }
+                y = drawContractRow(contract: contract, y: y)
+            }
+            y += 14
+
+            // Hakediş Durumu
+            if !allHakedisler.isEmpty {
+                if y > pageHeight - 160 {
+                    drawPageFooter(page: pageNumber)
+                    pageNumber += 1
+                    ctx.beginPage()
+                    y = margin
+                }
+                y = HakedisPDFGenerator.drawSection(title: "HAKEDİŞ DURUMU", y: y)
+                for status in HakedisStatus.allCases {
+                    let filtered = allHakedisler.filter { $0.status == status }
+                    if !filtered.isEmpty {
+                        let total = filtered.reduce(0.0) { $0 + $1.netAmount }
+                        y = HakedisPDFGenerator.drawRow(
+                            label: "\(status.rawValue) (\(filtered.count) adet)",
+                            value: total.currencyFormatted,
+                            y: y
+                        )
+                    }
+                }
+            }
+
+            drawPageFooter(page: pageNumber)
+        }
+    }
+
+    @discardableResult
+    private static func drawHeader(project: Project, companyName: String) -> CGFloat {
+        let headerH: CGFloat = companyName.isEmpty ? 82 : 96
+        orange.setFill()
+        UIBezierPath(rect: CGRect(x: 0, y: 0, width: pageWidth, height: headerH)).fill()
+
+        var textY: CGFloat = 12
+        if !companyName.isEmpty {
+            let ca: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 10),
+                .foregroundColor: UIColor.white.withAlphaComponent(0.8)
+            ]
+            companyName.uppercased().draw(at: CGPoint(x: margin, y: textY), withAttributes: ca)
+            textY += 16
+        }
+
+        let titleAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 22),
+            .foregroundColor: UIColor.white
+        ]
+        "PROJE ÖZET RAPORU".draw(at: CGPoint(x: margin, y: textY), withAttributes: titleAttr)
+
+        let subAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 12),
+            .foregroundColor: UIColor.white.withAlphaComponent(0.9)
+        ]
+        project.name.draw(at: CGPoint(x: margin, y: textY + 28), withAttributes: subAttr)
+
+        let dateStr = "Rapor Tarihi: \(Date().shortFormatted)"
+        let da: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 9),
+            .foregroundColor: UIColor.white.withAlphaComponent(0.75)
+        ]
+        let ds = (dateStr as NSString).size(withAttributes: da)
+        dateStr.draw(at: CGPoint(x: pageWidth - margin - ds.width, y: textY + 30), withAttributes: da)
+
+        return headerH + 14
+    }
+
+    @discardableResult
+    private static func drawContractTableHeader(y: CGFloat) -> CGFloat {
+        orange.withAlphaComponent(0.12).setFill()
+        UIBezierPath(rect: CGRect(x: margin, y: y, width: pageWidth - margin * 2, height: 22)).fill()
+        let a: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 8),
+            .foregroundColor: UIColor.darkGray
+        ]
+        "SÖZLEŞME".draw(at:   CGPoint(x: margin + 4,   y: y + 7), withAttributes: a)
+        "TAŞERON".draw(at:    CGPoint(x: margin + 180,  y: y + 7), withAttributes: a)
+        "TUTAR".draw(at:      CGPoint(x: margin + 320,  y: y + 7), withAttributes: a)
+        "HAKEDİŞ".draw(at:   CGPoint(x: margin + 390,  y: y + 7), withAttributes: a)
+        "KULLANIM".draw(at:   CGPoint(x: margin + 460,  y: y + 7), withAttributes: a)
+        return y + 24
+    }
+
+    @discardableResult
+    private static func drawContractRow(contract: Contract, y: CGFloat) -> CGFloat {
+        let norm: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 8.5), .foregroundColor: UIColor.black]
+        let gray: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 8.5), .foregroundColor: UIColor.gray]
+        let orng: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 8.5), .foregroundColor: orange]
+
+        let title = contract.title.count > 24 ? String(contract.title.prefix(24)) + "…" : contract.title
+        let contractor = (contract.contractor?.name ?? "—")
+        let contractorTrunc = contractor.count > 16 ? String(contractor.prefix(16)) + "…" : contractor
+
+        title.draw(at:            CGPoint(x: margin + 4,   y: y + 4), withAttributes: norm)
+        contractorTrunc.draw(at:  CGPoint(x: margin + 180,  y: y + 4), withAttributes: gray)
+        contract.totalContractAmount.currencyFormatted.draw(at: CGPoint(x: margin + 320, y: y + 4), withAttributes: norm)
+        contract.totalInvoiced.currencyFormatted.draw(at: CGPoint(x: margin + 390, y: y + 4), withAttributes: orng)
+        String(format: "%.1f%%", contract.budgetUtilization).draw(at: CGPoint(x: margin + 460, y: y + 4), withAttributes: norm)
+
+        UIColor(white: 0.92, alpha: 1).setStroke()
+        let l = UIBezierPath()
+        l.move(to: CGPoint(x: margin, y: y + 18))
+        l.addLine(to: CGPoint(x: pageWidth - margin, y: y + 18))
+        l.lineWidth = 0.25; l.stroke()
+        return y + 20
+    }
+
+    private static func drawPageFooter(page: Int) {
+        let fAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 8),
+            .foregroundColor: UIColor.lightGray
+        ]
+        UIColor.lightGray.withAlphaComponent(0.4).setStroke()
+        let fl = UIBezierPath()
+        fl.move(to: CGPoint(x: margin, y: pageHeight - 32))
+        fl.addLine(to: CGPoint(x: pageWidth - margin, y: pageHeight - 32))
+        fl.lineWidth = 0.3; fl.stroke()
+
+        "Oluşturulma: \(Date().shortFormatted) | HakedisApp".draw(
+            at: CGPoint(x: margin, y: pageHeight - 26), withAttributes: fAttr)
+
+        let pt = "Sayfa \(page)"
+        let ps = (pt as NSString).size(withAttributes: fAttr)
+        pt.draw(at: CGPoint(x: pageWidth - margin - ps.width, y: pageHeight - 26), withAttributes: fAttr)
+    }
+}
+
 // MARK: - ShareSheet
 
 struct ShareSheet: UIViewControllerRepresentable {

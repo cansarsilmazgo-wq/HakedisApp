@@ -9,7 +9,7 @@ final class CRUDTests: XCTestCase {
     override func setUpWithError() throws {
         let schema = Schema([Project.self, Contractor.self, Contract.self,
                              WorkItem.self, DailyEntry.self, Hakedis.self,
-                             HakedisItem.self, Payment.self])
+                             HakedisItem.self, Payment.self, RetentionRelease.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         container = try ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)

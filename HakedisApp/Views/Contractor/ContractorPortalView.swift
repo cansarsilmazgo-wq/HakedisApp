@@ -412,12 +412,185 @@ struct ObjectionView: View {
         let record: [String: String] = [
             "hakedisId": hakedis.id.uuidString,
             "hakedisName": hakedis.periodName,
+            "contractTitle": hakedis.contract?.title ?? "",
             "workItem": selectedItem?.workItemName ?? "Genel",
             "text": text,
-            "date": ISO8601DateFormatter().string(from: Date())
+            "date": ISO8601DateFormatter().string(from: Date()),
+            "status": "pending"
         ]
         if let data = try? JSONEncoder().encode(record) {
             UserDefaults.standard.set(data, forKey: key)
         }
+    }
+}
+
+// MARK: - Objection Admin View
+
+struct ObjectionAdminView: View {
+    @State private var objections: [[String: String]] = []
+    @State private var selectedObjection: [String: String]?
+    @State private var showingResponse = false
+
+    var pendingObjections: [[String: String]] { objections.filter { $0["status"] == "pending" } }
+    var resolvedObjections: [[String: String]] { objections.filter { $0["status"] != "pending" } }
+
+    var body: some View {
+        List {
+            if objections.isEmpty {
+                Section {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill").foregroundColor(.hakedisSuccess)
+                        Text("Bekleyen itiraz yok").foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            if !pendingObjections.isEmpty {
+                Section("Bekleyen İtirazlar (\(pendingObjections.count))") {
+                    ForEach(pendingObjections, id: \.self["hakedisId"]) { obj in
+                        ObjectionRow(objection: obj) {
+                            selectedObjection = obj
+                            showingResponse = true
+                        }
+                    }
+                }
+            }
+
+            if !resolvedObjections.isEmpty {
+                Section("Yanıtlananlar") {
+                    ForEach(resolvedObjections, id: \.self["hakedisId"]) { obj in
+                        ObjectionRow(objection: obj, onRespond: nil)
+                    }
+                }
+            }
+        }
+        .navigationTitle("İtiraz Yönetimi")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { loadObjections() } label: { Image(systemName: "arrow.clockwise") }
+            }
+        }
+        .sheet(item: Binding(
+            get: { selectedObjection.map { IdentifiableObjection(data: $0) } },
+            set: { _ in selectedObjection = nil }
+        )) { item in
+            ObjectionResponseView(objection: item.data) {
+                loadObjections()
+                selectedObjection = nil
+                showingResponse = false
+            }
+        }
+        .onAppear { loadObjections() }
+    }
+
+    private func loadObjections() {
+        let defaults = UserDefaults.standard
+        objections = defaults.dictionaryRepresentation()
+            .compactMap { key, value -> [String: String]? in
+                guard key.hasPrefix("objection_"),
+                      let data = value as? Data,
+                      let record = try? JSONDecoder().decode([String: String].self, from: data)
+                else { return nil }
+                return record
+            }
+            .sorted {
+                let d0 = $0["date"] ?? ""
+                let d1 = $1["date"] ?? ""
+                return d0 > d1
+            }
+    }
+}
+
+struct IdentifiableObjection: Identifiable {
+    let id = UUID()
+    let data: [String: String]
+}
+
+struct ObjectionRow: View {
+    let objection: [String: String]
+    let onRespond: (() -> Void)?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(objection["hakedisName"] ?? "—").font(.subheadline.bold())
+                    Text(objection["contractTitle"] ?? "").font(.caption).foregroundColor(.secondary)
+                }
+                Spacer()
+                let status = objection["status"] ?? "pending"
+                StatusBadge(
+                    text: status == "pending" ? "Bekliyor" : status == "accepted" ? "Kabul" : "Red",
+                    color: status == "pending" ? .hakedisWarning : status == "accepted" ? .hakedisSuccess : .hakedisDanger
+                )
+            }
+            Text("Kalem: \(objection["workItem"] ?? "Genel")").font(.caption).foregroundColor(.secondary)
+            Text(objection["text"] ?? "").font(.caption).lineLimit(2)
+            if let response = objection["response"], !response.isEmpty {
+                Text("Yanıt: \(response)").font(.caption.italic()).foregroundColor(.hakedisSuccess)
+            }
+            if let onRespond {
+                Button("Yanıtla", action: onRespond)
+                    .font(.caption.bold())
+                    .foregroundColor(.hakedisOrange)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct ObjectionResponseView: View {
+    let objection: [String: String]
+    let onDone: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var responseText = ""
+    @State private var decision: String = "accepted"
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("İtiraz Detayı") {
+                    LabeledContent("Hakediş", value: objection["hakedisName"] ?? "—")
+                    LabeledContent("Kalem", value: objection["workItem"] ?? "Genel")
+                    Text(objection["text"] ?? "").font(.subheadline)
+                }
+                Section("Karar") {
+                    Picker("Karar", selection: $decision) {
+                        Text("Kabul Et").tag("accepted")
+                        Text("Reddet").tag("rejected")
+                    }
+                    .pickerStyle(.segmented)
+                }
+                Section("Yanıt Metni") {
+                    TextEditor(text: $responseText)
+                        .frame(minHeight: 80)
+                }
+            }
+            .navigationTitle("İtiraz Yanıtla")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") { saveResponse() }
+                        .disabled(responseText.trimmingCharacters(in: .whitespaces).isEmpty)
+                        .bold()
+                }
+            }
+        }
+    }
+
+    private func saveResponse() {
+        guard let hakedisId = objection["hakedisId"] else { return }
+        let key = "objection_\(hakedisId)"
+        var updated = objection
+        updated["status"] = decision
+        updated["response"] = responseText
+        updated["responseDate"] = ISO8601DateFormatter().string(from: Date())
+        if let data = try? JSONEncoder().encode(updated) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+        onDone()
     }
 }

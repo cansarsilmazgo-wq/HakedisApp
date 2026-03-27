@@ -384,6 +384,9 @@ struct HakedisDetailView: View {
 struct HakedisStatusWorkflow: View {
     @Environment(\.modelContext) private var modelContext
     let hakedis: Hakedis
+    @State private var noteText = ""
+    @State private var pendingStatus: HakedisStatus? = nil
+    @State private var showingNoteSheet = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -392,7 +395,6 @@ struct HakedisStatusWorkflow: View {
                 ForEach(Array(HakedisStatus.allCases.enumerated()), id: \.element) { index, status in
                     let isActive = hakedis.status == status
                     let isPast = statusIndex(hakedis.status) > statusIndex(status)
-
                     VStack(spacing: 4) {
                         Circle()
                             .fill(isActive ? Color.hakedisOrange : (isPast ? Color.hakedisSuccess : Color.secondary.opacity(0.3)))
@@ -406,33 +408,45 @@ struct HakedisStatusWorkflow: View {
                     if index < HakedisStatus.allCases.count - 1 {
                         Rectangle()
                             .fill(isPast ? Color.hakedisSuccess : Color.secondary.opacity(0.3))
-                            .frame(height: 1)
-                            .frame(maxWidth: .infinity)
-                            .offset(y: -8)
+                            .frame(height: 1).frame(maxWidth: .infinity).offset(y: -8)
                     }
                 }
+            }
+
+            // Approval note display
+            if !hakedis.approvalNote.isEmpty {
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: hakedis.status == .rejected ? "xmark.circle.fill" : "checkmark.circle.fill")
+                        .foregroundColor(hakedis.status == .rejected ? .hakedisDanger : .hakedisSuccess)
+                        .font(.caption)
+                    Text(hakedis.approvalNote)
+                        .font(.caption).foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding(8)
+                .background(Color(UIColor.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
 
             // Action Buttons
             HStack(spacing: 12) {
                 switch hakedis.status {
                 case .draft:
-                    Button("Onaya Gönder") {
-                        hakedis.status = .pendingApproval
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.hakedisOrange)
+                    Button("Onaya Gönder") { hakedis.status = .pendingApproval }
+                        .buttonStyle(.borderedProminent).tint(.hakedisOrange)
                 case .pendingApproval:
                     Button("Reddet") {
-                        hakedis.status = .rejected
+                        noteText = hakedis.approvalNote
+                        pendingStatus = .rejected
+                        showingNoteSheet = true
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.hakedisDanger)
+                    .buttonStyle(.bordered).tint(.hakedisDanger)
                     Button("Onayla") {
-                        hakedis.status = .approved
+                        noteText = hakedis.approvalNote
+                        pendingStatus = .approved
+                        showingNoteSheet = true
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.hakedisSuccess)
+                    .buttonStyle(.borderedProminent).tint(.hakedisSuccess)
                 case .approved:
                     if hakedis.remainingAmount <= 0 {
                         Button("Ödendi Olarak İşaretle") {
@@ -452,10 +466,67 @@ struct HakedisStatusWorkflow: View {
             }
         }
         .padding(.vertical, 4)
+        .sheet(isPresented: $showingNoteSheet) {
+            ApprovalNoteSheet(
+                title: pendingStatus == .rejected ? "Red Gerekçesi" : "Onay Notu",
+                placeholder: pendingStatus == .rejected
+                    ? "Reddetme gerekçenizi yazın…"
+                    : "İsteğe bağlı onay notu…",
+                note: $noteText,
+                actionLabel: pendingStatus == .rejected ? "Reddet" : "Onayla",
+                actionColor: pendingStatus == .rejected ? .hakedisDanger : .hakedisSuccess
+            ) {
+                if let s = pendingStatus {
+                    hakedis.status = s
+                    hakedis.approvalNote = noteText.trimmingCharacters(in: .whitespaces)
+                }
+            }
+        }
     }
 
     private func statusIndex(_ status: HakedisStatus) -> Int {
         HakedisStatus.allCases.firstIndex(of: status) ?? 0
+    }
+}
+
+// MARK: - Approval Note Sheet
+struct ApprovalNoteSheet: View {
+    let title: String
+    let placeholder: String
+    @Binding var note: String
+    let actionLabel: String
+    let actionColor: Color
+    let onConfirm: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section(title) {
+                    TextEditor(text: $note)
+                        .frame(minHeight: 100)
+                        .overlay(alignment: .topLeading) {
+                            if note.isEmpty {
+                                Text(placeholder)
+                                    .foregroundColor(.secondary)
+                                    .font(.body)
+                                    .padding(.top, 8).padding(.leading, 4)
+                                    .allowsHitTesting(false)
+                            }
+                        }
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(actionLabel) { onConfirm(); dismiss() }
+                        .bold().foregroundColor(actionColor)
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 }
 

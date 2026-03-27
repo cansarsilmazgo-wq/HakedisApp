@@ -10,6 +10,7 @@
 		TB001 /* CalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T001 /* CalculationTests.swift */; };
 		TB002 /* StatusTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T002 /* StatusTransitionTests.swift */; };
 		TB003 /* CRUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T003 /* CRUDTests.swift */; };
+		TB005 /* FinancialTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T005 /* FinancialTrackingTests.swift */; };
 		TB004 /* Models.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
 		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
 		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
@@ -71,6 +72,7 @@
 		T001 /* CalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTests.swift; sourceTree = "<group>"; };
 		T002 /* StatusTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusTransitionTests.swift; sourceTree = "<group>"; };
 		T003 /* CRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDTests.swift; sourceTree = "<group>"; };
+		T005 /* FinancialTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTrackingTests.swift; sourceTree = "<group>"; };
 		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -131,6 +133,7 @@
 				T001 /* CalculationTests.swift */,
 				T002 /* StatusTransitionTests.swift */,
 				T003 /* CRUDTests.swift */,
+				T005 /* FinancialTrackingTests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -322,6 +325,7 @@
 				TB001 /* CalculationTests.swift in Sources */,
 				TB002 /* StatusTransitionTests.swift in Sources */,
 				TB003 /* CRUDTests.swift in Sources */,
+				TB005 /* FinancialTrackingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -209,6 +209,7 @@ struct ContractDetailView: View {
     @State private var csvImportResult: CSVImportResult?
     @State private var showingImportPreview = false
     @State private var exportItem: ShareableCSV?
+    @State private var showingRetentionTracking = false
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
@@ -280,6 +281,73 @@ struct ContractDetailView: View {
                     }
                 }
                 .padding(.vertical, 4)
+            }
+
+            // Finansal Takip
+            if !contract.hakedisler.isEmpty {
+                Section("Finansal Takip") {
+                    // Bütçe kullanımı
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Bütçe Kullanımı")
+                                .font(.subheadline)
+                            Spacer()
+                            Text(contract.budgetUtilization.percentFormatted)
+                                .font(.subheadline.bold())
+                                .foregroundColor(contract.isOverBudget ? .hakedisDanger
+                                    : contract.budgetUtilization >= 80 ? .hakedisWarning : .hakedisSuccess)
+                        }
+                        ProgressBarView(
+                            progress: min(contract.budgetUtilization, 100),
+                            color: contract.isOverBudget ? .hakedisDanger
+                                : contract.budgetUtilization >= 80 ? .hakedisWarning : .hakedisSuccess
+                        )
+                        if contract.isOverBudget {
+                            Label("Bütçe aşıldı! Sözleşme değerinin %\(Int(contract.budgetUtilization - 100)) üzerinde hakediş kesildi.",
+                                  systemImage: "exclamationmark.triangle.fill")
+                                .font(.caption).foregroundColor(.hakedisDanger)
+                        } else if contract.budgetUtilization >= 80 {
+                            Label("Bütçenin %\(Int(contract.budgetUtilization))'i kullanıldı.",
+                                  systemImage: "exclamationmark.circle")
+                                .font(.caption).foregroundColor(.hakedisWarning)
+                        }
+                    }
+                    .padding(.vertical, 4)
+
+                    // Teminat takibi
+                    NavigationLink(destination: RetentionTrackingView(contract: contract)) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Teminat Takibi").font(.subheadline)
+                                Text("Biriken: \(contract.totalRetentionAccrued.currencyFormatted)")
+                                    .font(.caption).foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text("Kalan: \(contract.retentionBalance.currencyFormatted)")
+                                .font(.caption.bold())
+                                .foregroundColor(contract.retentionBalance > 0 ? .hakedisWarning : .hakedisSuccess)
+                        }
+                    }
+
+                    // Avans takibi (avans verilmişse)
+                    if contract.advanceGiven > 0 || contract.advanceRate > 0 {
+                        NavigationLink(destination: AdvanceTrackingView(contract: contract)) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Avans Takibi").font(.subheadline)
+                                    Text("Kesilen: \(contract.totalAdvanceRecovered.currencyFormatted)")
+                                        .font(.caption).foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                if contract.advanceGiven > 0 {
+                                    Text("Kalan: \(max(contract.advanceBalance, 0).currencyFormatted)")
+                                        .font(.caption.bold())
+                                        .foregroundColor(contract.advanceBalance > 0 ? .hakedisWarning : .hakedisSuccess)
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Work Items (Pozlar)
@@ -836,5 +904,304 @@ struct WorkItemDetailView: View {
         }
         .navigationTitle(workItem.name)
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Retention Tracking View
+struct RetentionTrackingView: View {
+    @Environment(\.modelContext) private var modelContext
+    let contract: Contract
+
+    @State private var showingAddRelease = false
+
+    var body: some View {
+        List {
+            Section("Teminat Özeti") {
+                HStack {
+                    Text("Toplam Biriken").font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    Text(contract.totalRetentionAccrued.currencyFormatted)
+                        .font(.subheadline.bold())
+                }
+                HStack {
+                    Text("Toplam İade").font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    Text(contract.totalRetentionReleased.currencyFormatted)
+                        .font(.subheadline.bold()).foregroundColor(.hakedisSuccess)
+                }
+                HStack {
+                    Text("Kalan Teminat").font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    Text(contract.retentionBalance.currencyFormatted)
+                        .font(.subheadline.bold())
+                        .foregroundColor(contract.retentionBalance > 0 ? .hakedisWarning : .hakedisSuccess)
+                }
+                if contract.totalRetentionAccrued > 0 {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("İade Oranı").font(.caption).foregroundColor(.secondary)
+                            Spacer()
+                            let pct = contract.totalRetentionAccrued > 0
+                                ? (contract.totalRetentionReleased / contract.totalRetentionAccrued) * 100 : 0
+                            Text(pct.percentFormatted).font(.caption.bold())
+                        }
+                        ProgressBarView(
+                            progress: contract.totalRetentionAccrued > 0
+                                ? (contract.totalRetentionReleased / contract.totalRetentionAccrued) * 100 : 0,
+                            color: .hakedisSuccess
+                        )
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
+            Section {
+                ForEach(contract.retentionReleases.sorted { $0.releaseDate > $1.releaseDate }) { release in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(release.releaseDate.shortFormatted).font(.subheadline.bold())
+                            Spacer()
+                            Text(release.amount.currencyFormatted)
+                                .font(.subheadline.bold()).foregroundColor(.hakedisSuccess)
+                        }
+                        if !release.releaseDescription.isEmpty {
+                            Text(release.releaseDescription).font(.caption).foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+                .onDelete { offsets in
+                    offsets.map { contract.retentionReleases.sorted { $0.releaseDate > $1.releaseDate }[$0] }
+                        .forEach { modelContext.delete($0) }
+                }
+            } header: {
+                HStack {
+                    Text("İade Geçmişi")
+                    Spacer()
+                    Button {
+                        showingAddRelease = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill").foregroundColor(.hakedisOrange)
+                    }
+                }
+            } footer: {
+                if contract.retentionReleases.isEmpty {
+                    Text("Henüz teminat iadesi kaydedilmemiş.")
+                }
+            }
+        }
+        .navigationTitle("Teminat Takibi")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingAddRelease = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddRelease) {
+            AddRetentionReleaseView(contract: contract)
+        }
+    }
+}
+
+// MARK: - Add Retention Release
+struct AddRetentionReleaseView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    let contract: Contract
+
+    @State private var amount = ""
+    @State private var releaseDate = Date()
+    @State private var releaseDescription = ""
+
+    private var parsedAmount: Double? {
+        Double(amount.replacingOccurrences(of: ",", with: "."))
+    }
+    var isValid: Bool { parsedAmount != nil && parsedAmount! > 0 }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("İade Bilgileri") {
+                    HStack {
+                        Text("Tutar *")
+                        Spacer()
+                        TextField("0,00", text: $amount)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 120)
+                        Text("₺").foregroundColor(.secondary)
+                    }
+                    DatePicker("İade Tarihi", selection: $releaseDate, displayedComponents: .date)
+                    TextField("Açıklama (opsiyonel)", text: $releaseDescription)
+                }
+                Section("Mevcut Durum") {
+                    LabeledContent("Kalan Teminat", value: contract.retentionBalance.currencyFormatted)
+                }
+            }
+            .navigationTitle("Teminat İadesi")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") { save() }.disabled(!isValid).bold()
+                }
+            }
+        }
+    }
+
+    private func save() {
+        let release = RetentionRelease(
+            amount: parsedAmount!,
+            releaseDate: releaseDate,
+            releaseDescription: releaseDescription
+        )
+        release.contract = contract
+        contract.retentionReleases.append(release)
+        modelContext.insert(release)
+        dismiss()
+    }
+}
+
+// MARK: - Advance Tracking View
+struct AdvanceTrackingView: View {
+    @Environment(\.modelContext) private var modelContext
+    let contract: Contract
+
+    @State private var showingEditAdvance = false
+
+    var body: some View {
+        List {
+            Section("Avans Özeti") {
+                HStack {
+                    Text("Verilen Avans").font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    Text(contract.advanceGiven.currencyFormatted)
+                        .font(.subheadline.bold()).foregroundColor(.hakedisWarning)
+                }
+                HStack {
+                    Text("Kesilen Avans").font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    Text(contract.totalAdvanceRecovered.currencyFormatted)
+                        .font(.subheadline.bold()).foregroundColor(.hakedisSuccess)
+                }
+                HStack {
+                    Text("Kalan Avans").font(.subheadline).foregroundColor(.secondary)
+                    Spacer()
+                    let balance = max(contract.advanceBalance, 0)
+                    Text(balance.currencyFormatted)
+                        .font(.subheadline.bold())
+                        .foregroundColor(balance > 0 ? .hakedisDanger : .hakedisSuccess)
+                }
+                if contract.advanceGiven > 0 {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Geri Kazanım").font(.caption).foregroundColor(.secondary)
+                            Spacer()
+                            let pct = min((contract.totalAdvanceRecovered / contract.advanceGiven) * 100, 100)
+                            Text(pct.percentFormatted).font(.caption.bold())
+                        }
+                        ProgressBarView(
+                            progress: min((contract.totalAdvanceRecovered / contract.advanceGiven) * 100, 100),
+                            color: .hakedisSuccess
+                        )
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
+            Section("Avans Detayı") {
+                LabeledContent("Sözleşme Avans Oranı", value: "%\(Int(contract.advanceRate))")
+                if contract.advanceGiven > 0 {
+                    LabeledContent("Fiilen Verilen", value: contract.advanceGiven.currencyFormatted)
+                }
+                LabeledContent("Hakediş Başına Kesinti", value: "%\(Int(contract.advanceRate))")
+            }
+
+            if !contract.hakedisler.isEmpty {
+                Section("Hakediş Bazlı Kesintiler") {
+                    ForEach(contract.hakedisler.sorted { $0.periodEnd < $1.periodEnd }) { h in
+                        if h.advanceDeduction > 0 {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(h.periodName).font(.subheadline.bold())
+                                    Text(h.periodEnd.shortFormatted).font(.caption).foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(h.advanceDeduction.currencyFormatted)
+                                    .font(.subheadline).foregroundColor(.hakedisSuccess)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Avans Takibi")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingEditAdvance = true
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                }
+            }
+        }
+        .sheet(isPresented: $showingEditAdvance) {
+            EditAdvanceGivenView(contract: contract)
+        }
+    }
+}
+
+// MARK: - Edit Advance Given
+struct EditAdvanceGivenView: View {
+    @Environment(\.dismiss) private var dismiss
+    let contract: Contract
+
+    @State private var advanceGiven: String
+
+    init(contract: Contract) {
+        self.contract = contract
+        _advanceGiven = State(initialValue: contract.advanceGiven > 0
+            ? String(format: "%.2f", contract.advanceGiven) : "")
+    }
+
+    private var parsedAmount: Double? {
+        Double(advanceGiven.replacingOccurrences(of: ",", with: "."))
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack {
+                        Text("Verilen Avans Tutarı")
+                        Spacer()
+                        TextField("0,00", text: $advanceGiven)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 120)
+                        Text("₺").foregroundColor(.secondary)
+                    }
+                } footer: {
+                    Text("Taşerona fiilen ödenmiş olan avans tutarını girin. Hakediş kesintileri sözleşmedeki avans oranına göre otomatik hesaplanır.")
+                        .font(.caption)
+                }
+            }
+            .navigationTitle("Avans Güncelle")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") {
+                        contract.advanceGiven = parsedAmount ?? 0
+                        dismiss()
+                    }.bold()
+                }
+            }
+        }
     }
 }

@@ -40,6 +40,11 @@ struct ContractorListView: View {
             }
             .navigationTitle("Taşeronlar")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink(destination: ObjectionAdminView()) {
+                        Image(systemName: "exclamationmark.bubble")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingAdd = true } label: { Image(systemName: "plus") }
                 }

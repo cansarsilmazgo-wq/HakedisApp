@@ -15,13 +15,22 @@ struct DashboardView: View {
     private var overduePayments: [Hakedis] {
         hakedisler.filter { $0.status == .approved && $0.remainingAmount > 0 }
     }
+    private var overBudgetContracts: [Contract] {
+        projects.flatMap { $0.contracts }.filter { $0.isOverBudget }
+    }
+    private var nearBudgetContracts: [Contract] {
+        projects.flatMap { $0.contracts }.filter { !$0.isOverBudget && $0.budgetUtilization >= 80 }
+    }
 
     private var todayEntries: [DailyEntry] {
         let calendar = Calendar.current
         return dailyEntries.filter { calendar.isDateInToday($0.date) }
     }
 
+    @StateObject private var notificationManager = NotificationManager.shared
     @State private var showingSearch = false
+    @State private var pendingObjectionCount: Int = 0
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -76,6 +85,25 @@ struct DashboardView: View {
                         }
                     }
 
+                    // Budget Overrun Alarms
+                    if !overBudgetContracts.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Bütçe Aşımı")
+                            ForEach(overBudgetContracts.prefix(3)) { contract in
+                                BudgetAlarmCard(contract: contract)
+                            }
+                        }
+                    }
+
+                    if !nearBudgetContracts.isEmpty && overBudgetContracts.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Bütçe Uyarısı")
+                            ForEach(nearBudgetContracts.prefix(3)) { contract in
+                                BudgetAlarmCard(contract: contract)
+                            }
+                        }
+                    }
+
                     // Active Projects
                     if !activeProjects.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
@@ -83,6 +111,39 @@ struct DashboardView: View {
                             ForEach(activeProjects.prefix(3)) { project in
                                 ProjectMiniCard(project: project)
                             }
+                        }
+                    }
+
+                    // Pending Objections
+                    if pendingObjectionCount > 0 {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Taşeron İtirazları")
+                            NavigationLink(destination: ObjectionAdminView()) {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "exclamationmark.bubble.fill")
+                                        .foregroundColor(.hakedisDanger)
+                                        .font(.title3)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("\(pendingObjectionCount) bekleyen itiraz")
+                                            .font(.subheadline.bold())
+                                        Text("Taşeronların itirazlarını inceleyin")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(14)
+                                .background(Color.hakedisCard)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
 
@@ -105,6 +166,32 @@ struct DashboardView: View {
                 }
             }
             .sheet(isPresented: $showingSearch) { UniversalSearchView() }
+            .onAppear {
+                loadPendingObjectionCount()
+                triggerBudgetNotificationsIfNeeded()
+            }
+        }
+    }
+
+    private func loadPendingObjectionCount() {
+        let count = UserDefaults.standard.dictionaryRepresentation()
+            .filter { $0.key.hasPrefix("objection_") }
+            .compactMap { _, value -> [String: String]? in
+                guard let data = value as? Data,
+                      let record = try? JSONDecoder().decode([String: String].self, from: data)
+                else { return nil }
+                return record
+            }
+            .filter { $0["status"] == "pending" }
+            .count
+        pendingObjectionCount = count
+    }
+
+    private func triggerBudgetNotificationsIfNeeded() {
+        guard notificationManager.budgetAlertsEnabled else { return }
+        let allContracts = projects.flatMap { $0.contracts }
+        for contract in allContracts where contract.isOverBudget || contract.budgetUtilization >= 80 {
+            notificationManager.scheduleBudgetOverrunAlert(contract: contract)
         }
     }
 }
@@ -177,6 +264,39 @@ struct PaymentAlertCard: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(hakedis.isOverdue ? Color.hakedisDanger.opacity(0.3) : .clear, lineWidth: 1)
+        )
+    }
+}
+
+struct BudgetAlarmCard: View {
+    let contract: Contract
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: contract.isOverBudget ? "exclamationmark.triangle.fill" : "exclamationmark.circle.fill")
+                .foregroundColor(contract.isOverBudget ? .hakedisDanger : .hakedisWarning)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(contract.title).font(.subheadline.bold())
+                Text(contract.project?.name ?? "—").font(.caption).foregroundColor(.secondary)
+                ProgressBarView(
+                    progress: min(contract.budgetUtilization, 100),
+                    color: contract.isOverBudget ? .hakedisDanger : .hakedisWarning
+                )
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(contract.budgetUtilization.percentFormatted)
+                    .font(.subheadline.bold())
+                    .foregroundColor(contract.isOverBudget ? .hakedisDanger : .hakedisWarning)
+                Text("kullanım").font(.caption2).foregroundColor(.secondary)
+            }
+        }
+        .padding(14)
+        .background(Color.hakedisCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(contract.isOverBudget ? Color.hakedisDanger.opacity(0.3) : Color.hakedisWarning.opacity(0.3), lineWidth: 1)
         )
     }
 }

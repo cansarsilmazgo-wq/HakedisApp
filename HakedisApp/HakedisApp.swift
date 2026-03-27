@@ -10,7 +10,8 @@ struct HakedisApp: App {
     private static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Project.self, Contractor.self, Contract.self, WorkItem.self,
-            DailyEntry.self, Hakedis.self, HakedisItem.self, Payment.self
+            DailyEntry.self, Hakedis.self, HakedisItem.self, Payment.self,
+            RetentionRelease.self
         ])
         do {
             let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)

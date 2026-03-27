@@ -59,6 +59,32 @@ class NotificationManager: ObservableObject {
         UNUserNotificationCenter.current().add(request)
     }
 
+    var budgetAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "budgetAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "budgetAlertsEnabled") }
+    }
+
+    func scheduleBudgetOverrunAlert(contract: Contract) {
+        guard isAuthorized, budgetAlertsEnabled else { return }
+        let notifId = "budget_\(contract.id.uuidString)"
+        // Aynı sözleşme için tekrar gönderme
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            guard !requests.contains(where: { $0.identifier == notifId }) else { return }
+            let content = UNMutableNotificationContent()
+            if contract.isOverBudget {
+                content.title = "Bütçe Aşıldı"
+                content.body = "\(contract.title): Sözleşme değerinin %\(Int(contract.budgetUtilization - 100)) üzerinde hakediş kesildi."
+            } else {
+                content.title = "Bütçe Uyarısı"
+                content.body = "\(contract.title): Bütçenin %\(Int(contract.budgetUtilization))'i kullanıldı."
+            }
+            content.sound = .default
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+            let request = UNNotificationRequest(identifier: notifId, content: content, trigger: trigger)
+            UNUserNotificationCenter.current().add(request)
+        }
+    }
+
     func cancelNotification(id: String) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
     }
@@ -69,6 +95,7 @@ struct NotificationSettingsView: View {
     @State private var dailyReminderEnabled = false
     @AppStorage("overdueAlertsEnabled") private var overdueAlertsEnabled = false
     @AppStorage("approvalAlertsEnabled") private var approvalAlertsEnabled = false
+    @AppStorage("budgetAlertsEnabled") private var budgetAlertsEnabled = false
 
     var body: some View {
         Form {
@@ -103,6 +130,17 @@ struct NotificationSettingsView: View {
                             }
                         }
                     }
+                Toggle("Bütçe Aşımı Uyarıları", isOn: $budgetAlertsEnabled)
+                    .tint(.hakedisOrange)
+                    .onChange(of: budgetAlertsEnabled) { _, val in
+                        manager.budgetAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { $0.identifier.hasPrefix("budget_") }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
                 Toggle("Hakediş Onay Bildirimleri", isOn: $approvalAlertsEnabled)
                     .tint(.hakedisOrange)
                     .onChange(of: approvalAlertsEnabled) { _, val in
@@ -122,6 +160,8 @@ struct NotificationSettingsView: View {
                 Text("Günlük hatırlatıcı her gün saat 17:00'de saha girişi yapmanızı hatırlatır.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Geciken ödeme ve hakediş bildirimleri, ilgili işlem gerçekleştiğinde otomatik gönderilir.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Bütçe aşımı uyarıları, sözleşme bütçesi %80 veya üzeri kullanıldığında tetiklenir.")
                     .font(.caption).foregroundColor(.secondary)
             }
         }

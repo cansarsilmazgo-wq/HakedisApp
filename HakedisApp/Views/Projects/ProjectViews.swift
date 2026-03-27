@@ -310,6 +310,13 @@ struct ProjectDetailView: View {
         }
         .navigationTitle(project.name)
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: ProjectPDFReportView(project: project)) {
+                    Image(systemName: "doc.richtext")
+                }
+            }
+        }
         .sheet(isPresented: $showingAddContract) {
             AddContractView(project: project)
         }

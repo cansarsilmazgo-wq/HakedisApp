@@ -81,6 +81,9 @@ struct SettingsView: View {
                     NavigationLink(destination: ContractorPortalView()) {
                         Label("Taşeron Portalı", systemImage: "person.badge.shield.checkmark")
                     }
+                    NavigationLink(destination: ObjectionAdminView()) {
+                        Label("İtiraz Yönetimi", systemImage: "exclamationmark.bubble")
+                    }
                 }
 
                 // MARK: Veri Yönetimi

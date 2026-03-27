@@ -64,12 +64,14 @@ final class Contract {
     var advanceRate: Double
     var completionDeadline: Date?
     var kdvRate: Double
+    var advanceGiven: Double          // Fiilen ödenen avans tutarı
     var dailyPenaltyRate: Double
     var maxPenaltyRate: Double
     var project: Project?
     var contractor: Contractor?
     @Relationship(deleteRule: .cascade) var workItems: [WorkItem]
     @Relationship(deleteRule: .cascade) var hakedisler: [Hakedis]
+    @Relationship(deleteRule: .cascade) var retentionReleases: [RetentionRelease]
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -79,10 +81,12 @@ final class Contract {
         self.advanceRate = advanceRate
         self.completionDeadline = nil
         self.kdvRate = 0.0
+        self.advanceGiven = 0.0
         self.dailyPenaltyRate = 0.0
         self.maxPenaltyRate = 20.0
         self.workItems = []
         self.hakedisler = []
+        self.retentionReleases = []
     }
 
     // Gecikme cezası hesabı
@@ -101,9 +105,26 @@ final class Contract {
         return max(0, days)
     }
 
-    var totalContractAmount: Double {
-        workItems.reduce(0) { $0 + $1.totalAmount }
+    var totalContractAmount: Double { workItems.reduce(0) { $0 + $1.totalAmount } }
+
+    // Toplam hakedişlenen (KDV hariç net)
+    var totalInvoiced: Double { hakedisler.reduce(0) { $0 + $1.netAmount } }
+
+    // Bütçe kullanım yüzdesi
+    var budgetUtilization: Double {
+        guard totalContractAmount > 0 else { return 0 }
+        return (totalInvoiced / totalContractAmount) * 100
     }
+    var isOverBudget: Bool { budgetUtilization > 100 }
+
+    // Teminat takibi
+    var totalRetentionAccrued: Double  { hakedisler.reduce(0) { $0 + $1.retentionAmount } }
+    var totalRetentionReleased: Double { retentionReleases.reduce(0) { $0 + $1.amount } }
+    var retentionBalance: Double       { totalRetentionAccrued - totalRetentionReleased }
+
+    // Avans takibi
+    var totalAdvanceRecovered: Double { hakedisler.reduce(0) { $0 + $1.advanceDeduction } }
+    var advanceBalance: Double        { advanceGiven - totalAdvanceRecovered }
 }
 
 @Model
@@ -171,6 +192,7 @@ final class Hakedis {
     var dueDate: Date?
     var status: HakedisStatus
     var notes: String
+    var approvalNote: String     // Onay/red gerekçesi
     var contract: Contract?
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var items: [HakedisItem]
@@ -184,6 +206,7 @@ final class Hakedis {
         self.dueDate = dueDate
         self.status = .draft
         self.notes = ""
+        self.approvalNote = ""
         self.items = []
         self.payments = []
         self.createdAt = Date()
@@ -283,5 +306,23 @@ final class Payment {
         self.amount = amount
         self.paymentDate = paymentDate
         self.paymentDescription = paymentDescription
+    }
+}
+
+// MARK: - Retention Release
+
+@Model
+final class RetentionRelease {
+    var id: UUID
+    var amount: Double
+    var releaseDate: Date
+    var releaseDescription: String
+    var contract: Contract?
+
+    init(amount: Double, releaseDate: Date = Date(), releaseDescription: String = "") {
+        self.id = UUID()
+        self.amount = amount
+        self.releaseDate = releaseDate
+        self.releaseDescription = releaseDescription
     }
 }
