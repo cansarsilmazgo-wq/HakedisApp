@@ -63,7 +63,11 @@ struct ReportsView: View {
                 // Taşeron bazlı
                 if !contractors.isEmpty {
                     Section("Taşeron Bazlı") {
-                        ForEach(contractors) { ContractorReportRow(contractor: $0) }
+                        ForEach(contractors) { contractor in
+                            NavigationLink(destination: ContractorPerformanceView(contractor: contractor)) {
+                                ContractorReportRow(contractor: contractor)
+                            }
+                        }
                     }
                 }
 

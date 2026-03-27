@@ -220,6 +220,13 @@ struct ContractorDetailView: View {
         }
         .navigationTitle(contractor.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink(destination: ContractorPerformanceView(contractor: contractor)) {
+                    Image(systemName: "chart.bar.xaxis")
+                }
+            }
+        }
         .sheet(isPresented: $showingPasswordSheet) {
             PortalPasswordSheet(contractor: contractor)
         }
