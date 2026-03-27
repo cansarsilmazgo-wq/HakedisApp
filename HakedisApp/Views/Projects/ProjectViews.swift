@@ -282,6 +282,32 @@ struct ProjectDetailView: View {
                 }
             }
 
+            // Saha Raporları
+            Section {
+                let reports = project.siteReports.sorted { $0.date > $1.date }
+                let todayExists = reports.contains { Calendar.current.isDateInToday($0.date) }
+                let issueCount = reports.filter { $0.hasIssues }.count
+                NavigationLink(destination: SiteReportListView(project: project)) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Saha Raporları")
+                                .font(.subheadline)
+                            Text("\(reports.count) rapor\(reports.isEmpty ? "" : " • son: \(reports.first!.date.shortFormatted)")")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        if !todayExists && project.status == .active {
+                            StatusBadge(text: "Bugün eksik", color: .hakedisWarning)
+                        } else if issueCount > 0 {
+                            StatusBadge(text: "\(issueCount) sorun", color: .hakedisDanger)
+                        }
+                    }
+                }
+            } header: {
+                Text("Saha Raporları")
+            }
+
             // İş Programı
             Section {
                 let milestones = project.milestones.sorted { $0.plannedDate < $1.plannedDate }

@@ -11,7 +11,7 @@ struct HakedisApp: App {
         let schema = Schema([
             Project.self, Contractor.self, Contract.self, WorkItem.self,
             DailyEntry.self, Hakedis.self, HakedisItem.self, Payment.self,
-            RetentionRelease.self, ChangeOrder.self, Milestone.self
+            RetentionRelease.self, ChangeOrder.self, Milestone.self, SiteReport.self
         ])
         do {
             let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)

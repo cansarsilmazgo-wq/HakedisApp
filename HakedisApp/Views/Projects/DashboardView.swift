@@ -32,6 +32,12 @@ struct DashboardView: View {
             .filter { !$0.isCompleted && !$0.isOverdue && $0.daysUntilDue <= 7 }
             .sorted { $0.plannedDate < $1.plannedDate }
     }
+    /// Bugün rapor girilmemiş aktif projeler
+    private var projectsMissingTodayReport: [Project] {
+        activeProjects.filter { project in
+            !project.siteReports.contains { Calendar.current.isDateInToday($0.date) }
+        }
+    }
 
     private var todayEntries: [DailyEntry] {
         let calendar = Calendar.current
@@ -141,6 +147,19 @@ struct DashboardView: View {
                             SectionHeader("Yaklaşan Kilometre Taşları")
                             ForEach(upcomingMilestones.prefix(3)) { ms in
                                 MilestoneAlertCard(milestone: ms)
+                            }
+                        }
+                    }
+
+                    // Missing Today's Site Report
+                    if !projectsMissingTodayReport.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Bugün Rapor Girilmedi")
+                            ForEach(projectsMissingTodayReport.prefix(3)) { project in
+                                NavigationLink(destination: SiteReportListView(project: project)) {
+                                    SiteReportMissingCard(project: project)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }

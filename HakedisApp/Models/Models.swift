@@ -12,6 +12,7 @@ final class Project {
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var contracts: [Contract]
     @Relationship(deleteRule: .cascade) var milestones: [Milestone]
+    @Relationship(deleteRule: .cascade) var siteReports: [SiteReport]
 
     init(name: String, projectDescription: String = "", location: String = "", startDate: Date = Date()) {
         self.id = UUID()
@@ -23,6 +24,7 @@ final class Project {
         self.createdAt = Date()
         self.contracts = []
         self.milestones = []
+        self.siteReports = []
     }
 }
 
@@ -399,6 +401,73 @@ final class Milestone {
     var completedOnTime: Bool {
         guard let actual = actualDate else { return false }
         return actual <= plannedDate
+    }
+}
+
+// MARK: - Site Report (Günlük Saha Raporu)
+
+@Model
+final class SiteReport {
+    var id: UUID
+    var date: Date
+    var weather: SiteWeather
+    var temperature: Double?
+    var workerCount: Int
+    var engineerCount: Int
+    var workSummary: String
+    var issues: String
+    var tomorrowPlan: String
+    var equipmentNotes: String
+    var photoData: [Data]
+    var project: Project?
+    var createdAt: Date
+
+    init(
+        date: Date = Date(),
+        weather: SiteWeather = .sunny,
+        temperature: Double? = nil,
+        workerCount: Int = 0,
+        engineerCount: Int = 0,
+        workSummary: String = "",
+        issues: String = "",
+        tomorrowPlan: String = "",
+        equipmentNotes: String = ""
+    ) {
+        self.id = UUID()
+        self.date = date
+        self.weather = weather
+        self.temperature = temperature
+        self.workerCount = workerCount
+        self.engineerCount = engineerCount
+        self.workSummary = workSummary
+        self.issues = issues
+        self.tomorrowPlan = tomorrowPlan
+        self.equipmentNotes = equipmentNotes
+        self.photoData = []
+        self.createdAt = Date()
+    }
+
+    var totalPersonnel: Int { workerCount + engineerCount }
+    var hasIssues: Bool { !issues.trimmingCharacters(in: .whitespaces).isEmpty }
+}
+
+enum SiteWeather: String, Codable, CaseIterable {
+    case sunny  = "Güneşli"
+    case cloudy = "Bulutlu"
+    case rainy  = "Yağmurlu"
+    case snowy  = "Karlı"
+    case foggy  = "Sisli"
+    case windy  = "Rüzgarlı"
+
+    var icon: String {
+        switch self {
+        case .sunny:  return "sun.max.fill"
+        case .cloudy: return "cloud.fill"
+        case .rainy:  return "cloud.rain.fill"
+        case .snowy:  return "cloud.snow.fill"
+        case .foggy:  return "cloud.fog.fill"
+        case .windy:  return "wind"
+        }
     }
 }
 
