@@ -29,6 +29,9 @@
 		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
 		S016 /* ApprovalChainViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C016 /* ApprovalChainViews.swift */; };
 		S017 /* RejectionFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C017 /* RejectionFlowViews.swift */; };
+		S019 /* SiteHandoverViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C019 /* SiteHandoverViews.swift */; };
+		S020 /* MeasurementBookViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C020 /* MeasurementBookViews.swift */; };
+		S021 /* CumulativeQuantityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021 /* CumulativeQuantityViews.swift */; };
 		S018 /* UnitPriceAnalysisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C018 /* UnitPriceAnalysisViews.swift */; };
 		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
 		S012 /* ChangeOrderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C012 /* ChangeOrderViews.swift */; };
@@ -76,6 +79,9 @@
 		C015 /* SiteReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteReportViews.swift; path = HakedisApp/Views/Projects/SiteReportViews.swift; sourceTree = "<group>"; };
 		C016 /* ApprovalChainViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ApprovalChainViews.swift; path = HakedisApp/Views/Hakedis/ApprovalChainViews.swift; sourceTree = "<group>"; };
 		C017 /* RejectionFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RejectionFlowViews.swift; path = HakedisApp/Views/Hakedis/RejectionFlowViews.swift; sourceTree = "<group>"; };
+		C019 /* SiteHandoverViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteHandoverViews.swift; path = HakedisApp/Views/Contracts/SiteHandoverViews.swift; sourceTree = "<group>"; };
+		C020 /* MeasurementBookViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeasurementBookViews.swift; path = HakedisApp/Views/Contracts/MeasurementBookViews.swift; sourceTree = "<group>"; };
+		C021 /* CumulativeQuantityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CumulativeQuantityViews.swift; path = HakedisApp/Views/Contracts/CumulativeQuantityViews.swift; sourceTree = "<group>"; };
 		C018 /* UnitPriceAnalysisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UnitPriceAnalysisViews.swift; path = HakedisApp/Views/Contracts/UnitPriceAnalysisViews.swift; sourceTree = "<group>"; };
 		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
 		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
@@ -133,6 +139,9 @@
 				C001 /* SearchFilterView.swift */,
 				C016 /* ApprovalChainViews.swift */,
 				C017 /* RejectionFlowViews.swift */,
+				C019 /* SiteHandoverViews.swift */,
+				C020 /* MeasurementBookViews.swift */,
+				C021 /* CumulativeQuantityViews.swift */,
 				C018 /* UnitPriceAnalysisViews.swift */,
 			);
 			name = HakedisApp;
@@ -341,6 +350,9 @@
 				S001 /* SearchFilterView.swift in Sources */,
 				S016 /* ApprovalChainViews.swift in Sources */,
 				S017 /* RejectionFlowViews.swift in Sources */,
+				S019 /* SiteHandoverViews.swift in Sources */,
+				S020 /* MeasurementBookViews.swift in Sources */,
+				S021 /* CumulativeQuantityViews.swift in Sources */,
 				S018 /* UnitPriceAnalysisViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

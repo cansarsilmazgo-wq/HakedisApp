@@ -9,7 +9,8 @@ struct HakedisApp: App {
             Project.self, Contractor.self, Contract.self, WorkItem.self,
             DailyEntry.self, Hakedis.self, HakedisItem.self, Payment.self,
             RetentionRelease.self, ChangeOrder.self, Milestone.self, SiteReport.self,
-            ApprovalStep.self, HakedisRevision.self, UnitPriceAnalysis.self
+            ApprovalStep.self, HakedisRevision.self, UnitPriceAnalysis.self,
+            SiteHandoverRecord.self, SiteDeficiency.self, MeasurementEntry.self
         ])
 
         // Store URL'sini açıkça belirt — böylece silme işlemi doğru yere gider

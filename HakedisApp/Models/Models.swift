@@ -77,6 +77,7 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var hakedisler: [Hakedis]
     @Relationship(deleteRule: .cascade) var retentionReleases: [RetentionRelease]
     @Relationship(deleteRule: .cascade) var changeOrders: [ChangeOrder]
+    @Relationship(deleteRule: .cascade) var handoverRecords: [SiteHandoverRecord]
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -93,6 +94,15 @@ final class Contract {
         self.hakedisler = []
         self.retentionReleases = []
         self.changeOrders = []
+        self.handoverRecords = []
+    }
+
+    var hasHandover: Bool { !handoverRecords.isEmpty }
+    var latestHandover: SiteHandoverRecord? {
+        handoverRecords.sorted { $0.handoverDate > $1.handoverDate }.first
+    }
+    var openDeficiencyCount: Int {
+        handoverRecords.flatMap { $0.deficiencies }.filter { !$0.isClosed }.count
     }
 
     // Gecikme cezası hesabı
@@ -156,6 +166,7 @@ final class WorkItem {
     var contract: Contract?
     @Relationship(deleteRule: .cascade) var dailyEntries: [DailyEntry]
     @Relationship(deleteRule: .cascade) var unitPriceAnalyses: [UnitPriceAnalysis]
+    @Relationship(deleteRule: .cascade) var measurementEntries: [MeasurementEntry]
 
     init(code: String, name: String, unit: String, unitPrice: Double, contractedQuantity: Double, location: String = "") {
         self.id = UUID()
@@ -168,6 +179,7 @@ final class WorkItem {
         self.revisionHistory = []
         self.dailyEntries = []
         self.unitPriceAnalyses = []
+        self.measurementEntries = []
     }
 
     var totalAmount: Double { contractedQuantity * unitPrice }
@@ -686,6 +698,150 @@ final class UnitPriceAnalysis {
     var diff: Double { totalCost - contractUnitPrice }
 
     var isSavings: Bool { diff < 0 }
+}
+
+// MARK: - Site Handover (Yer Teslim Tutanağı)
+
+enum HandoverType: String, Codable, CaseIterable {
+    case teslimAl       = "Yer Teslim Al"
+    case teslimEt       = "Yer Teslim Et"
+    case kabulTutanagi  = "Kabul Tutanağı"
+}
+
+enum HandoverSignatureStatus: String, Codable, CaseIterable {
+    case taslak              = "Taslak"
+    case yukleniciImzaladi   = "Yüklenici İmzaladı"
+    case idareImzaladi       = "İdare İmzaladı"
+    case tamamlandi          = "Tamamlandı"
+}
+
+@Model
+final class SiteHandoverRecord {
+    var id: UUID
+    var handoverDate: Date
+    var handoverType: HandoverType
+    var contractorRepName: String
+    var ownerRepName: String
+    var location: String
+    var gpsLatitude: Double?
+    var gpsLongitude: Double?
+    var existingCondition: String
+    var photoData: [Data]
+    var signatureStatus: HandoverSignatureStatus
+    var notes: String?
+    var weatherCondition: String?
+    var witnessNamesJSON: String?   // JSON: [String]
+    var contract: Contract?
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var deficiencies: [SiteDeficiency]
+
+    init(handoverType: HandoverType, handoverDate: Date = Date(),
+         contractorRepName: String = "", ownerRepName: String = "",
+         location: String = "", existingCondition: String = "") {
+        self.id = UUID()
+        self.handoverType = handoverType
+        self.handoverDate = handoverDate
+        self.contractorRepName = contractorRepName
+        self.ownerRepName = ownerRepName
+        self.location = location
+        self.existingCondition = existingCondition
+        self.photoData = []
+        self.signatureStatus = .taslak
+        self.deficiencies = []
+        self.createdAt = Date()
+    }
+
+    var openDeficiencyCount: Int { deficiencies.filter { !$0.isClosed }.count }
+    var hasOpenDeficiencies: Bool { openDeficiencyCount > 0 }
+}
+
+@Model
+final class SiteDeficiency {
+    var id: UUID
+    var title: String
+    var responsiblePerson: String
+    var completionDate: Date
+    var isClosed: Bool
+    var closedDate: Date?
+    var notes: String?
+    var photoData: [Data]
+    var record: SiteHandoverRecord?
+    var createdAt: Date
+
+    init(title: String, responsiblePerson: String = "",
+         completionDate: Date = Calendar.current.date(byAdding: .day, value: 14, to: Date())!) {
+        self.id = UUID()
+        self.title = title
+        self.responsiblePerson = responsiblePerson
+        self.completionDate = completionDate
+        self.isClosed = false
+        self.photoData = []
+        self.createdAt = Date()
+    }
+
+    var isOverdue: Bool { !isClosed && Date() > completionDate }
+    var daysLeft: Int {
+        max(0, Calendar.current.dateComponents([.day], from: Date(), to: completionDate).day ?? 0)
+    }
+}
+
+// MARK: - Measurement Book (Metraj Defteri)
+
+enum MeasurementType: String, Codable, CaseIterable {
+    case uzunluk = "Uzunluk (m)"
+    case alan    = "Alan (m²)"
+    case hacim   = "Hacim (m³)"
+    case adet    = "Adet"
+
+    var formula: String {
+        switch self {
+        case .uzunluk: return "L"
+        case .alan:    return "L × G"
+        case .hacim:   return "L × G × Y"
+        case .adet:    return "Adet"
+        }
+    }
+
+    var usesWidth: Bool  { self == .alan || self == .hacim }
+    var usesHeight: Bool { self == .hacim }
+}
+
+@Model
+final class MeasurementEntry {
+    var id: UUID
+    var entryNo: String              // MB-2025-001
+    var date: Date
+    var workItemCode: String
+    var location: String
+    var measurementType: MeasurementType
+    var dimensionsJSON: String?      // JSON: [{id, description, length, width, height}]
+    var deductionsJSON: String?      // JSON: [{id, description, quantity}]
+    var calculatedQuantity: Double   // brüt (set on save)
+    var netQuantity: Double          // brüt - düşülen (set on save)
+    var previousEntries: Double      // önceki dönem kümülatif
+    var photoData: [Data]
+    var checkedBy: String?
+    var isVerified: Bool
+    var workItem: WorkItem?
+    var createdAt: Date
+
+    init(entryNo: String, workItemCode: String, location: String,
+         measurementType: MeasurementType, previousEntries: Double = 0) {
+        self.id = UUID()
+        self.entryNo = entryNo
+        self.workItemCode = workItemCode
+        self.location = location
+        self.measurementType = measurementType
+        self.previousEntries = previousEntries
+        self.calculatedQuantity = 0
+        self.netQuantity = 0
+        self.photoData = []
+        self.isVerified = false
+        self.date = Date()
+        self.createdAt = Date()
+    }
+
+    var cumulativeTotal: Double { previousEntries + netQuantity }
 }
 
 // MARK: - Retention Release

@@ -211,12 +211,17 @@ struct ContractDetailView: View {
     @State private var exportItem: ShareableCSV?
     @State private var showingRetentionTracking = false
     @State private var analysisWorkItem: WorkItem?
+    @State private var measurementWorkItem: WorkItem?
+    @State private var showCumulative = false
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
 
     var body: some View {
         List {
+            // Yer Teslim Tutanağı
+            SiteHandoverSection(contract: contract)
+
             // Summary
             Section {
                 VStack(alignment: .leading, spacing: 12) {
@@ -387,13 +392,22 @@ struct ContractDetailView: View {
                 } else {
                     ForEach(contract.workItems) { item in
                         NavigationLink(destination: WorkItemDetailView(workItem: item)) {
-                            WorkItemRow(workItem: item)
+                            if showCumulative {
+                                CumulativeWorkItemRow(workItem: item, contract: contract)
+                            } else {
+                                WorkItemRow(workItem: item)
+                            }
                         }
                         .contextMenu {
                             Button {
                                 analysisWorkItem = item
                             } label: {
                                 Label("Birim Fiyat Analizi", systemImage: "function")
+                            }
+                            Button {
+                                measurementWorkItem = item
+                            } label: {
+                                Label("Metraj Defteri", systemImage: "ruler")
                             }
                         }
                     }
@@ -402,33 +416,36 @@ struct ContractDetailView: View {
                     }
                 }
             } header: {
-                HStack {
-                    Text("İş Kalemleri (Pozlar)")
-                    Spacer()
-                    if !contract.workItems.isEmpty {
+                VStack(spacing: 4) {
+                    CumulativeToggleHeader(showCumulative: $showCumulative, contract: contract)
+                    HStack {
+                        Spacer()
+                        if !contract.workItems.isEmpty {
+                            Button {
+                                exportItem = ShareableCSV(
+                                    content: CSVExporter.exportWorkItems(contract),
+                                    filename: "\(contract.title)_pozlar.csv"
+                                )
+                            } label: {
+                                Image(systemName: "square.and.arrow.up")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                         Button {
-                            exportItem = ShareableCSV(
-                                content: CSVExporter.exportWorkItems(contract),
-                                filename: "\(contract.title)_pozlar.csv"
-                            )
+                            showingCSVPicker = true
                         } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.secondary)
+                            Image(systemName: "doc.badge.arrow.up")
+                                .foregroundColor(.hakedisOrange)
+                        }
+                        Button {
+                            showingAddWorkItem = true
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.hakedisOrange)
                         }
                     }
-                    Button {
-                        showingCSVPicker = true
-                    } label: {
-                        Image(systemName: "doc.badge.arrow.up")
-                            .foregroundColor(.hakedisOrange)
-                    }
-                    Button {
-                        showingAddWorkItem = true
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.hakedisOrange)
-                    }
                 }
+                .textCase(nil)
             }
 
             // Hakedişler
@@ -525,6 +542,9 @@ struct ContractDetailView: View {
         .shareSheet(item: $exportItem)
         .sheet(item: $analysisWorkItem) { item in
             UnitPriceAnalysisListSheet(workItem: item)
+        }
+        .sheet(item: $measurementWorkItem) { item in
+            MeasurementBookListSheet(workItem: item)
         }
     }
 }

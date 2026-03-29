@@ -44,6 +44,10 @@ struct DashboardView: View {
         return dailyEntries.filter { calendar.isDateInToday($0.date) }
     }
 
+    private var contractsWithDeficiencies: [Contract] {
+        projects.flatMap { $0.contracts }.filter { $0.openDeficiencyCount > 0 }
+    }
+
     @StateObject private var notificationManager = NotificationManager.shared
     @State private var showingSearch = false
     @State private var pendingObjectionCount: Int = 0
@@ -147,6 +151,16 @@ struct DashboardView: View {
                             SectionHeader("Yaklaşan Kilometre Taşları")
                             ForEach(upcomingMilestones.prefix(3)) { ms in
                                 MilestoneAlertCard(milestone: ms)
+                            }
+                        }
+                    }
+
+                    // Open Deficiencies
+                    if !contractsWithDeficiencies.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Açık Eksiklikler")
+                            ForEach(contractsWithDeficiencies.prefix(3)) { contract in
+                                DeficiencyAlertCard(contract: contract)
                             }
                         }
                     }

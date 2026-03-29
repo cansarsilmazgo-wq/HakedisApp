@@ -65,6 +65,7 @@ struct AddHakedisView: View {
     @State private var periodEnd = Date()
     @State private var hasDueDate = true
     @State private var dueDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
+    @State private var showingMeasurementImport = false
 
     var isValid: Bool { !periodName.trimmingCharacters(in: .whitespaces).isEmpty }
 
@@ -82,6 +83,18 @@ struct AddHakedisView: View {
                     if hasDueDate {
                         DatePicker("Vade Tarihi", selection: $dueDate, displayedComponents: .date)
                     }
+                }
+
+                Section("Metraj Defteri") {
+                    Button {
+                        showingMeasurementImport = true
+                    } label: {
+                        Label("Metraj Kayıtlarından İçe Aktar", systemImage: "ruler.fill")
+                            .foregroundColor(.hakedisOrange)
+                    }
+                    Text("Onaylanmış metraj kayıtlarını seçerek bu hakedişe dahil edebilirsiniz.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
 
                 Section("Bilgi") {
@@ -114,6 +127,9 @@ struct AddHakedisView: View {
                         .disabled(!isValid)
                         .bold()
                 }
+            }
+            .sheet(isPresented: $showingMeasurementImport) {
+                MeasurementImportSheet(contract: contract, periodStart: periodStart, periodEnd: periodEnd) { _ in }
             }
         }
     }
@@ -335,7 +351,7 @@ struct HakedisDetailView: View {
                         .font(.subheadline)
                 } else {
                     ForEach(hakedis.items) { item in
-                        HakedisItemRow(item: item)
+                        HakedisItemCumulativeRow(item: item, contract: hakedis.contract)
                     }
                 }
             }
