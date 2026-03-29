@@ -48,6 +48,12 @@
 		S010 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C010 /* WidgetDataManager.swift */; };
 		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
 		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		S022 /* PhotoWorkItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C022 /* PhotoWorkItemViews.swift */; };
+		S023 /* LaborTrackingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C023 /* LaborTrackingViews.swift */; };
+		S024 /* MaterialInventoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C024 /* MaterialInventoryViews.swift */; };
+		S025 /* SpecificationChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025 /* SpecificationChecklistViews.swift */; };
+		S026 /* HakedisComparisonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C026 /* HakedisComparisonViews.swift */; };
+		S027 /* CashFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C027 /* CashFlowViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -94,6 +100,12 @@
 		T003 /* CRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDTests.swift; sourceTree = "<group>"; };
 		T005 /* FinancialTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTrackingTests.swift; sourceTree = "<group>"; };
 		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C022 /* PhotoWorkItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoWorkItemViews.swift; path = HakedisApp/Views/DailyEntry/PhotoWorkItemViews.swift; sourceTree = "<group>"; };
+		C023 /* LaborTrackingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LaborTrackingViews.swift; path = HakedisApp/Views/Contracts/LaborTrackingViews.swift; sourceTree = "<group>"; };
+		C024 /* MaterialInventoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialInventoryViews.swift; path = HakedisApp/Views/Contracts/MaterialInventoryViews.swift; sourceTree = "<group>"; };
+		C025 /* SpecificationChecklistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpecificationChecklistViews.swift; path = HakedisApp/Views/Contracts/SpecificationChecklistViews.swift; sourceTree = "<group>"; };
+		C026 /* HakedisComparisonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisComparisonViews.swift; path = HakedisApp/Views/Hakedis/HakedisComparisonViews.swift; sourceTree = "<group>"; };
+		C027 /* CashFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CashFlowViews.swift; path = HakedisApp/Views/Reports/CashFlowViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -142,6 +154,12 @@
 				C019 /* SiteHandoverViews.swift */,
 				C020 /* MeasurementBookViews.swift */,
 				C021 /* CumulativeQuantityViews.swift */,
+				C022 /* PhotoWorkItemViews.swift */,
+				C023 /* LaborTrackingViews.swift */,
+				C024 /* MaterialInventoryViews.swift */,
+				C025 /* SpecificationChecklistViews.swift */,
+				C026 /* HakedisComparisonViews.swift */,
+				C027 /* CashFlowViews.swift */,
 				C018 /* UnitPriceAnalysisViews.swift */,
 			);
 			name = HakedisApp;
@@ -353,6 +371,12 @@
 				S019 /* SiteHandoverViews.swift in Sources */,
 				S020 /* MeasurementBookViews.swift in Sources */,
 				S021 /* CumulativeQuantityViews.swift in Sources */,
+				S022 /* PhotoWorkItemViews.swift in Sources */,
+				S023 /* LaborTrackingViews.swift in Sources */,
+				S024 /* MaterialInventoryViews.swift in Sources */,
+				S025 /* SpecificationChecklistViews.swift in Sources */,
+				S026 /* HakedisComparisonViews.swift in Sources */,
+				S027 /* CashFlowViews.swift in Sources */,
 				S018 /* UnitPriceAnalysisViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

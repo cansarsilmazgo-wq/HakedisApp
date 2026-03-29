@@ -155,6 +155,9 @@ struct DashboardView: View {
                         }
                     }
 
+                    // Unlabeled Photos
+                    UnlabeledPhotosAlertCard(projects: projects)
+
                     // Open Deficiencies
                     if !contractsWithDeficiencies.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {

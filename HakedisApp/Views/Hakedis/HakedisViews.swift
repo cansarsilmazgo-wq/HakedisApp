@@ -356,6 +356,9 @@ struct HakedisDetailView: View {
                 }
             }
 
+            // Fotoğraflı Kanıt
+            HakedisPhotoEvidenceSection(hakedis: hakedis, contract: hakedis.contract)
+
             // Payments
             Section {
                 if hakedis.payments.isEmpty {
@@ -395,6 +398,9 @@ struct HakedisDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 8) {
+                    NavigationLink(destination: HakedisApprovalAnalysisView(hakedis: hakedis)) {
+                        Image(systemName: "chart.bar.doc.horizontal")
+                    }
                     NavigationLink(destination: HakedisPDFPreviewView(hakedis: hakedis)) {
                         Image(systemName: "doc.richtext")
                     }

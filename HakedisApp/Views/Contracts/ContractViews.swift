@@ -494,6 +494,15 @@ struct ContractDetailView: View {
                     }
                 }
             }
+
+            // İşçilik Puantajı
+            LaborTrackingSection(contract: contract)
+
+            // Malzeme Takibi
+            MaterialInventorySection(contract: contract)
+
+            // Teknik Şartname
+            SpecificationChecklistSection(contract: contract)
         }
         .navigationTitle(contract.title)
         .navigationBarTitleDisplayMode(.inline)

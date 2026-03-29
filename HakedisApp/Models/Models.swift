@@ -78,6 +78,9 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var retentionReleases: [RetentionRelease]
     @Relationship(deleteRule: .cascade) var changeOrders: [ChangeOrder]
     @Relationship(deleteRule: .cascade) var handoverRecords: [SiteHandoverRecord]
+    @Relationship(deleteRule: .cascade) var laborRecords: [LaborRecord]
+    @Relationship(deleteRule: .cascade) var materialRecords: [MaterialRecord]
+    @Relationship(deleteRule: .cascade) var specificationItems: [SpecificationItem]
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -95,6 +98,9 @@ final class Contract {
         self.retentionReleases = []
         self.changeOrders = []
         self.handoverRecords = []
+        self.laborRecords = []
+        self.materialRecords = []
+        self.specificationItems = []
     }
 
     var hasHandover: Bool { !handoverRecords.isEmpty }
@@ -201,6 +207,7 @@ final class DailyEntry {
     var photoData: [Data]
     var workItem: WorkItem?
     var createdAt: Date
+    @Relationship(deleteRule: .cascade) var photoAnnotations: [PhotoAnnotation]
 
     init(date: Date = Date(), quantity: Double, location: String = "", notes: String = "") {
         self.id = UUID()
@@ -209,6 +216,7 @@ final class DailyEntry {
         self.location = location
         self.notes = notes
         self.photoData = []
+        self.photoAnnotations = []
         self.createdAt = Date()
     }
 }
@@ -842,6 +850,298 @@ final class MeasurementEntry {
     }
 
     var cumulativeTotal: Double { previousEntries + netQuantity }
+}
+
+// MARK: - Photo Annotation (Fotoğraf–İmalat Bağlantısı)
+
+@Model
+final class PhotoAnnotation {
+    var id: UUID
+    var photoIndex: Int              // DailyEntry.photoData dizisindeki indeks
+    var workItemCode: String
+    var workItemName: String
+    var measuredQuantity: Double?
+    var unit: String
+    var locationDescription: String?
+    var annotationText: String?
+    var gpsLatitude: Double?
+    var gpsLongitude: Double?
+    var capturedAt: Date
+    var isIncludedInHakedis: Bool
+    var dailyEntry: DailyEntry?
+    var createdAt: Date
+
+    init(photoIndex: Int, workItemCode: String, workItemName: String, unit: String = "") {
+        self.id = UUID()
+        self.photoIndex = photoIndex
+        self.workItemCode = workItemCode
+        self.workItemName = workItemName
+        self.unit = unit
+        self.capturedAt = Date()
+        self.isIncludedInHakedis = false
+        self.createdAt = Date()
+    }
+
+    var gpsCoordinate: String? {
+        guard let lat = gpsLatitude, let lon = gpsLongitude else { return nil }
+        return String(format: "%.6f, %.6f", lat, lon)
+    }
+}
+
+// MARK: - Labor Tracking (İşçilik Puantaj)
+
+enum WorkerType: String, Codable, CaseIterable {
+    case usta      = "Usta"
+    case kalfa     = "Kalfa"
+    case yardimci  = "Yardımcı"
+    case muhendis  = "Mühendis"
+    case tekniker  = "Tekniker"
+
+    var icon: String {
+        switch self {
+        case .usta:     return "hammer.fill"
+        case .kalfa:    return "wrench.fill"
+        case .yardimci: return "figure.stand"
+        case .muhendis: return "chart.line.uptrend.xyaxis"
+        case .tekniker: return "gearshape.fill"
+        }
+    }
+}
+
+enum WorkShiftType: String, Codable, CaseIterable {
+    case gunduz = "Gündüz"
+    case gece   = "Gece"
+    case mesai  = "Mesai"
+}
+
+struct LaborEntryData: Codable, Identifiable {
+    var id: UUID = UUID()
+    var workerType: WorkerType
+    var count: Int
+    var hoursWorked: Double   // varsayılan 8
+    var shiftType: WorkShiftType
+    var dailyCost: Double?
+    var notes: String?
+
+    var manDays: Double { Double(count) * hoursWorked / 8.0 }
+}
+
+@Model
+final class LaborRecord {
+    var id: UUID
+    var date: Date
+    var laborEntriesJSON: String?    // JSON: [LaborEntryData]
+    var weather: String?
+    var supervisorName: String?
+    var sgkNotified: Bool
+    var contract: Contract?
+    var createdAt: Date
+
+    init(date: Date = Date()) {
+        self.id = UUID()
+        self.date = date
+        self.sgkNotified = false
+        self.createdAt = Date()
+    }
+
+    var laborEntries: [LaborEntryData] {
+        guard let json = laborEntriesJSON,
+              let data = json.data(using: .utf8),
+              let entries = try? JSONDecoder().decode([LaborEntryData].self, from: data)
+        else { return [] }
+        return entries
+    }
+
+    var totalWorkers: Int { laborEntries.reduce(0) { $0 + $1.count } }
+    var totalManDays: Double { laborEntries.reduce(0) { $0 + $1.manDays } }
+    var totalLaborCost: Double { laborEntries.compactMap { $0.dailyCost }.reduce(0, +) }
+}
+
+// MARK: - Material Inventory (Malzeme Takip)
+
+enum MaterialCategory: String, Codable, CaseIterable {
+    case cimento  = "Çimento"
+    case demir    = "Demir"
+    case kum      = "Kum"
+    case cakil    = "Çakıl"
+    case tugla    = "Tuğla"
+    case ahsap    = "Ahşap"
+    case boya     = "Boya"
+    case diger    = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .cimento:  return "cylinder.fill"
+        case .demir:    return "rectangle.fill"
+        case .kum:      return "square.fill"
+        case .cakil:    return "circle.hexagongrid.fill"
+        case .tugla:    return "square.grid.2x2.fill"
+        case .ahsap:    return "tree.fill"
+        case .boya:     return "paintbrush.fill"
+        case .diger:    return "shippingbox.fill"
+        }
+    }
+}
+
+enum MaterialTransactionType: String, Codable, CaseIterable {
+    case siparis       = "Sipariş"
+    case teslimAlindi  = "Teslim Alındı"
+    case kullanildi    = "Kullanıldı"
+    case iade          = "İade"
+    case zayi          = "Zayi"
+}
+
+@Model
+final class MaterialRecord {
+    var id: UUID
+    var materialName: String
+    var unit: String
+    var category: MaterialCategory
+    var supplier: String?
+    var minimumStockLevel: Double
+    var contract: Contract?
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var transactions: [MaterialTransaction]
+
+    init(materialName: String, unit: String, category: MaterialCategory = .diger) {
+        self.id = UUID()
+        self.materialName = materialName
+        self.unit = unit
+        self.category = category
+        self.minimumStockLevel = 0
+        self.transactions = []
+        self.createdAt = Date()
+    }
+
+    var orderedQty: Double  { transactions.filter { $0.type == .siparis }.reduce(0) { $0 + $1.quantity } }
+    var receivedQty: Double { transactions.filter { $0.type == .teslimAlindi }.reduce(0) { $0 + $1.quantity } }
+    var usedQty: Double     { transactions.filter { $0.type == .kullanildi }.reduce(0) { $0 + $1.quantity } }
+    var wastageQty: Double  { transactions.filter { $0.type == .zayi }.reduce(0) { $0 + $1.quantity } }
+    var returnedQty: Double { transactions.filter { $0.type == .iade }.reduce(0) { $0 + $1.quantity } }
+    var stockQty: Double    { receivedQty - usedQty - wastageQty - returnedQty }
+
+    var lastUnitPrice: Double? {
+        transactions.filter { $0.type == .teslimAlindi && $0.unitPrice != nil }
+            .sorted { $0.date > $1.date }.first?.unitPrice
+    }
+
+    var stockValue: Double {
+        guard let price = lastUnitPrice else { return 0 }
+        return stockQty * price
+    }
+
+    var isLowStock: Bool { minimumStockLevel > 0 && stockQty <= minimumStockLevel }
+    var isStockEmpty: Bool { stockQty <= 0 }
+}
+
+@Model
+final class MaterialTransaction {
+    var id: UUID
+    var type: MaterialTransactionType
+    var quantity: Double
+    var date: Date
+    var workItemCode: String?
+    var unitPrice: Double?
+    var notes: String?
+    var invoiceNo: String?
+    var deliveryNoteNo: String?
+    var photoData: Data?
+    var material: MaterialRecord?
+    var createdAt: Date
+
+    init(type: MaterialTransactionType, quantity: Double, date: Date = Date()) {
+        self.id = UUID()
+        self.type = type
+        self.quantity = quantity
+        self.date = date
+        self.createdAt = Date()
+    }
+
+    var totalCost: Double? {
+        guard let price = unitPrice else { return nil }
+        return quantity * price
+    }
+}
+
+// MARK: - Specification Checklist (Teknik Şartname)
+
+enum SpecCategory: String, Codable, CaseIterable {
+    case malzeme  = "Malzeme"
+    case iscilik  = "İşçilik"
+    case test     = "Test"
+    case belgeler = "Belgeler"
+    case diger    = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .malzeme:  return "cube.box.fill"
+        case .iscilik:  return "hammer.fill"
+        case .test:     return "checkmark.shield.fill"
+        case .belgeler: return "doc.fill"
+        case .diger:    return "folder.fill"
+        }
+    }
+}
+
+enum SpecStatus: String, Codable, CaseIterable {
+    case bekliyor    = "Bekliyor"
+    case kontrol     = "Kontrol"
+    case uygun       = "Uygun"
+    case uygunsuz    = "Uygunsuz"
+    case gecersiz    = "Geçerli Değil"
+
+    var color: String {
+        switch self {
+        case .bekliyor:  return "secondary"
+        case .kontrol:   return "warning"
+        case .uygun:     return "success"
+        case .uygunsuz:  return "danger"
+        case .gecersiz:  return "secondary"
+        }
+    }
+}
+
+@Model
+final class SpecificationItem {
+    var id: UUID
+    var sectionNo: String
+    var title: String
+    var specDescription: String
+    var category: SpecCategory
+    var isRequired: Bool
+    var status: SpecStatus
+    var inspectionDate: Date?
+    var inspectedBy: String?
+    var nonConformanceNote: String?
+    var correctiveAction: String?
+    var dueDate: Date?
+    var evidenceData: [Data]
+    var closedAt: Date?
+    var templateName: String?
+    var contract: Contract?
+    var createdAt: Date
+
+    init(sectionNo: String, title: String, category: SpecCategory = .diger, isRequired: Bool = true) {
+        self.id = UUID()
+        self.sectionNo = sectionNo
+        self.title = title
+        self.specDescription = ""
+        self.category = category
+        self.isRequired = isRequired
+        self.status = .bekliyor
+        self.evidenceData = []
+        self.createdAt = Date()
+    }
+
+    var isOpen: Bool { status == .uygunsuz && closedAt == nil }
+    var isOverdue: Bool {
+        guard let due = dueDate, status == .uygunsuz, closedAt == nil else { return false }
+        return Date() > due
+    }
+    var daysUntilDue: Int? {
+        guard let due = dueDate else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: due).day
+    }
 }
 
 // MARK: - Retention Release
