@@ -27,6 +27,9 @@
 		B010 /* DailyEntryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A010 /* DailyEntryViews.swift */; };
 		B011 /* HakedisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A011 /* HakedisViews.swift */; };
 		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
+		S016 /* ApprovalChainViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C016 /* ApprovalChainViews.swift */; };
+		S017 /* RejectionFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C017 /* RejectionFlowViews.swift */; };
+		S018 /* UnitPriceAnalysisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C018 /* UnitPriceAnalysisViews.swift */; };
 		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
 		S012 /* ChangeOrderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C012 /* ChangeOrderViews.swift */; };
 		S013 /* ContractorPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C013 /* ContractorPerformanceView.swift */; };
@@ -71,6 +74,9 @@
 		C013 /* ContractorPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPerformanceView.swift; path = HakedisApp/Views/Contracts/ContractorPerformanceView.swift; sourceTree = "<group>"; };
 		C014 /* MilestoneViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MilestoneViews.swift; path = HakedisApp/Views/Projects/MilestoneViews.swift; sourceTree = "<group>"; };
 		C015 /* SiteReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteReportViews.swift; path = HakedisApp/Views/Projects/SiteReportViews.swift; sourceTree = "<group>"; };
+		C016 /* ApprovalChainViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ApprovalChainViews.swift; path = HakedisApp/Views/Hakedis/ApprovalChainViews.swift; sourceTree = "<group>"; };
+		C017 /* RejectionFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RejectionFlowViews.swift; path = HakedisApp/Views/Hakedis/RejectionFlowViews.swift; sourceTree = "<group>"; };
+		C018 /* UnitPriceAnalysisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UnitPriceAnalysisViews.swift; path = HakedisApp/Views/Contracts/UnitPriceAnalysisViews.swift; sourceTree = "<group>"; };
 		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
 		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
 		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
@@ -125,6 +131,9 @@
 				C015 /* SiteReportViews.swift */,
 				C002 /* ContractorPortalView.swift */,
 				C001 /* SearchFilterView.swift */,
+				C016 /* ApprovalChainViews.swift */,
+				C017 /* RejectionFlowViews.swift */,
+				C018 /* UnitPriceAnalysisViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -330,6 +339,9 @@
 				S015 /* SiteReportViews.swift in Sources */,
 				S002 /* ContractorPortalView.swift in Sources */,
 				S001 /* SearchFilterView.swift in Sources */,
+				S016 /* ApprovalChainViews.swift in Sources */,
+				S017 /* RejectionFlowViews.swift in Sources */,
+				S018 /* UnitPriceAnalysisViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -81,6 +81,9 @@ struct ReportsView: View {
                     }
                 }
 
+                // İtiraz istatistikleri
+                RejectionStatsSection()
+
                 // Hakediş durumu
                 Section("Hakediş Durumu") {
                     ForEach(HakedisStatus.allCases, id: \.self) { status in

@@ -155,6 +155,7 @@ final class WorkItem {
     var revisionHistory: [String]
     var contract: Contract?
     @Relationship(deleteRule: .cascade) var dailyEntries: [DailyEntry]
+    @Relationship(deleteRule: .cascade) var unitPriceAnalyses: [UnitPriceAnalysis]
 
     init(code: String, name: String, unit: String, unitPrice: Double, contractedQuantity: Double, location: String = "") {
         self.id = UUID()
@@ -166,6 +167,7 @@ final class WorkItem {
         self.location = location
         self.revisionHistory = []
         self.dailyEntries = []
+        self.unitPriceAnalyses = []
     }
 
     var totalAmount: Double { contractedQuantity * unitPrice }
@@ -213,6 +215,8 @@ final class Hakedis {
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var items: [HakedisItem]
     @Relationship(deleteRule: .cascade) var payments: [Payment]
+    @Relationship(deleteRule: .cascade) var approvalSteps: [ApprovalStep]
+    @Relationship(deleteRule: .cascade) var revisions: [HakedisRevision]
 
     init(periodName: String, periodStart: Date, periodEnd: Date, dueDate: Date? = nil) {
         self.id = UUID()
@@ -225,8 +229,12 @@ final class Hakedis {
         self.approvalNote = ""
         self.items = []
         self.payments = []
+        self.approvalSteps = []
+        self.revisions = []
         self.createdAt = Date()
     }
+
+    var nextRevisionVersion: String { "v1.\(revisions.count)" }
 
     var grossAmount: Double { items.reduce(0) { $0 + $1.periodAmount } }
 
@@ -469,6 +477,215 @@ enum SiteWeather: String, Codable, CaseIterable {
         case .windy:  return "wind"
         }
     }
+}
+
+// MARK: - Approval Chain (İmza Zinciri)
+
+enum ApprovalRole: String, Codable, CaseIterable {
+    case santiyeSef  = "Şantiye Şefi"
+    case sefMuhendis = "Şef Mühendis"
+    case idare       = "İdare"
+
+    var icon: String {
+        switch self {
+        case .santiyeSef:  return "person.fill.checkmark"
+        case .sefMuhendis: return "person.2.fill"
+        case .idare:       return "building.columns.fill"
+        }
+    }
+}
+
+enum ApprovalStepStatus: String, Codable, CaseIterable {
+    case bekliyor        = "Bekliyor"
+    case onaylandi       = "Onaylandı"
+    case reddedildi      = "Reddedildi"
+    case yetkiDevredildi = "Yetki Devredildi"
+}
+
+@Model
+final class ApprovalStep {
+    var id: UUID
+    var stepOrder: Int
+    var role: ApprovalRole
+    var approverName: String
+    var delegateName: String?
+    var delegateReason: String?
+    var approvedAt: Date?
+    var deadline: Date?
+    var comment: String?
+    var status: ApprovalStepStatus
+    var rejectionReason: String?
+    var authorityDocNo: String?
+    var authorityDocDate: Date?
+    var authorityGrantedBy: String?
+    var isCancelled: Bool
+    var cancellationReason: String?
+    var auditLog: String?
+    var hakedis: Hakedis?
+
+    init(stepOrder: Int, role: ApprovalRole, approverName: String) {
+        self.id = UUID()
+        self.stepOrder = stepOrder
+        self.role = role
+        self.approverName = approverName
+        self.status = .bekliyor
+        self.isCancelled = false
+    }
+
+    var deadlineDaysLeft: Int? {
+        guard let d = deadline, status == .bekliyor, !isCancelled else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: d).day
+    }
+
+    var isNearingDeadline: Bool {
+        guard let left = deadlineDaysLeft else { return false }
+        return left >= 0 && left <= 3
+    }
+
+    var effectiveApproverName: String {
+        delegateName.map { "\($0) (vekil)" } ?? approverName
+    }
+}
+
+// MARK: - Rejection Flow (Red & İtiraz)
+
+enum RevisionResolution: String, Codable, CaseIterable {
+    case devam         = "Devam"
+    case kismenKabul   = "Kısmen Kabul"
+    case tamKabul      = "Tam Kabul"
+    case hakemeGidildi = "Hakeme Gidildi"
+}
+
+@Model
+final class HakedisRevision {
+    var id: UUID
+    var version: String
+    var rejectionReason: String
+    var officialLetterNo: String?
+    var rejectedAt: Date
+    var objectionText: String?
+    var objectionDeadline: Date
+    var revisedItemsJSON: String?
+    var mediationDatesJSON: String?
+    var resolution: RevisionResolution?
+    var itirazKazanildi: Bool?
+    var paymentDocNo: String?
+    var hakedis: Hakedis?
+    var createdAt: Date
+
+    init(version: String, rejectionReason: String, rejectedAt: Date = Date(),
+         officialLetterNo: String? = nil) {
+        self.id = UUID()
+        self.version = version
+        self.rejectionReason = rejectionReason
+        self.officialLetterNo = officialLetterNo
+        self.rejectedAt = rejectedAt
+        self.objectionDeadline = Calendar.current.date(byAdding: .day, value: 30, to: rejectedAt)!
+        self.createdAt = Date()
+    }
+
+    var objectionDaysLeft: Int {
+        max(0, Calendar.current.dateComponents([.day], from: Date(), to: objectionDeadline).day ?? 0)
+    }
+
+    var isExpired: Bool {
+        (Calendar.current.dateComponents([.day], from: Date(), to: objectionDeadline).day ?? 0) < 0
+    }
+}
+
+// MARK: - Unit Price Analysis (Birim Fiyat Analizi)
+
+enum LaborShiftType: String, Codable, CaseIterable {
+    case gunduz    = "Gündüz"
+    case gece      = "Gece"
+    case haftaSonu = "Hafta Sonu"
+
+    var coefficient: Double {
+        switch self {
+        case .gunduz:    return 1.0
+        case .gece:      return 1.25
+        case .haftaSonu: return 1.50
+        }
+    }
+
+    var coefficientLabel: String {
+        switch self {
+        case .gunduz:    return "×1,00"
+        case .gece:      return "×1,25 (%25 zam)"
+        case .haftaSonu: return "×1,50 (%50 zam)"
+        }
+    }
+}
+
+enum AnalysisApprovalStatus: String, Codable, CaseIterable {
+    case taslak            = "Taslak"
+    case idareOnayBekliyor = "İdare Onay Bekliyor"
+    case onaylandi         = "Onaylandı"
+    case reddedildi        = "Reddedildi"
+}
+
+@Model
+final class UnitPriceAnalysis {
+    var id: UUID
+    var analysisNo: String
+    var date: Date
+    var version: Int
+    var workItemCode: String
+    var workItemName: String
+    var isStandardPoz: Bool
+    var standardPozCode: String?
+    var laborCost: Double
+    var laborShiftType: LaborShiftType
+    var materialCost: Double
+    var machineCost: Double
+    var transportCost: Double
+    var hasForeignCurrency: Bool
+    var currencyCode: String?
+    var exchangeRate: Double?
+    var exchangeRateDate: Date?
+    var marketResearchJSON: String?
+    var overheadRate: Double
+    var profitRate: Double
+    var approvalStatus: AnalysisApprovalStatus
+    var approvedBy: String?
+    var approvedAt: Date?
+    var contractUnitPrice: Double
+    var workItem: WorkItem?
+    var createdAt: Date
+
+    init(analysisNo: String, workItemCode: String, workItemName: String,
+         contractUnitPrice: Double, version: Int = 1) {
+        self.id = UUID()
+        self.analysisNo = analysisNo
+        self.date = Date()
+        self.version = version
+        self.workItemCode = workItemCode
+        self.workItemName = workItemName
+        self.isStandardPoz = false
+        self.laborCost = 0
+        self.laborShiftType = .gunduz
+        self.materialCost = 0
+        self.machineCost = 0
+        self.transportCost = 0
+        self.hasForeignCurrency = false
+        self.overheadRate = 15.0
+        self.profitRate = 10.0
+        self.approvalStatus = .taslak
+        self.contractUnitPrice = contractUnitPrice
+        self.createdAt = Date()
+    }
+
+    var directCost: Double {
+        laborCost * laborShiftType.coefficient + materialCost + machineCost + transportCost
+    }
+
+    var totalCost: Double {
+        directCost * (1 + overheadRate / 100) * (1 + profitRate / 100)
+    }
+
+    var diff: Double { totalCost - contractUnitPrice }
+
+    var isSavings: Bool { diff < 0 }
 }
 
 // MARK: - Retention Release

@@ -170,6 +170,7 @@ struct HakedisDetailView: View {
     @Environment(\.modelContext) private var modelContext
     let hakedis: Hakedis
     @State private var showingAddPayment = false
+    @State private var showingRejectionCapture = false
 
     var statusColor: Color {
         switch hakedis.status {
@@ -307,9 +308,23 @@ struct HakedisDetailView: View {
                 }
             }
 
+            // Versiyon Timeline (redler varsa)
+            if !hakedis.revisions.isEmpty {
+                Section {
+                    RevisionVersionTimeline(hakedis: hakedis)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                }
+            }
+
             // Status Workflow
             Section("Onay Durumu") {
                 HakedisStatusWorkflow(hakedis: hakedis)
+            }
+
+            // İmza Zinciri
+            Section("Onay Zinciri") {
+                ApprovalChainSection(hakedis: hakedis)
             }
 
             // Items
@@ -376,6 +391,14 @@ struct HakedisDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingAddPayment) {
             AddPaymentView(hakedis: hakedis)
+        }
+        .sheet(isPresented: $showingRejectionCapture) {
+            RejectionCaptureSheet(hakedis: hakedis)
+        }
+        .onChange(of: hakedis.status) { _, newStatus in
+            if newStatus == .rejected {
+                showingRejectionCapture = true
+            }
         }
     }
 }

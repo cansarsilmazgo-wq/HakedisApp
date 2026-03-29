@@ -210,6 +210,7 @@ struct ContractDetailView: View {
     @State private var showingImportPreview = false
     @State private var exportItem: ShareableCSV?
     @State private var showingRetentionTracking = false
+    @State private var analysisWorkItem: WorkItem?
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
@@ -388,6 +389,13 @@ struct ContractDetailView: View {
                         NavigationLink(destination: WorkItemDetailView(workItem: item)) {
                             WorkItemRow(workItem: item)
                         }
+                        .contextMenu {
+                            Button {
+                                analysisWorkItem = item
+                            } label: {
+                                Label("Birim Fiyat Analizi", systemImage: "function")
+                            }
+                        }
                     }
                     .onDelete { offsets in
                         offsets.map { contract.workItems[$0] }.forEach { modelContext.delete($0) }
@@ -436,6 +444,24 @@ struct ContractDetailView: View {
                     ForEach(contract.hakedisler.sorted { $0.createdAt > $1.createdAt }) { hakedis in
                         NavigationLink(destination: HakedisDetailView(hakedis: hakedis)) {
                             HakedisListRow(hakedis: hakedis)
+                        }
+                        .swipeActions(edge: .leading) {
+                            if hakedis.status == .draft {
+                                Button {
+                                    hakedis.status = .pendingApproval
+                                } label: {
+                                    Label("Onaya Gönder", systemImage: "paperplane")
+                                }
+                                .tint(.hakedisOrange)
+                            }
+                            if hakedis.status == .pendingApproval {
+                                Button {
+                                    hakedis.status = .approved
+                                } label: {
+                                    Label("Onayla", systemImage: "checkmark")
+                                }
+                                .tint(.hakedisSuccess)
+                            }
                         }
                     }
                 }
@@ -497,6 +523,9 @@ struct ContractDetailView: View {
             }
         }
         .shareSheet(item: $exportItem)
+        .sheet(item: $analysisWorkItem) { item in
+            UnitPriceAnalysisListSheet(workItem: item)
+        }
     }
 }
 

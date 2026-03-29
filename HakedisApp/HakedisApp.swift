@@ -1,8 +1,5 @@
 import SwiftUI
 import SwiftData
-import FirebaseCore
-import FirebaseAnalytics
-import FirebaseCrashlytics
 
 @main
 struct HakedisApp: App {
@@ -11,31 +8,31 @@ struct HakedisApp: App {
         let schema = Schema([
             Project.self, Contractor.self, Contract.self, WorkItem.self,
             DailyEntry.self, Hakedis.self, HakedisItem.self, Payment.self,
-            RetentionRelease.self, ChangeOrder.self, Milestone.self, SiteReport.self
+            RetentionRelease.self, ChangeOrder.self, Milestone.self, SiteReport.self,
+            ApprovalStep.self, HakedisRevision.self, UnitPriceAnalysis.self
         ])
-        #if targetEnvironment(simulator)
-        // Simulator: CloudKit gerektirmez, yerel depolama yeterli
-        let localConfig = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-        return try! ModelContainer(for: schema, configurations: [localConfig])
-        #else
+
+        // Store URL'sini açıkça belirt — böylece silme işlemi doğru yere gider
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let storeURL = appSupport.appendingPathComponent("hakedis.store")
+        let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
+
         do {
-            let config = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            // iCloud hesabı yoksa veya CloudKit validasyonu başarısız → yerel mod
-            let localConfig = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-            return try! ModelContainer(for: schema, configurations: [localConfig])
+            // Schema uyumsuzluğu → SQLite store + WAL dosyalarını sil (-shm/-wal suffix'i)
+            for suffix in ["", "-shm", "-wal"] {
+                try? FileManager.default.removeItem(
+                    at: URL(fileURLWithPath: storeURL.path + suffix)
+                )
+            }
+            do {
+                return try ModelContainer(for: schema, configurations: [config])
+            } catch {
+                fatalError("ModelContainer oluşturulamadı: \(error.localizedDescription)")
+            }
         }
-        #endif
     }()
-
-    init() {
-        #if !targetEnvironment(simulator)
-        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
-            FirebaseApp.configure()
-        }
-        #endif
-    }
 
     var body: some Scene {
         WindowGroup {
