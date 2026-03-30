@@ -10,10 +10,24 @@ struct TestRecordSection: View {
     @State private var showAdd = false
 
     private var failedTests: Int { contract.testRecords.filter { $0.status == .kaldi }.count }
+    private var blockingTests: Int { contract.testRecords.filter { $0.blocksApproval }.count }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader("Test / Deney Sonuçları")
+
+            if blockingTests > 0 {
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.seal.fill")
+                        .foregroundColor(.hakedisDanger)
+                    Text("\(blockingTests) zorunlu test hakediş onayını engelliyor")
+                        .font(.caption.bold())
+                        .foregroundColor(.hakedisDanger)
+                }
+                .padding(10)
+                .background(Color.hakedisDanger.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
 
             if !contract.testRecords.isEmpty {
                 HStack(spacing: 12) {

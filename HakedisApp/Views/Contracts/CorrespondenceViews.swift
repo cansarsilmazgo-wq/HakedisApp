@@ -9,15 +9,26 @@ struct CorrespondenceSection: View {
     @Environment(\.modelContext) private var context
     @State private var showAdd = false
 
-    private var pendingReply: [CorrespondenceRecord] {
-        contract.correspondenceRecords
-            .filter { !$0.isReplied && $0.replyDeadline != nil }
-            .sorted { ($0.replyDeadline ?? .distantFuture) < ($1.replyDeadline ?? .distantFuture) }
+    private var overdueRecords: [CorrespondenceRecord] {
+        contract.correspondenceRecords.filter { $0.isSureDoldu }
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader("Yazışma / Evrak Takibi")
+
+            if !overdueRecords.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: "envelope.badge.fill")
+                        .foregroundColor(.hakedisDanger)
+                    Text("\(overdueRecords.count) yazışmada cevap süresi doldu")
+                        .font(.caption.bold())
+                        .foregroundColor(.hakedisDanger)
+                }
+                .padding(10)
+                .background(Color.hakedisDanger.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
 
             if contract.correspondenceRecords.isEmpty {
                 EmptyStateView(

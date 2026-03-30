@@ -9,9 +9,26 @@ struct SoilRecordSection: View {
     @Environment(\.modelContext) private var context
     @State private var showAdd = false
 
+    private var notReadyCount: Int {
+        contract.soilRecords.filter { !$0.canBeIncludedInHakedis }.count
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader("Zemin / Kazı Tutanakları")
+
+            if notReadyCount > 0 {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .foregroundColor(.hakedisWarning)
+                    Text("\(notReadyCount) tutanak hakediş için hazır değil (imza/fotoğraf eksik)")
+                        .font(.caption.bold())
+                        .foregroundColor(.hakedisWarning)
+                }
+                .padding(10)
+                .background(Color.hakedisWarning.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
 
             if contract.soilRecords.isEmpty {
                 EmptyStateView(

@@ -9,9 +9,26 @@ struct AcceptanceSection: View {
     @Environment(\.modelContext) private var context
     @State private var showAdd = false
 
+    private var nearExpiryCount: Int {
+        contract.acceptanceRecords.filter { $0.isNearingWarrantyExpiry }.count
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader("Geçici / Kesin Kabul")
+
+            if nearExpiryCount > 0 {
+                HStack(spacing: 8) {
+                    Image(systemName: "hourglass.tophalf.filled")
+                        .foregroundColor(.hakedisWarning)
+                    Text("\(nearExpiryCount) kabul tutanağında garanti süresi 60 gün içinde bitiyor")
+                        .font(.caption.bold())
+                        .foregroundColor(.hakedisWarning)
+                }
+                .padding(10)
+                .background(Color.hakedisWarning.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
 
             if contract.acceptanceRecords.isEmpty {
                 EmptyStateView(

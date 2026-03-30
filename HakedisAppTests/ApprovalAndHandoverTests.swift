@@ -17,7 +17,12 @@ final class ApprovalAndHandoverTests: XCTestCase {
         UnitPriceAnalysis.self, SiteHandoverRecord.self, SiteDeficiency.self,
         MeasurementEntry.self, PhotoAnnotation.self,
         LaborRecord.self, MaterialRecord.self, MaterialTransaction.self,
-        SpecificationItem.self
+        SpecificationItem.self,
+        CorrespondenceRecord.self, PriceDifferenceRecord.self,
+        VATWithholdingRecord.self, SGKLaborRecord.self, SiteLogEntry.self,
+        Equipment.self, EquipmentUsage.self,
+        SoilRecord.self, TestRecord.self,
+        AcceptanceRecord.self, WarrantyClaim.self
     ])
 
     override func setUpWithError() throws {

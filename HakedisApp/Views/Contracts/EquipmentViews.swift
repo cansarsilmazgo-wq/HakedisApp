@@ -12,6 +12,9 @@ struct EquipmentSection: View {
     private var maintenanceDueCount: Int {
         contract.equipments.filter { $0.isMaintenanceDue }.count
     }
+    private var muayeneDueCount: Int {
+        contract.equipments.filter { $0.isMuayeneDue }.count
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -28,6 +31,18 @@ struct EquipmentSection: View {
                     }
                     .padding(10)
                     .background(Color.hakedisWarning.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                if muayeneDueCount > 0 {
+                    HStack(spacing: 8) {
+                        Image(systemName: "calendar.badge.exclamationmark")
+                            .foregroundColor(.hakedisDanger)
+                        Text("\(muayeneDueCount) ekipman periyodik muayene süresi doldu")
+                            .font(.caption.bold())
+                            .foregroundColor(.hakedisDanger)
+                    }
+                    .padding(10)
+                    .background(Color.hakedisDanger.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
 
