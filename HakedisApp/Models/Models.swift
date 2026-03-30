@@ -1207,6 +1207,8 @@ final class CorrespondenceRecord {
     var documentDate: Date
     var receivedDate: Date
     var replyDeadline: Date?
+    var replyDeadlineDays: Int?   // iş günü cevap süresi (ör: 15)
+    var parentRecordNo: String?   // zincir: yanıtladığı yazı no
     var isReplied: Bool
     var repliedAt: Date?
     var summary: String
@@ -1233,14 +1235,38 @@ final class CorrespondenceRecord {
         self.createdAt = Date()
     }
 
-    var isOverdue: Bool {
-        guard let deadline = replyDeadline, !isReplied else { return false }
+    /// Hafta sonu gözetilerek iş günü hesaplı son tarih
+    var businessDayDeadline: Date? {
+        guard let days = replyDeadlineDays, days > 0 else { return replyDeadline }
+        return CorrespondenceRecord.addBusinessDays(days, to: receivedDate)
+    }
+
+    /// Cevap süresi doldu mu (iş günü deadline'ı baz alır)
+    var isSureDoldu: Bool {
+        guard !isReplied else { return false }
+        guard let deadline = businessDayDeadline ?? replyDeadline else { return false }
         return Date() > deadline
     }
 
+    var isOverdue: Bool { isSureDoldu }
+
     var daysLeft: Int? {
-        guard let deadline = replyDeadline, !isReplied else { return nil }
-        return Calendar.current.dateComponents([.day], from: Date(), to: deadline).day
+        let deadline = businessDayDeadline ?? replyDeadline
+        guard let d = deadline, !isReplied else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: d).day
+    }
+
+    /// Belirtilen tarihten itibaren N iş günü (Pazartesi–Cuma) sonrasını hesaplar
+    static func addBusinessDays(_ days: Int, to date: Date) -> Date {
+        let cal = Calendar(identifier: .gregorian)
+        var remaining = days
+        var current = date
+        while remaining > 0 {
+            current = cal.date(byAdding: .day, value: 1, to: current) ?? current
+            let weekday = cal.component(.weekday, from: current)
+            if weekday != 1 && weekday != 7 { remaining -= 1 }   // 1=Pazar, 7=Cumartesi
+        }
+        return current
     }
 }
 
@@ -1253,15 +1279,18 @@ final class PriceDifferenceRecord {
     var baseIndex: Double
     var currentIndex: Double
     var baseAmount: Double
+    var coefficient: Double       // katsayı (ör: 0.90)
     var contract: Contract?
     var createdAt: Date
 
-    init(periodName: String, baseIndex: Double, currentIndex: Double, baseAmount: Double) {
+    init(periodName: String, baseIndex: Double, currentIndex: Double,
+         baseAmount: Double, coefficient: Double = 1.0) {
         self.id = UUID()
         self.periodName = periodName
         self.baseIndex = baseIndex
         self.currentIndex = currentIndex
         self.baseAmount = baseAmount
+        self.coefficient = coefficient
         self.createdAt = Date()
     }
 
@@ -1270,7 +1299,8 @@ final class PriceDifferenceRecord {
         return currentIndex / baseIndex
     }
 
-    var priceDifference: Double { baseAmount * (indexRatio - 1) }
+    /// fiyatFarkı = baseAmount × (endeksOranı - 1) × katsayı
+    var priceDifference: Double { baseAmount * (indexRatio - 1) * coefficient }
 
     var isGain: Bool { priceDifference > 0 }
 }
@@ -1280,11 +1310,13 @@ final class PriceDifferenceRecord {
 enum VATWithholdingRatio: String, Codable, CaseIterable {
     case ikiUcte  = "2/3"
     case yariYari = "1/2"
+    case dortOnda = "4/10"
 
     var ratio: Double {
         switch self {
         case .ikiUcte:  return 2.0 / 3.0
         case .yariYari: return 0.5
+        case .dortOnda: return 4.0 / 10.0
         }
     }
 }
@@ -1318,6 +1350,8 @@ final class SGKLaborRecord {
     var laborIntensityRate: Double   // %
     var minimumLaborAmount: Double
     var declaredLaborAmount: Double
+    var areaM2: Double?              // m² (konut/alan bazlı hesap için)
+    var asgariIscilikBirimi: Double? // TL/m² birim bedel (ör: 4.0 TL/m²)
     var contract: Contract?
     var createdAt: Date
 
@@ -1332,8 +1366,17 @@ final class SGKLaborRecord {
         self.createdAt = Date()
     }
 
-    var isCompliant: Bool { declaredLaborAmount >= minimumLaborAmount }
-    var deficiency: Double { max(0, minimumLaborAmount - declaredLaborAmount) }
+    /// Alan × birim bedel bazlı asgari işçilik (alan verisi girilmişse bunu kullanır)
+    var effectiveMinimumLaborAmount: Double {
+        if let area = areaM2, let unit = asgariIscilikBirimi, area > 0, unit > 0 {
+            return area * unit
+        }
+        return minimumLaborAmount
+    }
+
+    var isCompliant: Bool { declaredLaborAmount >= effectiveMinimumLaborAmount }
+    var deficiency: Double { max(0, effectiveMinimumLaborAmount - declaredLaborAmount) }
+    var penaltyRisk: Bool { !isCompliant }
 }
 
 // MARK: - Resmi Şantiye Günlüğü (SiteLogEntry)
@@ -1348,8 +1391,11 @@ final class SiteLogEntry {
     var isHoliday: Bool
     var isSuspended: Bool
     var suspensionReason: String?
+    var nonWorkReason: String?      // tatil/askı açıklaması
     var workSummary: String
     var issues: String?
+    var additionalNotes: String?    // sonradan eklenebilen ek not (kayıt kilitliyken)
+    var isLocked: Bool              // bir kez imzalandıktan sonra kilitlenir
     var contract: Contract?
     var createdAt: Date
 
@@ -1361,6 +1407,7 @@ final class SiteLogEntry {
         self.isHoliday = isHoliday
         self.isSuspended = isSuspended
         self.workSummary = workSummary
+        self.isLocked = false
         self.createdAt = Date()
     }
 
@@ -1369,6 +1416,9 @@ final class SiteLogEntry {
     }
 
     var isWorkday: Bool { !isHoliday && !isSuspended }
+
+    /// İmzalandıktan sonra içerik değiştirilemez; yalnızca additionalNotes eklenebilir
+    var canEditContent: Bool { !isLocked }
 }
 
 // MARK: - Ekipman Takibi (Equipment + EquipmentUsage)
@@ -1394,14 +1444,20 @@ final class Equipment {
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var usageRecords: [EquipmentUsage]
 
+    var muayenePeriodDays: Int     // muayene periyodu gün (ör: 365)
+    var lastInspectionDate: Date?  // son muayene tarihi
+    var malfunctionNotes: String?  // arıza kayıtları (gecikme gerekçesi için)
+
     init(name: String, plateOrSerial: String = "", equipmentType: String = "",
-         dailyRentalCost: Double = 0, maintenancePeriodDays: Int = 90) {
+         dailyRentalCost: Double = 0, maintenancePeriodDays: Int = 90,
+         muayenePeriodDays: Int = 365) {
         self.id = UUID()
         self.name = name
         self.plateOrSerial = plateOrSerial
         self.equipmentType = equipmentType
         self.dailyRentalCost = dailyRentalCost
         self.maintenancePeriodDays = maintenancePeriodDays
+        self.muayenePeriodDays = muayenePeriodDays
         self.status = .aktif
         self.usageRecords = []
         self.createdAt = Date()
@@ -1414,6 +1470,13 @@ final class Equipment {
         guard maintenancePeriodDays > 0, let last = lastMaintenanceDate else { return true }
         let daysSince = Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0
         return daysSince >= maintenancePeriodDays
+    }
+
+    var isMuayeneDue: Bool {
+        guard muayenePeriodDays > 0 else { return false }
+        guard let last = lastInspectionDate else { return true }
+        let daysSince = Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0
+        return daysSince >= muayenePeriodDays
     }
 }
 
@@ -1462,6 +1525,9 @@ final class SoilRecord {
     var contract: Contract?
     var createdAt: Date
 
+    var engineerSignature: String?  // zemin mühendisi imzası
+    var photoData: [Data]           // kazı fotoğrafları
+
     init(recordDate: Date = Date(), location: String = "",
          depth: Double = 0, area: Double = 0, soilType: String = "") {
         self.id = UUID()
@@ -1471,10 +1537,19 @@ final class SoilRecord {
         self.area = area
         self.soilType = soilType
         self.notes = ""
+        self.photoData = []
         self.createdAt = Date()
     }
 
     var calculatedVolume: Double { depth * area }
+
+    var isSignedByEngineer: Bool {
+        guard let sig = engineerSignature else { return false }
+        return !sig.isEmpty
+    }
+
+    /// İmza + fotoğraf varsa hakediş kayıtlarına bağlanabilir
+    var canBeIncludedInHakedis: Bool { isSignedByEngineer && !photoData.isEmpty }
 
     var labTests: [SoilLabTest] {
         guard let json = labTestsJSON,
@@ -1520,9 +1595,14 @@ final class TestRecord {
     var contract: Contract?
     var createdAt: Date
 
+    var isRequiredForApproval: Bool  // true ise başarısız olduğunda hakediş onaylanamaz
+    var testFrequencyM3: Double?     // m³ başına test sıklığı (ör: 50 m³/test)
+    var concreteVolumeM3: Double?    // dökülen beton hacmi
+    var followupTestDate: Date?      // 7 gün → 28 gün takip testi tarihi
+
     init(testName: String, category: TestCategory = .beton,
          location: String = "", sampleNo: String = "", laboratoryName: String = "",
-         unit: String = "") {
+         unit: String = "", isRequiredForApproval: Bool = false) {
         self.id = UUID()
         self.testDate = Date()
         self.category = category
@@ -1531,6 +1611,7 @@ final class TestRecord {
         self.sampleNo = sampleNo
         self.laboratoryName = laboratoryName
         self.unit = unit
+        self.isRequiredForApproval = isRequiredForApproval
         self.status = .bekliyor
         self.createdAt = Date()
     }
@@ -1540,6 +1621,16 @@ final class TestRecord {
         let minOK = minimumAcceptable.map { r >= $0 } ?? true
         let maxOK = maximumAcceptable.map { r <= $0 } ?? true
         return minOK && maxOK
+    }
+
+    /// Hakediş onayını bloke eden başarısız test mi?
+    var blocksApproval: Bool { isRequiredForApproval && status == .kaldi }
+
+    /// Frekansa göre gereken minimum test sayısı
+    /// Her tam freq m³ doldukça 1 test: 75m³/50m³ = 1, 100m³/50m³ = 2, 150m³/50m³ = 3
+    var requiredTestCount: Int {
+        guard let freq = testFrequencyM3, let vol = concreteVolumeM3, freq > 0, vol > 0 else { return 1 }
+        return max(1, Int(vol / freq))
     }
 }
 
@@ -1557,16 +1648,23 @@ final class AcceptanceRecord {
     var acceptanceDate: Date
     var warrantyMonths: Int
     var notes: String
+    var prerequisitesJSON: String?          // JSON [String]: önşart listesi
+    var completedPrerequisitesJSON: String? // JSON [String]: tamamlananlar
+    var contractAmount: Double              // sözleşme bedeli
+    var actualAmount: Double               // gerçekleşen bedel
+    var extendedWarrantyUntil: Date?       // açık kusur varsa uzatılmış garanti sonu
     var contract: Contract?
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var warrantyClaims: [WarrantyClaim]
 
     init(acceptanceType: AcceptanceType, acceptanceDate: Date = Date(),
-         warrantyMonths: Int = 24) {
+         warrantyMonths: Int = 24, contractAmount: Double = 0, actualAmount: Double = 0) {
         self.id = UUID()
         self.acceptanceType = acceptanceType
         self.acceptanceDate = acceptanceDate
         self.warrantyMonths = warrantyMonths
+        self.contractAmount = contractAmount
+        self.actualAmount = actualAmount
         self.notes = ""
         self.warrantyClaims = []
         self.createdAt = Date()
@@ -1576,15 +1674,50 @@ final class AcceptanceRecord {
         Calendar.current.date(byAdding: .month, value: warrantyMonths, to: acceptanceDate)
     }
 
+    /// Uzatma varsa onu, yoksa normal bitiş tarihi
+    var effectiveWarrantyEnd: Date? { extendedWarrantyUntil ?? warrantyEndDate }
+
     var isWarrantyActive: Bool {
-        guard let end = warrantyEndDate else { return false }
+        guard let end = effectiveWarrantyEnd else { return false }
         return Date() <= end
     }
 
     var warrantyDaysLeft: Int {
-        guard let end = warrantyEndDate else { return 0 }
+        guard let end = effectiveWarrantyEnd else { return 0 }
         return max(0, Calendar.current.dateComponents([.day], from: Date(), to: end).day ?? 0)
     }
+
+    /// 60 gün veya daha az kaldığında uyarı tetiklenir
+    var isNearingWarrantyExpiry: Bool { isWarrantyActive && warrantyDaysLeft <= 60 }
+
+    /// Sözleşme – gerçekleşen = iş eksilişi (pozitif = eksilti)
+    var deductionAmount: Double { contractAmount - actualAmount }
+
+    var prerequisites: [String] {
+        guard let json = prerequisitesJSON,
+              let data = json.data(using: .utf8),
+              let list = try? JSONDecoder().decode([String].self, from: data)
+        else { return [] }
+        return list
+    }
+
+    var completedPrerequisites: [String] {
+        guard let json = completedPrerequisitesJSON,
+              let data = json.data(using: .utf8),
+              let list = try? JSONDecoder().decode([String].self, from: data)
+        else { return [] }
+        return list
+    }
+
+    var allPrerequisitesMet: Bool {
+        let req = prerequisites
+        guard !req.isEmpty else { return true }
+        return completedPrerequisites.count >= req.count
+    }
+
+    var canApply: Bool { allPrerequisitesMet }
+
+    var openClaimsExist: Bool { warrantyClaims.contains { $0.isOpen } }
 }
 
 // MARK: - Garanti Süresi Takibi (WarrantyClaim)
