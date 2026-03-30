@@ -11,7 +11,22 @@
 		TB002 /* StatusTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T002 /* StatusTransitionTests.swift */; };
 		TB003 /* CRUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T003 /* CRUDTests.swift */; };
 		TB005 /* FinancialTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T005 /* FinancialTrackingTests.swift */; };
+		TB006 /* TestProjesiAScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T006 /* TestProjesiAScenarioTests.swift */; };
+		TB007 /* Grup3FeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T007 /* Grup3FeatureTests.swift */; };
+		TB009 /* ApprovalAndHandoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T008 /* ApprovalAndHandoverTests.swift */; };
+		TB010 /* NewFeaturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T009 /* NewFeaturesTests.swift */; };
+		S029 /* CorrespondenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C029 /* CorrespondenceViews.swift */; };
+		S030 /* PriceDifferenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C030 /* PriceDifferenceViews.swift */; };
+		S031 /* VATWithholdingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C031 /* VATWithholdingViews.swift */; };
+		S032 /* SGKLaborViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C032 /* SGKLaborViews.swift */; };
+		S033 /* SiteLogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C033 /* SiteLogViews.swift */; };
+		S034 /* EquipmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C034 /* EquipmentViews.swift */; };
+		S035 /* SoilRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C035 /* SoilRecordViews.swift */; };
+		S036 /* TestRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C036 /* TestRecordViews.swift */; };
+		S037 /* AcceptanceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C037 /* AcceptanceViews.swift */; };
+		S038 /* WarrantyClaimViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C038 /* WarrantyClaimViews.swift */; };
 		TB004 /* Models.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
+		TB008 /* CashFlowEngine.swift in TestSources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
 		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
 		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
 		SPM_BF2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP2 /* FirebaseCrashlytics */; };
@@ -54,6 +69,7 @@
 		S025 /* SpecificationChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025 /* SpecificationChecklistViews.swift */; };
 		S026 /* HakedisComparisonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C026 /* HakedisComparisonViews.swift */; };
 		S027 /* CashFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C027 /* CashFlowViews.swift */; };
+		S028 /* CashFlowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -99,6 +115,10 @@
 		T002 /* StatusTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusTransitionTests.swift; sourceTree = "<group>"; };
 		T003 /* CRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDTests.swift; sourceTree = "<group>"; };
 		T005 /* FinancialTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTrackingTests.swift; sourceTree = "<group>"; };
+		T006 /* TestProjesiAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProjesiAScenarioTests.swift; sourceTree = "<group>"; };
+		T007 /* Grup3FeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grup3FeatureTests.swift; sourceTree = "<group>"; };
+		T008 /* ApprovalAndHandoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalAndHandoverTests.swift; sourceTree = "<group>"; };
+		T009 /* NewFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeaturesTests.swift; sourceTree = "<group>"; };
 		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C022 /* PhotoWorkItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoWorkItemViews.swift; path = HakedisApp/Views/DailyEntry/PhotoWorkItemViews.swift; sourceTree = "<group>"; };
 		C023 /* LaborTrackingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LaborTrackingViews.swift; path = HakedisApp/Views/Contracts/LaborTrackingViews.swift; sourceTree = "<group>"; };
@@ -106,6 +126,17 @@
 		C025 /* SpecificationChecklistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpecificationChecklistViews.swift; path = HakedisApp/Views/Contracts/SpecificationChecklistViews.swift; sourceTree = "<group>"; };
 		C026 /* HakedisComparisonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisComparisonViews.swift; path = HakedisApp/Views/Hakedis/HakedisComparisonViews.swift; sourceTree = "<group>"; };
 		C027 /* CashFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CashFlowViews.swift; path = HakedisApp/Views/Reports/CashFlowViews.swift; sourceTree = "<group>"; };
+		C028 /* CashFlowEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CashFlowEngine.swift; path = HakedisApp/Views/Reports/CashFlowEngine.swift; sourceTree = "<group>"; };
+		C029 /* CorrespondenceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CorrespondenceViews.swift; path = HakedisApp/Views/Contracts/CorrespondenceViews.swift; sourceTree = "<group>"; };
+		C030 /* PriceDifferenceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PriceDifferenceViews.swift; path = HakedisApp/Views/Contracts/PriceDifferenceViews.swift; sourceTree = "<group>"; };
+		C031 /* VATWithholdingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VATWithholdingViews.swift; path = HakedisApp/Views/Hakedis/VATWithholdingViews.swift; sourceTree = "<group>"; };
+		C032 /* SGKLaborViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SGKLaborViews.swift; path = HakedisApp/Views/Contracts/SGKLaborViews.swift; sourceTree = "<group>"; };
+		C033 /* SiteLogViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteLogViews.swift; path = HakedisApp/Views/Contracts/SiteLogViews.swift; sourceTree = "<group>"; };
+		C034 /* EquipmentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentViews.swift; path = HakedisApp/Views/Contracts/EquipmentViews.swift; sourceTree = "<group>"; };
+		C035 /* SoilRecordViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SoilRecordViews.swift; path = HakedisApp/Views/Contracts/SoilRecordViews.swift; sourceTree = "<group>"; };
+		C036 /* TestRecordViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestRecordViews.swift; path = HakedisApp/Views/Contracts/TestRecordViews.swift; sourceTree = "<group>"; };
+		C037 /* AcceptanceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AcceptanceViews.swift; path = HakedisApp/Views/Contracts/AcceptanceViews.swift; sourceTree = "<group>"; };
+		C038 /* WarrantyClaimViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WarrantyClaimViews.swift; path = HakedisApp/Views/Contracts/WarrantyClaimViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -160,7 +191,18 @@
 				C025 /* SpecificationChecklistViews.swift */,
 				C026 /* HakedisComparisonViews.swift */,
 				C027 /* CashFlowViews.swift */,
+				C028 /* CashFlowEngine.swift */,
 				C018 /* UnitPriceAnalysisViews.swift */,
+				C029 /* CorrespondenceViews.swift */,
+				C030 /* PriceDifferenceViews.swift */,
+				C031 /* VATWithholdingViews.swift */,
+				C032 /* SGKLaborViews.swift */,
+				C033 /* SiteLogViews.swift */,
+				C034 /* EquipmentViews.swift */,
+				C035 /* SoilRecordViews.swift */,
+				C036 /* TestRecordViews.swift */,
+				C037 /* AcceptanceViews.swift */,
+				C038 /* WarrantyClaimViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -182,6 +224,10 @@
 				T002 /* StatusTransitionTests.swift */,
 				T003 /* CRUDTests.swift */,
 				T005 /* FinancialTrackingTests.swift */,
+				T006 /* TestProjesiAScenarioTests.swift */,
+				T007 /* Grup3FeatureTests.swift */,
+				T008 /* ApprovalAndHandoverTests.swift */,
+				T009 /* NewFeaturesTests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -377,7 +423,18 @@
 				S025 /* SpecificationChecklistViews.swift in Sources */,
 				S026 /* HakedisComparisonViews.swift in Sources */,
 				S027 /* CashFlowViews.swift in Sources */,
+				S028 /* CashFlowEngine.swift in Sources */,
 				S018 /* UnitPriceAnalysisViews.swift in Sources */,
+				S029 /* CorrespondenceViews.swift in Sources */,
+				S030 /* PriceDifferenceViews.swift in Sources */,
+				S031 /* VATWithholdingViews.swift in Sources */,
+				S032 /* SGKLaborViews.swift in Sources */,
+				S033 /* SiteLogViews.swift in Sources */,
+				S034 /* EquipmentViews.swift in Sources */,
+				S035 /* SoilRecordViews.swift in Sources */,
+				S036 /* TestRecordViews.swift in Sources */,
+				S037 /* AcceptanceViews.swift in Sources */,
+				S038 /* WarrantyClaimViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,10 +443,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				TB004 /* Models.swift in TestSources */,
+				TB008 /* CashFlowEngine.swift in TestSources */,
 				TB001 /* CalculationTests.swift in Sources */,
 				TB002 /* StatusTransitionTests.swift in Sources */,
 				TB003 /* CRUDTests.swift in Sources */,
 				TB005 /* FinancialTrackingTests.swift in Sources */,
+				TB006 /* TestProjesiAScenarioTests.swift in Sources */,
+				TB007 /* Grup3FeatureTests.swift in Sources */,
+				TB009 /* ApprovalAndHandoverTests.swift in Sources */,
+				TB010 /* NewFeaturesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

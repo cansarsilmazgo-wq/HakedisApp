@@ -2,31 +2,11 @@ import SwiftUI
 import SwiftData
 import Charts
 
-// MARK: - Senaryo Türü
+// NakitSenaryosu ve AylikProje → CashFlowEngine.swift içinde tanımlı
 
-enum NakitSenaryosu: String, CaseIterable, Identifiable {
-    case optimist  = "Optimist"
-    case gercekci  = "Gerçekçi"
-    case kotumser  = "Kötümser"
+// MARK: - NakitSenaryosu UI Uzantısı (SwiftUI renkleri)
 
-    var id: String { rawValue }
-
-    var aciklama: String {
-        switch self {
-        case .optimist:  return "0 gün gecikme"
-        case .gercekci:  return "Ort. gecikme"
-        case .kotumser:  return "2× ort. gecikme"
-        }
-    }
-
-    var icon: String {
-        switch self {
-        case .optimist:  return "arrow.up.forward.circle.fill"
-        case .gercekci:  return "equal.circle.fill"
-        case .kotumser:  return "arrow.down.forward.circle.fill"
-        }
-    }
-
+extension NakitSenaryosu {
     var color: Color {
         switch self {
         case .optimist:  return .hakedisSuccess
@@ -36,18 +16,6 @@ enum NakitSenaryosu: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - Aylık Projeksiyon Verisi
-
-struct AylikProje: Identifiable {
-    let id = UUID()
-    let ay: String               // "Nis 2026"
-    let date: Date
-    let beklenenHakedis: Double
-    let beklenenTahsilat: Double
-    let kumulatifNakit: Double
-    let gecikmeSuresi: Double    // gün olarak bu senaryo için gecikme
-}
-
 // MARK: - CashFlowView
 
 struct CashFlowView: View {
@@ -55,99 +23,23 @@ struct CashFlowView: View {
 
     @State private var senaryo: NakitSenaryosu = .gercekci
 
-    // MARK: Hesaplamalar
+    // MARK: Hesaplamalar (CashFlowEngine'e devredildi)
 
-    /// Tüm ödemelerde ortalama gecikme (vade tarihi – gerçekleşme tarihi, gün)
     private var ortalamGecikmeGun: Double {
-        var delayDays: [Double] = []
-        for h in hakedisler {
-            guard let due = h.dueDate else { continue }
-            for payment in h.payments {
-                let days = Calendar.current.dateComponents(
-                    [.day], from: due, to: payment.paymentDate
-                ).day ?? 0
-                if days > 0 { delayDays.append(Double(days)) }
-            }
-        }
-        guard !delayDays.isEmpty else { return 30 }
-        return delayDays.reduce(0, +) / Double(delayDays.count)
+        let raw = CashFlowEngine.ortalamGecikmeGun(hakedisler: hakedisler)
+        return raw > 0 ? raw : 30   // veri yoksa UI'da 30 gün varsayılan göster
     }
 
-    /// Son 3 aya ait ortalama brüt hakediş tutarı (aylık bazda)
-    private var ortalamaAylikHakedis: Double {
-        let cal = Calendar.current
-        let son3 = Calendar.current.date(byAdding: .month, value: -3, to: Date()) ?? Date()
-        let son3Hakedis = hakedisler.filter { $0.periodEnd >= son3 }
-        guard !son3Hakedis.isEmpty else {
-            // Veri yoksa tüm hakedislerin ortalamasını al
-            let total = hakedisler.reduce(0) { $0 + $1.grossAmount }
-            return hakedisler.isEmpty ? 0 : total / Double(hakedisler.count)
-        }
-        // Ay sayısına böl (max 3)
-        let aylar = Set(son3Hakedis.map { h -> Date in
-            let comps = cal.dateComponents([.year, .month], from: h.periodEnd)
-            return cal.date(from: comps) ?? h.periodEnd
-        })
-        let ayCount = max(Double(aylar.count), 1)
-        let totalSon3 = son3Hakedis.reduce(0) { $0 + $1.grossAmount }
-        return totalSon3 / ayCount
+    private var aktifProjeksiyonlar: [AylikProje] {
+        CashFlowEngine.projeksiyonlar(hakedisler: hakedisler, senaryo: senaryo)
     }
-
-    private func gecikme(icin senaryo: NakitSenaryosu) -> Double {
-        switch senaryo {
-        case .optimist:  return 0
-        case .gercekci:  return ortalamGecikmeGun
-        case .kotumser:  return ortalamGecikmeGun * 2
-        }
-    }
-
-    /// 3 aylık projeksiyon oluşturur
-    private func projeksiyonlar(senaryo: NakitSenaryosu) -> [AylikProje] {
-        let cal = Calendar.current
-        let fmt = DateFormatter()
-        fmt.locale = Locale(identifier: "tr_TR")
-        fmt.dateFormat = "MMM yyyy"
-
-        let hakedisOrtalama = ortalamaAylikHakedis
-        let gecikmeGun = gecikme(icin: senaryo)
-
-        var kumulatif: Double = 0
-        return (1...3).map { offset in
-            let baseDate = cal.date(byAdding: .month, value: offset, to: Date()) ?? Date()
-            let comps = cal.dateComponents([.year, .month], from: baseDate)
-            let monthDate = cal.date(from: comps) ?? baseDate
-
-            let tahsilatOrani: Double
-            if gecikmeGun == 0 {
-                tahsilatOrani = 1.0
-            } else {
-                // Her 30 günlük gecikme için tahsilat bir ay ötelenir
-                let offsetAy = Int(gecikmeGun / 30.0)
-                tahsilatOrani = offset > offsetAy ? 1.0 : (offset == offsetAy ? 0.6 : 0.0)
-            }
-
-            let tahsilat = hakedisOrtalama * tahsilatOrani
-            kumulatif += tahsilat - hakedisOrtalama  // nakit pozisyonu: tahsilat - harcama (hakediş)
-
-            return AylikProje(
-                ay: fmt.string(from: monthDate),
-                date: monthDate,
-                beklenenHakedis: hakedisOrtalama,
-                beklenenTahsilat: tahsilat,
-                kumulatifNakit: kumulatif,
-                gecikmeSuresi: gecikmeGun
-            )
-        }
-    }
-
-    private var aktifProjeksiyonlar: [AylikProje] { projeksiyonlar(senaryo: senaryo) }
 
     private var toplamBeklenenTahsilat: Double {
-        aktifProjeksiyonlar.reduce(0) { $0 + $1.beklenenTahsilat }
+        CashFlowEngine.toplamBeklenenTahsilat(projeksiyonlar: aktifProjeksiyonlar)
     }
 
     private var kritikAyVarMi: Bool {
-        aktifProjeksiyonlar.contains { $0.kumulatifNakit < 0 }
+        CashFlowEngine.kritikAyVarMi(projeksiyonlar: aktifProjeksiyonlar)
     }
 
     // MARK: Body

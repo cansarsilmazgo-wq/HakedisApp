@@ -81,6 +81,14 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var laborRecords: [LaborRecord]
     @Relationship(deleteRule: .cascade) var materialRecords: [MaterialRecord]
     @Relationship(deleteRule: .cascade) var specificationItems: [SpecificationItem]
+    @Relationship(deleteRule: .cascade) var correspondenceRecords: [CorrespondenceRecord]
+    @Relationship(deleteRule: .cascade) var priceDifferenceRecords: [PriceDifferenceRecord]
+    @Relationship(deleteRule: .cascade) var sgkLaborRecords: [SGKLaborRecord]
+    @Relationship(deleteRule: .cascade) var siteLogEntries: [SiteLogEntry]
+    @Relationship(deleteRule: .cascade) var equipments: [Equipment]
+    @Relationship(deleteRule: .cascade) var soilRecords: [SoilRecord]
+    @Relationship(deleteRule: .cascade) var testRecords: [TestRecord]
+    @Relationship(deleteRule: .cascade) var acceptanceRecords: [AcceptanceRecord]
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -101,6 +109,14 @@ final class Contract {
         self.laborRecords = []
         self.materialRecords = []
         self.specificationItems = []
+        self.correspondenceRecords = []
+        self.priceDifferenceRecords = []
+        self.sgkLaborRecords = []
+        self.siteLogEntries = []
+        self.equipments = []
+        self.soilRecords = []
+        self.testRecords = []
+        self.acceptanceRecords = []
     }
 
     var hasHandover: Bool { !handoverRecords.isEmpty }
@@ -237,6 +253,7 @@ final class Hakedis {
     @Relationship(deleteRule: .cascade) var payments: [Payment]
     @Relationship(deleteRule: .cascade) var approvalSteps: [ApprovalStep]
     @Relationship(deleteRule: .cascade) var revisions: [HakedisRevision]
+    @Relationship(deleteRule: .cascade) var vatWithholdings: [VATWithholdingRecord]
 
     init(periodName: String, periodStart: Date, periodEnd: Date, dueDate: Date? = nil) {
         self.id = UUID()
@@ -251,6 +268,7 @@ final class Hakedis {
         self.payments = []
         self.approvalSteps = []
         self.revisions = []
+        self.vatWithholdings = []
         self.createdAt = Date()
     }
 
@@ -1159,5 +1177,471 @@ final class RetentionRelease {
         self.amount = amount
         self.releaseDate = releaseDate
         self.releaseDescription = releaseDescription
+    }
+}
+
+// MARK: - Yazışma / Evrak Takibi (CorrespondenceRecord)
+
+enum CorrespondenceDirection: String, Codable, CaseIterable {
+    case gelen  = "Gelen"
+    case giden  = "Giden"
+}
+
+enum CorrespondenceCategory: String, Codable, CaseIterable {
+    case teknik   = "Teknik"
+    case hukuki   = "Hukuki"
+    case idari    = "İdari"
+    case mali     = "Mali"
+    case diger    = "Diğer"
+}
+
+@Model
+final class CorrespondenceRecord {
+    var id: UUID
+    var recordNo: String          // YZ-2026-001
+    var subject: String
+    var direction: CorrespondenceDirection
+    var category: CorrespondenceCategory
+    var senderName: String
+    var receiverName: String
+    var documentDate: Date
+    var receivedDate: Date
+    var replyDeadline: Date?
+    var isReplied: Bool
+    var repliedAt: Date?
+    var summary: String
+    var attachmentData: [Data]
+    var contract: Contract?
+    var createdAt: Date
+
+    init(recordNo: String, subject: String, direction: CorrespondenceDirection,
+         category: CorrespondenceCategory = .idari,
+         senderName: String = "", receiverName: String = "",
+         documentDate: Date = Date()) {
+        self.id = UUID()
+        self.recordNo = recordNo
+        self.subject = subject
+        self.direction = direction
+        self.category = category
+        self.senderName = senderName
+        self.receiverName = receiverName
+        self.documentDate = documentDate
+        self.receivedDate = Date()
+        self.isReplied = false
+        self.summary = ""
+        self.attachmentData = []
+        self.createdAt = Date()
+    }
+
+    var isOverdue: Bool {
+        guard let deadline = replyDeadline, !isReplied else { return false }
+        return Date() > deadline
+    }
+
+    var daysLeft: Int? {
+        guard let deadline = replyDeadline, !isReplied else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: deadline).day
+    }
+}
+
+// MARK: - Fiyat Farkı (PriceDifferenceRecord)
+
+@Model
+final class PriceDifferenceRecord {
+    var id: UUID
+    var periodName: String
+    var baseIndex: Double
+    var currentIndex: Double
+    var baseAmount: Double
+    var contract: Contract?
+    var createdAt: Date
+
+    init(periodName: String, baseIndex: Double, currentIndex: Double, baseAmount: Double) {
+        self.id = UUID()
+        self.periodName = periodName
+        self.baseIndex = baseIndex
+        self.currentIndex = currentIndex
+        self.baseAmount = baseAmount
+        self.createdAt = Date()
+    }
+
+    var indexRatio: Double {
+        guard baseIndex > 0 else { return 1.0 }
+        return currentIndex / baseIndex
+    }
+
+    var priceDifference: Double { baseAmount * (indexRatio - 1) }
+
+    var isGain: Bool { priceDifference > 0 }
+}
+
+// MARK: - KDV Tevkifatı (VATWithholdingRecord)
+
+enum VATWithholdingRatio: String, Codable, CaseIterable {
+    case ikiUcte  = "2/3"
+    case yariYari = "1/2"
+
+    var ratio: Double {
+        switch self {
+        case .ikiUcte:  return 2.0 / 3.0
+        case .yariYari: return 0.5
+        }
+    }
+}
+
+@Model
+final class VATWithholdingRecord {
+    var id: UUID
+    var withholdingRatio: VATWithholdingRatio
+    var totalVATAmount: Double
+    var hakedis: Hakedis?
+    var createdAt: Date
+
+    init(withholdingRatio: VATWithholdingRatio, totalVATAmount: Double) {
+        self.id = UUID()
+        self.withholdingRatio = withholdingRatio
+        self.totalVATAmount = totalVATAmount
+        self.createdAt = Date()
+    }
+
+    var contractorPays: Double { totalVATAmount * (1 - withholdingRatio.ratio) }
+    var ownerPays: Double { totalVATAmount * withholdingRatio.ratio }
+}
+
+// MARK: - SGK Asgari İşçilik (SGKLaborRecord)
+
+@Model
+final class SGKLaborRecord {
+    var id: UUID
+    var periodName: String
+    var contractAmount: Double
+    var laborIntensityRate: Double   // %
+    var minimumLaborAmount: Double
+    var declaredLaborAmount: Double
+    var contract: Contract?
+    var createdAt: Date
+
+    init(periodName: String, contractAmount: Double,
+         laborIntensityRate: Double, declaredLaborAmount: Double) {
+        self.id = UUID()
+        self.periodName = periodName
+        self.contractAmount = contractAmount
+        self.laborIntensityRate = laborIntensityRate
+        self.minimumLaborAmount = contractAmount * (laborIntensityRate / 100)
+        self.declaredLaborAmount = declaredLaborAmount
+        self.createdAt = Date()
+    }
+
+    var isCompliant: Bool { declaredLaborAmount >= minimumLaborAmount }
+    var deficiency: Double { max(0, minimumLaborAmount - declaredLaborAmount) }
+}
+
+// MARK: - Resmi Şantiye Günlüğü (SiteLogEntry)
+
+@Model
+final class SiteLogEntry {
+    var id: UUID
+    var logDate: Date
+    var contractorSignature: String?
+    var ownerSignature: String?
+    var weatherCondition: SiteWeather
+    var isHoliday: Bool
+    var isSuspended: Bool
+    var suspensionReason: String?
+    var workSummary: String
+    var issues: String?
+    var contract: Contract?
+    var createdAt: Date
+
+    init(logDate: Date = Date(), weatherCondition: SiteWeather = .sunny,
+         isHoliday: Bool = false, isSuspended: Bool = false, workSummary: String = "") {
+        self.id = UUID()
+        self.logDate = logDate
+        self.weatherCondition = weatherCondition
+        self.isHoliday = isHoliday
+        self.isSuspended = isSuspended
+        self.workSummary = workSummary
+        self.createdAt = Date()
+    }
+
+    var isSigned: Bool {
+        contractorSignature != nil && ownerSignature != nil
+    }
+
+    var isWorkday: Bool { !isHoliday && !isSuspended }
+}
+
+// MARK: - Ekipman Takibi (Equipment + EquipmentUsage)
+
+enum EquipmentStatus: String, Codable, CaseIterable {
+    case aktif      = "Aktif"
+    case bakim      = "Bakımda"
+    case pasif      = "Pasif"
+    case arizali    = "Arızalı"
+}
+
+@Model
+final class Equipment {
+    var id: UUID
+    var name: String
+    var plateOrSerial: String
+    var equipmentType: String
+    var dailyRentalCost: Double
+    var maintenancePeriodDays: Int    // Kaç günde bir bakım
+    var lastMaintenanceDate: Date?
+    var status: EquipmentStatus
+    var contract: Contract?
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var usageRecords: [EquipmentUsage]
+
+    init(name: String, plateOrSerial: String = "", equipmentType: String = "",
+         dailyRentalCost: Double = 0, maintenancePeriodDays: Int = 90) {
+        self.id = UUID()
+        self.name = name
+        self.plateOrSerial = plateOrSerial
+        self.equipmentType = equipmentType
+        self.dailyRentalCost = dailyRentalCost
+        self.maintenancePeriodDays = maintenancePeriodDays
+        self.status = .aktif
+        self.usageRecords = []
+        self.createdAt = Date()
+    }
+
+    var totalUsageDays: Int { usageRecords.reduce(0) { $0 + $1.durationDays } }
+    var totalRentalCost: Double { Double(totalUsageDays) * dailyRentalCost }
+
+    var isMaintenanceDue: Bool {
+        guard maintenancePeriodDays > 0, let last = lastMaintenanceDate else { return true }
+        let daysSince = Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0
+        return daysSince >= maintenancePeriodDays
+    }
+}
+
+@Model
+final class EquipmentUsage {
+    var id: UUID
+    var startDate: Date
+    var endDate: Date?
+    var operatorName: String
+    var notes: String
+    var equipment: Equipment?
+    var createdAt: Date
+
+    init(startDate: Date = Date(), operatorName: String = "") {
+        self.id = UUID()
+        self.startDate = startDate
+        self.operatorName = operatorName
+        self.notes = ""
+        self.createdAt = Date()
+    }
+
+    var durationDays: Int {
+        let end = endDate ?? Date()
+        return max(1, Calendar.current.dateComponents([.day], from: startDate, to: end).day ?? 1)
+    }
+}
+
+// MARK: - Zemin / Kazı Tutanağı (SoilRecord)
+
+struct SoilLabTest: Codable {
+    var testName: String
+    var result: String
+    var isCompliant: Bool
+}
+
+@Model
+final class SoilRecord {
+    var id: UUID
+    var recordDate: Date
+    var location: String
+    var depth: Double            // metre
+    var area: Double             // m²
+    var soilType: String
+    var labTestsJSON: String?    // JSON: [SoilLabTest]
+    var notes: String
+    var contract: Contract?
+    var createdAt: Date
+
+    init(recordDate: Date = Date(), location: String = "",
+         depth: Double = 0, area: Double = 0, soilType: String = "") {
+        self.id = UUID()
+        self.recordDate = recordDate
+        self.location = location
+        self.depth = depth
+        self.area = area
+        self.soilType = soilType
+        self.notes = ""
+        self.createdAt = Date()
+    }
+
+    var calculatedVolume: Double { depth * area }
+
+    var labTests: [SoilLabTest] {
+        guard let json = labTestsJSON,
+              let data = json.data(using: .utf8),
+              let tests = try? JSONDecoder().decode([SoilLabTest].self, from: data)
+        else { return [] }
+        return tests
+    }
+}
+
+// MARK: - Test / Deney Sonuçları (TestRecord)
+
+enum TestCategory: String, Codable, CaseIterable {
+    case beton       = "Beton"
+    case zemin       = "Zemin"
+    case malzeme     = "Malzeme"
+    case yanginlar   = "Yangın"
+    case elektrik    = "Elektrik"
+    case diger       = "Diğer"
+}
+
+enum TestStatus: String, Codable, CaseIterable {
+    case bekliyor    = "Sonuç Bekleniyor"
+    case gecti       = "Geçti"
+    case kaldi       = "Kaldı"
+}
+
+@Model
+final class TestRecord {
+    var id: UUID
+    var testDate: Date
+    var category: TestCategory
+    var testName: String
+    var location: String
+    var sampleNo: String
+    var laboratoryName: String
+    var minimumAcceptable: Double?
+    var maximumAcceptable: Double?
+    var result: Double?
+    var unit: String
+    var status: TestStatus
+    var reportData: Data?
+    var contract: Contract?
+    var createdAt: Date
+
+    init(testName: String, category: TestCategory = .beton,
+         location: String = "", sampleNo: String = "", laboratoryName: String = "",
+         unit: String = "") {
+        self.id = UUID()
+        self.testDate = Date()
+        self.category = category
+        self.testName = testName
+        self.location = location
+        self.sampleNo = sampleNo
+        self.laboratoryName = laboratoryName
+        self.unit = unit
+        self.status = .bekliyor
+        self.createdAt = Date()
+    }
+
+    var isInRange: Bool {
+        guard let r = result else { return false }
+        let minOK = minimumAcceptable.map { r >= $0 } ?? true
+        let maxOK = maximumAcceptable.map { r <= $0 } ?? true
+        return minOK && maxOK
+    }
+}
+
+// MARK: - Geçici / Kesin Kabul (AcceptanceRecord)
+
+enum AcceptanceType: String, Codable, CaseIterable {
+    case gecici = "Geçici Kabul"
+    case kesin  = "Kesin Kabul"
+}
+
+@Model
+final class AcceptanceRecord {
+    var id: UUID
+    var acceptanceType: AcceptanceType
+    var acceptanceDate: Date
+    var warrantyMonths: Int
+    var notes: String
+    var contract: Contract?
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var warrantyClaims: [WarrantyClaim]
+
+    init(acceptanceType: AcceptanceType, acceptanceDate: Date = Date(),
+         warrantyMonths: Int = 24) {
+        self.id = UUID()
+        self.acceptanceType = acceptanceType
+        self.acceptanceDate = acceptanceDate
+        self.warrantyMonths = warrantyMonths
+        self.notes = ""
+        self.warrantyClaims = []
+        self.createdAt = Date()
+    }
+
+    var warrantyEndDate: Date? {
+        Calendar.current.date(byAdding: .month, value: warrantyMonths, to: acceptanceDate)
+    }
+
+    var isWarrantyActive: Bool {
+        guard let end = warrantyEndDate else { return false }
+        return Date() <= end
+    }
+
+    var warrantyDaysLeft: Int {
+        guard let end = warrantyEndDate else { return 0 }
+        return max(0, Calendar.current.dateComponents([.day], from: Date(), to: end).day ?? 0)
+    }
+}
+
+// MARK: - Garanti Süresi Takibi (WarrantyClaim)
+
+enum ClaimCategory: String, Codable, CaseIterable {
+    case yapisal  = "Yapısal"
+    case mekanik  = "Mekanik"
+    case elektrik = "Elektrik"
+    case boya     = "Boya/Kaplama"
+    case diger    = "Diğer"
+}
+
+enum ClaimSeverity: String, Codable, CaseIterable {
+    case kritik  = "Kritik"
+    case yuksek  = "Yüksek"
+    case orta    = "Orta"
+    case dusuk   = "Düşük"
+}
+
+enum ClaimStatus: String, Codable, CaseIterable {
+    case acik       = "Açık"
+    case islemde    = "İşlemde"
+    case kapatildi  = "Kapatıldı"
+}
+
+@Model
+final class WarrantyClaim {
+    var id: UUID
+    var claimDate: Date
+    var category: ClaimCategory
+    var severity: ClaimSeverity
+    var claimDescription: String
+    var location: String
+    var responseDeadline: Date?
+    var status: ClaimStatus
+    var closedAt: Date?
+    var closureNote: String?
+    var acceptanceRecord: AcceptanceRecord?
+    var createdAt: Date
+
+    init(claimDescription: String, category: ClaimCategory = .diger,
+         severity: ClaimSeverity = .orta, location: String = "",
+         claimDate: Date = Date()) {
+        self.id = UUID()
+        self.claimDate = claimDate
+        self.category = category
+        self.severity = severity
+        self.claimDescription = claimDescription
+        self.location = location
+        self.status = .acik
+        self.createdAt = Date()
+    }
+
+    var isOpen: Bool { status != .kapatildi }
+
+    var isOverdue: Bool {
+        guard let deadline = responseDeadline, isOpen else { return false }
+        return Date() > deadline
     }
 }
