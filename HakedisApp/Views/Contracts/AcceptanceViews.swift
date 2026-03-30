@@ -21,7 +21,10 @@ struct AcceptanceSection: View {
                 )
             } else {
                 ForEach(contract.acceptanceRecords.sorted { $0.acceptanceDate > $1.acceptanceDate }) { record in
-                    AcceptanceRow(record: record)
+                    VStack(spacing: 8) {
+                        AcceptanceRow(record: record)
+                        WarrantyClaimSection(acceptanceRecord: record)
+                    }
                 }
             }
 

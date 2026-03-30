@@ -356,6 +356,13 @@ struct HakedisDetailView: View {
                 }
             }
 
+            // KDV Tevkifatı
+            Section {
+                VATWithholdingSection(hakedis: hakedis)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
+
             // Fotoğraflı Kanıt
             HakedisPhotoEvidenceSection(hakedis: hakedis, contract: hakedis.contract)
 

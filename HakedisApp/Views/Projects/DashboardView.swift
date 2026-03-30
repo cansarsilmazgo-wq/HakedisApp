@@ -47,6 +47,27 @@ struct DashboardView: View {
     private var contractsWithDeficiencies: [Contract] {
         projects.flatMap { $0.contracts }.filter { $0.openDeficiencyCount > 0 }
     }
+    private var overdueCorrespondence: [(contract: Contract, record: CorrespondenceRecord)] {
+        projects.flatMap { $0.contracts }.flatMap { contract in
+            contract.correspondenceRecords
+                .filter { $0.isSureDoldu }
+                .map { (contract: contract, record: $0) }
+        }
+    }
+    private var blockingTests: [(contract: Contract, record: TestRecord)] {
+        projects.flatMap { $0.contracts }.flatMap { contract in
+            contract.testRecords
+                .filter { $0.blocksApproval }
+                .map { (contract: contract, record: $0) }
+        }
+    }
+    private var nearExpiryWarranties: [(contract: Contract, record: AcceptanceRecord)] {
+        projects.flatMap { $0.contracts }.flatMap { contract in
+            contract.acceptanceRecords
+                .filter { $0.isNearingWarrantyExpiry }
+                .map { (contract: contract, record: $0) }
+        }
+    }
 
     @StateObject private var notificationManager = NotificationManager.shared
     @State private var showingSearch = false
@@ -177,6 +198,36 @@ struct DashboardView: View {
                                     SiteReportMissingCard(project: project)
                                 }
                                 .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    // Overdue Correspondence
+                    if !overdueCorrespondence.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Geciken Yazışmalar")
+                            ForEach(overdueCorrespondence.prefix(3), id: \.record.id) { item in
+                                CorrespondenceOverdueCard(contract: item.contract, record: item.record)
+                            }
+                        }
+                    }
+
+                    // Blocking Tests
+                    if !blockingTests.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Başarısız Zorunlu Testler")
+                            ForEach(blockingTests.prefix(3), id: \.record.id) { item in
+                                BlockingTestCard(contract: item.contract, record: item.record)
+                            }
+                        }
+                    }
+
+                    // Near Expiry Warranties
+                    if !nearExpiryWarranties.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Yaklaşan Garanti Bitimleri")
+                            ForEach(nearExpiryWarranties.prefix(3), id: \.record.id) { item in
+                                WarrantyExpiryCard(contract: item.contract, record: item.record)
                             }
                         }
                     }
@@ -444,5 +495,82 @@ struct ProjectMiniCard: View {
         .padding(14)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+struct CorrespondenceOverdueCard: View {
+    let contract: Contract
+    let record: CorrespondenceRecord
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "envelope.badge.fill")
+                .foregroundColor(.hakedisDanger)
+                .font(.title3)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(record.subject).font(.subheadline.bold()).lineLimit(1)
+                Text(contract.title).font(.caption).foregroundColor(.secondary)
+                Text("Cevap süresi doldu").font(.caption2).foregroundColor(.hakedisDanger)
+            }
+            Spacer()
+            StatusBadge(text: record.direction.rawValue, color: .hakedisDanger)
+        }
+        .padding(12)
+        .background(Color.hakedisCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1))
+    }
+}
+
+struct BlockingTestCard: View {
+    let contract: Contract
+    let record: TestRecord
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "xmark.seal.fill")
+                .foregroundColor(.hakedisDanger)
+                .font(.title3)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(record.testName).font(.subheadline.bold()).lineLimit(1)
+                Text(contract.title).font(.caption).foregroundColor(.secondary)
+                Text("Hakediş onayını engelliyor").font(.caption2).foregroundColor(.hakedisDanger)
+            }
+            Spacer()
+            StatusBadge(text: record.status.rawValue, color: .hakedisDanger)
+        }
+        .padding(12)
+        .background(Color.hakedisCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1))
+    }
+}
+
+struct WarrantyExpiryCard: View {
+    let contract: Contract
+    let record: AcceptanceRecord
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "shield.lefthalf.filled.badge.checkmark")
+                .foregroundColor(.hakedisWarning)
+                .font(.title3)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(record.acceptanceType.rawValue).font(.subheadline.bold())
+                Text(contract.title).font(.caption).foregroundColor(.secondary)
+                Text("\(record.warrantyDaysLeft) gün kaldı").font(.caption2).foregroundColor(.hakedisWarning)
+            }
+            Spacer()
+            if let end = record.effectiveWarrantyEnd {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(end, style: .date).font(.caption2)
+                    Text("bitiş").font(.caption2).foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.hakedisCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisWarning.opacity(0.3), lineWidth: 1))
     }
 }

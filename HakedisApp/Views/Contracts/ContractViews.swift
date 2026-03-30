@@ -503,6 +503,30 @@ struct ContractDetailView: View {
 
             // Teknik Şartname
             SpecificationChecklistSection(contract: contract)
+
+            // Yazışma / Evrak Takibi
+            CorrespondenceSection(contract: contract)
+
+            // Fiyat Farkı
+            PriceDifferenceSection(contract: contract)
+
+            // SGK Asgari İşçilik
+            SGKLaborSection(contract: contract)
+
+            // Resmi Şantiye Günlüğü
+            SiteLogSection(contract: contract)
+
+            // Ekipman Takibi
+            EquipmentSection(contract: contract)
+
+            // Zemin / Kazı Tutanağı
+            SoilRecordSection(contract: contract)
+
+            // Test / Deney Sonuçları
+            TestRecordSection(contract: contract)
+
+            // Geçici / Kesin Kabul
+            AcceptanceSection(contract: contract)
         }
         .navigationTitle(contract.title)
         .navigationBarTitleDisplayMode(.inline)

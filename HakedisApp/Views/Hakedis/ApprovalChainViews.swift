@@ -279,11 +279,20 @@ struct ApprovalStepTimelineRow: View {
 
                 // Action buttons for active step
                 if isActive {
+                    let hasBlockingTests = step.hakedis?.contract?.testRecords.contains { $0.blocksApproval } == true
                     HStack(spacing: 8) {
-                        Button("Onayla", action: onApprove)
-                            .buttonStyle(.borderedProminent)
-                            .tint(.hakedisSuccess)
-                            .font(.caption.bold())
+                        VStack(alignment: .leading, spacing: 4) {
+                            if hasBlockingTests {
+                                Label("Başarısız zorunlu test mevcut", systemImage: "xmark.seal.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.hakedisDanger)
+                            }
+                            Button("Onayla", action: onApprove)
+                                .buttonStyle(.borderedProminent)
+                                .tint(.hakedisSuccess)
+                                .font(.caption.bold())
+                                .disabled(hasBlockingTests)
+                        }
 
                         Button("Reddet", action: onReject)
                             .buttonStyle(.bordered)
