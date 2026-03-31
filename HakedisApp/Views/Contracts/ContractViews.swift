@@ -194,6 +194,11 @@ struct AddContractView: View {
         selectedContractor?.contracts.append(contract)
         project.contracts.append(contract)
         modelContext.insert(contract)
+
+        if hasDeadline {
+            NotificationManager.shared.scheduleContractDeadlineAlerts(contract: contract)
+        }
+
         dismiss()
     }
 }

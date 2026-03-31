@@ -88,6 +88,82 @@ class NotificationManager: ObservableObject {
     func cancelNotification(id: String) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
     }
+
+    // MARK: - Vade Tarihi Bildirimleri (Takvim Bazlı)
+
+    /// Hakediş vade tarihinden 7 gün önce, 3 gün önce ve vade günü sabah 09:00'da bildirim zamanlar.
+    func scheduleHakedisDueDateAlerts(hakedis: Hakedis) {
+        guard isAuthorized, overdueAlertsEnabled, let dueDate = hakedis.dueDate else { return }
+        let contractorName = hakedis.contract?.contractor?.name ?? "Taşeron"
+        let daysBefore = [7, 3, 0]
+
+        for days in daysBefore {
+            guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: dueDate),
+                  triggerDate > Date() else { continue }
+
+            let content = UNMutableNotificationContent()
+            if days == 0 {
+                content.title = "Hakediş Vade Tarihi"
+                content.body = "\(contractorName) — \(hakedis.periodName): Ödeme vadesi bugün."
+            } else {
+                content.title = "Hakediş Vade Yaklaşıyor"
+                content.body = "\(contractorName) — \(hakedis.periodName): Ödeme vadesi \(days) gün sonra."
+            }
+            content.sound = .default
+
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
+            components.hour = 9
+            components.minute = 0
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "duedate_\(hakedis.id.uuidString)_d\(days)",
+                content: content,
+                trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request)
+        }
+    }
+
+    /// Hakediş için zamanlanmış vade bildirimlerini iptal eder (ödendi veya silindi).
+    func cancelHakedisDueDateAlerts(hakedisID: UUID) {
+        let ids = [7, 3, 0].map { "duedate_\(hakedisID.uuidString)_d\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    // MARK: - Sözleşme Bitiş Tarihi Bildirimleri
+
+    /// Sözleşme bitiş tarihinden 30, 14 ve 7 gün önce sabah 08:00'da bildirim zamanlar.
+    func scheduleContractDeadlineAlerts(contract: Contract) {
+        guard isAuthorized, let deadline = contract.completionDeadline else { return }
+        let daysBefore = [30, 14, 7]
+
+        for days in daysBefore {
+            guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: deadline),
+                  triggerDate > Date() else { continue }
+
+            let content = UNMutableNotificationContent()
+            content.title = "Sözleşme Bitiş Tarihi Yaklaşıyor"
+            content.body = "\(contract.title): Bitiş tarihine \(days) gün kaldı."
+            content.sound = .default
+
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
+            components.hour = 8
+            components.minute = 0
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "deadline_\(contract.id.uuidString)_d\(days)",
+                content: content,
+                trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request)
+        }
+    }
+
+    /// Sözleşme için zamanlanmış bitiş tarihi bildirimlerini iptal eder.
+    func cancelContractDeadlineAlerts(contractID: UUID) {
+        let ids = [30, 14, 7].map { "deadline_\(contractID.uuidString)_d\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
 }
 
 struct NotificationSettingsView: View {
@@ -159,7 +235,9 @@ struct NotificationSettingsView: View {
             Section("Bilgi") {
                 Text("Günlük hatırlatıcı her gün saat 17:00'de saha girişi yapmanızı hatırlatır.")
                     .font(.caption).foregroundColor(.secondary)
-                Text("Geciken ödeme ve hakediş bildirimleri, ilgili işlem gerçekleştiğinde otomatik gönderilir.")
+                Text("Geciken ödeme uyarıları; hakediş vade tarihinden 7 gün önce (09:00), 3 gün önce (09:00) ve vade günü (09:00) otomatik olarak zamanlanır. Hakediş ödendiğinde iptal edilir.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Sözleşme bitiş tarihi uyarıları; bitiş tarihinden 30, 14 ve 7 gün önce sabah 08:00'de zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Bütçe aşımı uyarıları, sözleşme bütçesi %80 veya üzeri kullanıldığında tetiklenir.")
                     .font(.caption).foregroundColor(.secondary)

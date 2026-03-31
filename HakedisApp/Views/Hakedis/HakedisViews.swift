@@ -66,6 +66,7 @@ struct AddHakedisView: View {
     @State private var hasDueDate = true
     @State private var dueDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
     @State private var showingMeasurementImport = false
+    @State private var measurementOverrides: [String: Double] = [:]
 
     var isValid: Bool { !periodName.trimmingCharacters(in: .whitespaces).isEmpty }
 
@@ -89,12 +90,32 @@ struct AddHakedisView: View {
                     Button {
                         showingMeasurementImport = true
                     } label: {
-                        Label("Metraj Kayıtlarından İçe Aktar", systemImage: "ruler.fill")
-                            .foregroundColor(.hakedisOrange)
+                        HStack {
+                            Label("Metraj Kayıtlarından İçe Aktar", systemImage: "ruler.fill")
+                                .foregroundColor(.hakedisOrange)
+                            Spacer()
+                            if !measurementOverrides.isEmpty {
+                                Text("\(measurementOverrides.count) kalem")
+                                    .font(.caption.bold())
+                                    .foregroundColor(.hakedisSuccess)
+                            }
+                        }
                     }
-                    Text("Onaylanmış metraj kayıtlarını seçerek bu hakedişe dahil edebilirsiniz.")
+                    if measurementOverrides.isEmpty {
+                        Text("Onaylanmış metraj kayıtlarını seçerek bu hakedişe dahil edebilirsiniz.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Label("\(measurementOverrides.count) iş kalemi metrajdan aktarılacak — günlük saha girişleri yerine kullanılır.",
+                              systemImage: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(.hakedisSuccess)
+                        Button("Seçimi Temizle") {
+                            measurementOverrides = [:]
+                        }
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.hakedisDanger)
+                    }
                 }
 
                 Section("Bilgi") {
@@ -129,7 +150,9 @@ struct AddHakedisView: View {
                 }
             }
             .sheet(isPresented: $showingMeasurementImport) {
-                MeasurementImportSheet(contract: contract, periodStart: periodStart, periodEnd: periodEnd) { _ in }
+                MeasurementImportSheet(contract: contract, periodStart: periodStart, periodEnd: periodEnd) { overrides in
+                    measurementOverrides = overrides
+                }
             }
         }
     }
@@ -153,11 +176,16 @@ struct AddHakedisView: View {
                 .map { $0.cumulativeQuantity }
                 .max() ?? 0
 
-            // This period quantity from daily entries
-            let periodEntries = workItem.dailyEntries.filter {
-                $0.date >= periodStart && $0.date <= periodEnd
+            // This period: prefer measurement override over daily entries
+            let currentQty: Double
+            if let overrideQty = measurementOverrides[workItem.code] {
+                currentQty = overrideQty
+            } else {
+                let periodEntries = workItem.dailyEntries.filter {
+                    $0.date >= periodStart && $0.date <= periodEnd
+                }
+                currentQty = periodEntries.reduce(0) { $0 + $1.quantity }
             }
-            let currentQty = periodEntries.reduce(0) { $0 + $1.quantity }
 
             // Only add if there's work done in this period
             if currentQty > 0 {
@@ -177,6 +205,11 @@ struct AddHakedisView: View {
 
         contract.hakedisler.append(hakedis)
         modelContext.insert(hakedis)
+
+        if hasDueDate {
+            NotificationManager.shared.scheduleHakedisDueDateAlerts(hakedis: hakedis)
+        }
+
         dismiss()
     }
 }
@@ -384,6 +417,17 @@ struct HakedisDetailView: View {
                             Text(payment.amount.currencyFormatted)
                                 .font(.subheadline.bold())
                                 .foregroundColor(.hakedisSuccess)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                hakedis.payments.removeAll { $0.id == payment.id }
+                                modelContext.delete(payment)
+                                if hakedis.status == .paid && hakedis.remainingAmount > 0 {
+                                    hakedis.status = .approved
+                                }
+                            } label: {
+                                Label("Sil", systemImage: "trash")
+                            }
                         }
                     }
                 }
@@ -637,9 +681,15 @@ struct AddPaymentView: View {
     @State private var paymentDate = Date()
     @State private var description = ""
 
-    var isValid: Bool {
-        (Double(amount.replacingOccurrences(of: ",", with: ".")) ?? 0) > 0
+    private var enteredAmount: Double {
+        Double(amount.replacingOccurrences(of: ",", with: ".")) ?? 0
     }
+
+    private var isOverpayment: Bool {
+        enteredAmount > hakedis.remainingAmount && hakedis.remainingAmount > 0
+    }
+
+    var isValid: Bool { enteredAmount > 0 }
 
     var body: some View {
         NavigationStack {
@@ -652,6 +702,12 @@ struct AddPaymentView: View {
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                         Text("₺").foregroundColor(.secondary)
+                    }
+                    if isOverpayment {
+                        Label("Girilen tutar kalan miktarı (\(hakedis.remainingAmount.currencyFormatted)) aşıyor.",
+                              systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.hakedisWarning)
                     }
                     DatePicker("Ödeme Tarihi", selection: $paymentDate, displayedComponents: .date)
                     TextField("Açıklama", text: $description)
@@ -678,12 +734,12 @@ struct AddPaymentView: View {
     }
 
     private func save() {
-        let amt = Double(amount.replacingOccurrences(of: ",", with: ".")) ?? 0
-        let payment = Payment(amount: amt, paymentDate: paymentDate, paymentDescription: description)
+        let payment = Payment(amount: enteredAmount, paymentDate: paymentDate, paymentDescription: description)
         payment.hakedis = hakedis
         hakedis.payments.append(payment)
-        if hakedis.remainingAmount - amt <= 0 {
+        if hakedis.remainingAmount - enteredAmount <= 0 {
             hakedis.status = .paid
+            NotificationManager.shared.cancelHakedisDueDateAlerts(hakedisID: hakedis.id)
         }
         modelContext.insert(payment)
         dismiss()
