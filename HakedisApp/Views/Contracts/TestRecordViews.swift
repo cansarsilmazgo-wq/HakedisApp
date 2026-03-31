@@ -55,6 +55,12 @@ struct TestRecordSection: View {
             } else {
                 ForEach(contract.testRecords.sorted { $0.testDate > $1.testDate }) { record in
                     TestRecordRow(record: record)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.testRecords.removeAll { $0.id == record.id }
+                                context.delete(record)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             }
 

@@ -39,6 +39,12 @@ struct SoilRecordSection: View {
             } else {
                 ForEach(contract.soilRecords.sorted { $0.recordDate > $1.recordDate }) { record in
                     SoilRecordRow(record: record)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.soilRecords.removeAll { $0.id == record.id }
+                                context.delete(record)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             }
 

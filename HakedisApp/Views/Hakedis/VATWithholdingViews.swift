@@ -22,6 +22,12 @@ struct VATWithholdingSection: View {
             } else {
                 ForEach(hakedis.vatWithholdings) { record in
                     VATWithholdingRow(record: record)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                hakedis.vatWithholdings.removeAll { $0.id == record.id }
+                                context.delete(record)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             }
 

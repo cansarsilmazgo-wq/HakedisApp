@@ -218,9 +218,18 @@ struct ContractDetailView: View {
     @State private var analysisWorkItem: WorkItem?
     @State private var measurementWorkItem: WorkItem?
     @State private var showCumulative = false
+    @State private var workItemSearch = ""
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
+
+    private var filteredWorkItems: [WorkItem] {
+        if workItemSearch.isEmpty { return contract.workItems }
+        let q = workItemSearch.lowercased()
+        return contract.workItems.filter {
+            $0.name.lowercased().contains(q) || $0.code.lowercased().contains(q)
+        }
+    }
 
     var body: some View {
         List {
@@ -395,29 +404,56 @@ struct ContractDetailView: View {
                     }
                     .foregroundColor(.hakedisOrange)
                 } else {
-                    ForEach(contract.workItems) { item in
-                        NavigationLink(destination: WorkItemDetailView(workItem: item)) {
-                            if showCumulative {
-                                CumulativeWorkItemRow(workItem: item, contract: contract)
-                            } else {
-                                WorkItemRow(workItem: item)
+                    if contract.workItems.count > 5 {
+                        HStack {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            TextField("Poz ara (kod veya ad)...", text: $workItemSearch)
+                                .font(.subheadline)
+                            if !workItemSearch.isEmpty {
+                                Button {
+                                    workItemSearch = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
-                        .contextMenu {
-                            Button {
-                                analysisWorkItem = item
-                            } label: {
-                                Label("Birim Fiyat Analizi", systemImage: "function")
-                            }
-                            Button {
-                                measurementWorkItem = item
-                            } label: {
-                                Label("Metraj Defteri", systemImage: "ruler")
-                            }
-                        }
+                        .padding(.vertical, 4)
                     }
-                    .onDelete { offsets in
-                        offsets.map { contract.workItems[$0] }.forEach { modelContext.delete($0) }
+                    if filteredWorkItems.isEmpty {
+                        Text("Arama sonucu bulunamadı")
+                            .foregroundColor(.secondary)
+                            .font(.subheadline)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 8)
+                    } else {
+                        ForEach(filteredWorkItems) { item in
+                            NavigationLink(destination: WorkItemDetailView(workItem: item)) {
+                                if showCumulative {
+                                    CumulativeWorkItemRow(workItem: item, contract: contract)
+                                } else {
+                                    WorkItemRow(workItem: item)
+                                }
+                            }
+                            .contextMenu {
+                                Button {
+                                    analysisWorkItem = item
+                                } label: {
+                                    Label("Birim Fiyat Analizi", systemImage: "function")
+                                }
+                                Button {
+                                    measurementWorkItem = item
+                                } label: {
+                                    Label("Metraj Defteri", systemImage: "ruler")
+                                }
+                            }
+                        }
+                        .onDelete { offsets in
+                            let items = filteredWorkItems
+                            offsets.map { items[$0] }.forEach { modelContext.delete($0) }
+                        }
                     }
                 }
             } header: {
@@ -483,6 +519,16 @@ struct ContractDetailView: View {
                                     Label("Onayla", systemImage: "checkmark")
                                 }
                                 .tint(.hakedisSuccess)
+                            }
+                        }
+                        .swipeActions(edge: .trailing) {
+                            if hakedis.status == .draft {
+                                Button(role: .destructive) {
+                                    contract.hakedisler.removeAll { $0.id == hakedis.id }
+                                    modelContext.delete(hakedis)
+                                } label: {
+                                    Label("Sil", systemImage: "trash")
+                                }
                             }
                         }
                     }
@@ -937,6 +983,8 @@ struct AddWorkItemView: View {
 // MARK: - Work Item Detail
 struct WorkItemDetailView: View {
     let workItem: WorkItem
+    @Environment(\.modelContext) private var modelContext
+    @State private var showingEdit = false
 
     var body: some View {
         List {
@@ -946,6 +994,7 @@ struct WorkItemDetailView: View {
                 LabeledContent("Mahal", value: workItem.location.isEmpty ? "—" : workItem.location)
                 LabeledContent("Birim", value: workItem.unit)
                 LabeledContent("Birim Fiyat", value: workItem.unitPrice.currencyFormatted)
+                LabeledContent("Sözleşme Tutarı", value: workItem.totalAmount.currencyFormatted)
             }
 
             Section("İlerleme") {
@@ -997,11 +1046,23 @@ struct WorkItemDetailView: View {
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
+                                if !entry.notes.isEmpty {
+                                    Text(entry.notes)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
                             }
                             Spacer()
                             Text("\(entry.quantity.quantityFormatted) \(workItem.unit)")
                                 .font(.subheadline)
                                 .foregroundColor(.hakedisOrange)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                workItem.dailyEntries.removeAll { $0.id == entry.id }
+                                modelContext.delete(entry)
+                            } label: { Label("Sil", systemImage: "trash") }
                         }
                     }
                 }
@@ -1009,6 +1070,108 @@ struct WorkItemDetailView: View {
         }
         .navigationTitle(workItem.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Düzenle") { showingEdit = true }
+            }
+        }
+        .sheet(isPresented: $showingEdit) {
+            EditWorkItemView(workItem: workItem)
+        }
+    }
+}
+
+// MARK: - Edit WorkItem
+struct EditWorkItemView: View {
+    let workItem: WorkItem
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var code: String
+    @State private var name: String
+    @State private var unit: String
+    @State private var unitPrice: Double
+    @State private var contractedQuantity: Double
+    @State private var location: String
+
+    init(workItem: WorkItem) {
+        self.workItem = workItem
+        _code = State(initialValue: workItem.code)
+        _name = State(initialValue: workItem.name)
+        _unit = State(initialValue: workItem.unit)
+        _unitPrice = State(initialValue: workItem.unitPrice)
+        _contractedQuantity = State(initialValue: workItem.contractedQuantity)
+        _location = State(initialValue: workItem.location)
+    }
+
+    var isValid: Bool {
+        !code.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        unitPrice >= 0 && contractedQuantity > 0
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Poz Bilgileri") {
+                    TextField("Poz No *", text: $code)
+                    TextField("İş Kalemi Adı *", text: $name)
+                    TextField("Mahal", text: $location)
+                }
+                Section("Birim ve Fiyat") {
+                    TextField("Birim (m², adet, ton…)", text: $unit)
+                    HStack {
+                        Text("Birim Fiyat *")
+                        Spacer()
+                        TextField("0", value: $unitPrice, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 120)
+                        Text("₺").foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("Sözleşme Miktarı *")
+                        Spacer()
+                        TextField("0", value: $contractedQuantity, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 120)
+                        Text(unit.isEmpty ? "br" : unit).foregroundColor(.secondary)
+                    }
+                }
+                Section {
+                    HStack {
+                        Text("Toplam Tutar")
+                        Spacer()
+                        Text((unitPrice * contractedQuantity).currencyFormatted)
+                            .font(.subheadline.bold())
+                            .foregroundColor(.hakedisOrange)
+                    }
+                } footer: {
+                    Text("Birim fiyat veya miktar değişikliği mevcut hakedişleri etkilemez; yalnızca yeni hakedişleri etkiler.")
+                        .font(.caption)
+                }
+            }
+            .navigationTitle("Poz Düzenle")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") { save() }
+                        .disabled(!isValid)
+                        .bold()
+                }
+            }
+        }
+    }
+
+    private func save() {
+        workItem.code = code.trimmingCharacters(in: .whitespaces)
+        workItem.name = name.trimmingCharacters(in: .whitespaces)
+        workItem.unit = unit.trimmingCharacters(in: .whitespaces)
+        workItem.unitPrice = unitPrice
+        workItem.contractedQuantity = contractedQuantity
+        workItem.location = location.trimmingCharacters(in: .whitespaces)
+        dismiss()
     }
 }
 

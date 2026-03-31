@@ -220,6 +220,7 @@ struct HakedisDetailView: View {
     let hakedis: Hakedis
     @State private var showingAddPayment = false
     @State private var showingRejectionCapture = false
+    @State private var editingItem: HakedisItem?
 
     var statusColor: Color {
         switch hakedis.status {
@@ -385,6 +386,26 @@ struct HakedisDetailView: View {
                 } else {
                     ForEach(hakedis.items) { item in
                         HakedisItemCumulativeRow(item: item, contract: hakedis.contract)
+                            .swipeActions(edge: .trailing) {
+                                if hakedis.status == .draft {
+                                    Button {
+                                        editingItem = item
+                                    } label: {
+                                        Label("Düzenle", systemImage: "pencil")
+                                    }
+                                    .tint(.hakedisOrange)
+                                }
+                            }
+                            .swipeActions(edge: .leading) {
+                                if hakedis.status == .draft {
+                                    Button(role: .destructive) {
+                                        hakedis.items.removeAll { $0.id == item.id }
+                                        modelContext.delete(item)
+                                    } label: {
+                                        Label("Sil", systemImage: "trash")
+                                    }
+                                }
+                            }
                     }
                 }
             }
@@ -467,6 +488,9 @@ struct HakedisDetailView: View {
         }
         .sheet(isPresented: $showingRejectionCapture) {
             RejectionCaptureSheet(hakedis: hakedis)
+        }
+        .sheet(item: $editingItem) { item in
+            EditHakedisItemView(item: item)
         }
         .onChange(of: hakedis.status) { _, newStatus in
             if newStatus == .rejected {
@@ -742,6 +766,106 @@ struct AddPaymentView: View {
             NotificationManager.shared.cancelHakedisDueDateAlerts(hakedisID: hakedis.id)
         }
         modelContext.insert(payment)
+        dismiss()
+    }
+}
+
+// MARK: - Hakediş Kalemi Düzenle (Draft)
+struct EditHakedisItemView: View {
+    let item: HakedisItem
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var currentQtyText: String
+
+    init(item: HakedisItem) {
+        self.item = item
+        _currentQtyText = State(initialValue: item.currentQuantity.quantityFormatted)
+    }
+
+    private var enteredQty: Double? { Double(currentQtyText.replacingOccurrences(of: ",", with: ".")) }
+    private var isValid: Bool { enteredQty != nil && (enteredQty ?? -1) >= 0 }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Kalem Bilgisi") {
+                    HStack {
+                        Text("Kod").foregroundColor(.secondary)
+                        Spacer()
+                        Text(item.workItemCode).font(.subheadline.bold())
+                    }
+                    HStack {
+                        Text("Ad").foregroundColor(.secondary)
+                        Spacer()
+                        Text(item.workItemName)
+                            .font(.subheadline)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack {
+                        Text("Birim").foregroundColor(.secondary)
+                        Spacer()
+                        Text(item.unit).font(.subheadline)
+                    }
+                    HStack {
+                        Text("Birim Fiyat").foregroundColor(.secondary)
+                        Spacer()
+                        Text(item.unitPrice.currencyFormatted).font(.subheadline)
+                    }
+                }
+
+                Section("Miktarlar") {
+                    HStack {
+                        Text("Önceki Miktar").foregroundColor(.secondary)
+                        Spacer()
+                        Text("\(item.previousQuantity.quantityFormatted) \(item.unit)")
+                            .font(.subheadline)
+                    }
+                    HStack {
+                        Text("Bu Dönem Miktar")
+                        Spacer()
+                        TextField("0.00", text: $currentQtyText)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                            .foregroundColor(.hakedisOrange)
+                            .bold()
+                    }
+                    if let qty = enteredQty {
+                        HStack {
+                            Text("Kümülatif").foregroundColor(.secondary)
+                            Spacer()
+                            Text("\((item.previousQuantity + qty).quantityFormatted) \(item.unit)")
+                                .font(.subheadline)
+                        }
+                        HStack {
+                            Text("Dönem Tutar").foregroundColor(.secondary)
+                            Spacer()
+                            Text((qty * item.unitPrice).currencyFormatted)
+                                .font(.subheadline.bold())
+                                .foregroundColor(.hakedisSuccess)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Kalemi Düzenle")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("İptal") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") { save() }
+                        .disabled(!isValid)
+                        .bold()
+                }
+            }
+        }
+    }
+
+    private func save() {
+        guard let qty = enteredQty else { return }
+        item.currentQuantity = qty
         dismiss()
     }
 }

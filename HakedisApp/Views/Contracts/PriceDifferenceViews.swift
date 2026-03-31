@@ -29,6 +29,12 @@ struct PriceDifferenceSection: View {
 
                 ForEach(contract.priceDifferenceRecords.sorted { $0.createdAt > $1.createdAt }) { record in
                     PriceDifferenceRow(record: record)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.priceDifferenceRecords.removeAll { $0.id == record.id }
+                                context.delete(record)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             } else {
                 EmptyStateView(

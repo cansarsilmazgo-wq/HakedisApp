@@ -69,6 +69,20 @@ struct DashboardView: View {
         }
     }
 
+    // Financial totals across all projects
+    private var totalContractValue: Double {
+        projects.flatMap { $0.contracts }.reduce(0) { $0 + $1.totalContractAmount }
+    }
+    private var totalInvoiced: Double {
+        hakedisler.filter { $0.status != .draft }.reduce(0) { $0 + $1.netAmount }
+    }
+    private var totalPaid: Double {
+        hakedisler.reduce(0) { $0 + $1.totalPaid }
+    }
+    private var totalPending: Double {
+        hakedisler.filter { $0.status == .approved }.reduce(0) { $0 + $1.remainingAmount }
+    }
+
     @StateObject private var notificationManager = NotificationManager.shared
     @State private var showingSearch = false
     @State private var pendingObjectionCount: Int = 0
@@ -104,6 +118,16 @@ struct DashboardView: View {
                             subtitle: "Saha kaydı",
                             color: .hakedisSuccess,
                             icon: "checkmark.circle"
+                        )
+                    }
+
+                    // Financial Summary
+                    if !projects.isEmpty {
+                        DashboardFinancialSummary(
+                            totalContractValue: totalContractValue,
+                            totalInvoiced: totalInvoiced,
+                            totalPaid: totalPaid,
+                            totalPending: totalPending
                         )
                     }
 
@@ -297,6 +321,9 @@ struct DashboardView: View {
             .onAppear {
                 loadPendingObjectionCount()
                 triggerBudgetNotificationsIfNeeded()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in
+                loadPendingObjectionCount()
             }
         }
     }
@@ -572,5 +599,90 @@ struct WarrantyExpiryCard: View {
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisWarning.opacity(0.3), lineWidth: 1))
+    }
+}
+
+// MARK: - Dashboard Financial Summary
+struct DashboardFinancialSummary: View {
+    let totalContractValue: Double
+    let totalInvoiced: Double
+    let totalPaid: Double
+    let totalPending: Double
+
+    private var invoicedRatio: Double {
+        guard totalContractValue > 0 else { return 0 }
+        return min(totalInvoiced / totalContractValue, 1.0)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader("Finansal Özet")
+
+            VStack(alignment: .leading, spacing: 14) {
+                // Contract value + progress bar
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Toplam Sözleşme")
+                            .font(.caption).foregroundColor(.secondary)
+                        Spacer()
+                        Text(totalContractValue.currencyFormatted)
+                            .font(.subheadline.bold())
+                    }
+                    ProgressBarView(value: invoicedRatio, color: .hakedisOrange)
+                    HStack {
+                        Text("Hakedişe Alınan")
+                            .font(.caption2).foregroundColor(.secondary)
+                        Spacer()
+                        Text(String(format: "%.0f%%", invoicedRatio * 100))
+                            .font(.caption2).foregroundColor(.hakedisOrange)
+                    }
+                }
+
+                Divider()
+
+                // 3-column money breakdown
+                HStack(spacing: 0) {
+                    financialCell(
+                        label: "Hakediş",
+                        amount: totalInvoiced,
+                        color: .hakedisOrange,
+                        icon: "doc.text.fill"
+                    )
+                    Divider().frame(height: 40)
+                    financialCell(
+                        label: "Ödenen",
+                        amount: totalPaid,
+                        color: .hakedisSuccess,
+                        icon: "checkmark.seal.fill"
+                    )
+                    Divider().frame(height: 40)
+                    financialCell(
+                        label: "Bekleyen",
+                        amount: totalPending,
+                        color: totalPending > 0 ? .hakedisDanger : .secondary,
+                        icon: "clock.fill"
+                    )
+                }
+            }
+            .padding(14)
+            .background(Color.hakedisCard)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
+    @ViewBuilder
+    private func financialCell(label: String, amount: Double, color: Color, icon: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption).foregroundColor(color)
+            Text(amount.compactCurrency)
+                .font(.subheadline.bold())
+                .foregroundColor(color)
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+            Text(label)
+                .font(.caption2).foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
     }
 }

@@ -8,37 +8,51 @@ struct SiteLogSection: View {
 
     @Environment(\.modelContext) private var context
     @State private var showAdd = false
+    @State private var showAll = false
 
+    private var sortedEntries: [SiteLogEntry] {
+        contract.siteLogEntries.sorted { $0.logDate > $1.logDate }
+    }
     private var workdayCount: Int {
         contract.siteLogEntries.filter { $0.isWorkday }.count
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionHeader("Şantiye Günlüğü")
+            SectionHeader(
+                "Şantiye Günlüğü",
+                action: contract.siteLogEntries.count > 5 ? { showAll = true } : nil
+            )
 
             if !contract.siteLogEntries.isEmpty {
                 HStack(spacing: 12) {
-                    StatCard(
-                        title: "Çalışma Günü",
-                        value: "\(workdayCount)",
-                        color: .hakedisSuccess,
-                        icon: "sun.max.fill"
-                    )
-                    StatCard(
-                        title: "Toplam Kayıt",
-                        value: "\(contract.siteLogEntries.count)",
-                        color: .hakedisOrange,
-                        icon: "book.fill"
-                    )
+                    StatCard(title: "Çalışma Günü", value: "\(workdayCount)",
+                             color: .hakedisSuccess, icon: "sun.max.fill")
+                    StatCard(title: "Toplam Kayıt", value: "\(contract.siteLogEntries.count)",
+                             color: .hakedisOrange, icon: "book.fill")
                 }
-            }
 
-            ForEach(contract.siteLogEntries.sorted { $0.logDate > $1.logDate }.prefix(5)) { entry in
-                SiteLogRow(entry: entry)
-            }
+                ForEach(sortedEntries.prefix(5)) { entry in
+                    SiteLogRow(entry: entry)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.siteLogEntries.removeAll { $0.id == entry.id }
+                                context.delete(entry)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
+                }
 
-            if contract.siteLogEntries.isEmpty {
+                if contract.siteLogEntries.count > 5 {
+                    Button {
+                        showAll = true
+                    } label: {
+                        Text("Tümünü Gör (\(contract.siteLogEntries.count) kayıt)")
+                            .font(.subheadline)
+                            .foregroundColor(.hakedisOrange)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+            } else {
                 EmptyStateView(
                     icon: "book.fill",
                     title: "Günlük Yok",
@@ -56,6 +70,46 @@ struct SiteLogSection: View {
         }
         .sheet(isPresented: $showAdd) {
             AddSiteLogView(contract: contract)
+        }
+        .sheet(isPresented: $showAll) {
+            SiteLogFullListSheet(contract: contract)
+        }
+    }
+}
+
+// MARK: - Full List Sheet
+struct SiteLogFullListSheet: View {
+    let contract: Contract
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+
+    private var sortedEntries: [SiteLogEntry] {
+        contract.siteLogEntries.sorted { $0.logDate > $1.logDate }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(sortedEntries) { entry in
+                    SiteLogRow(entry: entry)
+                        .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) {
+                                contract.siteLogEntries.removeAll { $0.id == entry.id }
+                                context.delete(entry)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
+                }
+            }
+            .listStyle(.plain)
+            .navigationTitle("Şantiye Günlüğü (\(contract.siteLogEntries.count))")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kapat") { dismiss() }
+                }
+            }
         }
     }
 }

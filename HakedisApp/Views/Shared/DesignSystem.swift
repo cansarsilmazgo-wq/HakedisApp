@@ -111,6 +111,17 @@ extension Double {
     }
     var percentFormatted: String { String(format: "%.1f%%", self) }
     var quantityFormatted: String { self == floor(self) ? String(format: "%.0f", self) : String(format: "%.2f", self) }
+    /// Compact currency — e.g. ₺1,2M or ₺850B
+    var compactCurrency: String {
+        let abs = Swift.abs(self)
+        let sign = self < 0 ? "-" : ""
+        switch abs {
+        case 1_000_000_000...: return "\(sign)₺\(String(format: "%.1f", abs / 1_000_000_000))Mr"
+        case 1_000_000...: return "\(sign)₺\(String(format: "%.1f", abs / 1_000_000))M"
+        case 1_000...: return "\(sign)₺\(String(format: "%.0f", abs / 1_000))B"
+        default: return currencyFormatted
+        }
+    }
 }
 
 extension Date {

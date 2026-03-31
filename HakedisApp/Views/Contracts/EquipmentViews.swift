@@ -48,6 +48,12 @@ struct EquipmentSection: View {
 
                 ForEach(contract.equipments.sorted { $0.name < $1.name }) { equipment in
                     EquipmentRow(equipment: equipment)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.equipments.removeAll { $0.id == equipment.id }
+                                context.delete(equipment)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             } else {
                 EmptyStateView(

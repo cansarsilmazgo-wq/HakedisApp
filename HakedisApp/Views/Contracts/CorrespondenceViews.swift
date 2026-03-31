@@ -39,6 +39,12 @@ struct CorrespondenceSection: View {
             } else {
                 ForEach(contract.correspondenceRecords.sorted { $0.documentDate > $1.documentDate }) { record in
                     CorrespondenceRow(record: record)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.correspondenceRecords.removeAll { $0.id == record.id }
+                                context.delete(record)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             }
 

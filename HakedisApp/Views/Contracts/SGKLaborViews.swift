@@ -22,6 +22,12 @@ struct SGKLaborSection: View {
             } else {
                 ForEach(contract.sgkLaborRecords.sorted { $0.createdAt > $1.createdAt }) { record in
                     SGKLaborRow(record: record)
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                contract.sgkLaborRecords.removeAll { $0.id == record.id }
+                                context.delete(record)
+                            } label: { Label("Sil", systemImage: "trash") }
+                        }
                 }
             }
 

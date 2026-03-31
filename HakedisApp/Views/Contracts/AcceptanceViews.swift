@@ -42,6 +42,12 @@ struct AcceptanceSection: View {
                         AcceptanceRow(record: record)
                         WarrantyClaimSection(acceptanceRecord: record)
                     }
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            contract.acceptanceRecords.removeAll { $0.id == record.id }
+                            context.delete(record)
+                        } label: { Label("Sil", systemImage: "trash") }
+                    }
                 }
             }
 
