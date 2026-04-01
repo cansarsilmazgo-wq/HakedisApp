@@ -150,7 +150,6 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var testRecords: [TestRecord]
     @Relationship(deleteRule: .cascade) var acceptanceRecords: [AcceptanceRecord]
     var contractType: ContractType = ContractType.unitPrice
-    var penaltyRate: Double = 0.0
     @Relationship(deleteRule: .cascade) var guarantees: [Guarantee] = []
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
@@ -416,13 +415,18 @@ final class Hakedis {
         }
         return grossAmount
     }
+    /// Gecikme cezası — Contract.delayPenalty() ile aynı mantık; dailyPenaltyRate × gün, maxPenaltyRate cap'li
     var penaltyAmount: Double {
-        guard let c = contract, c.penaltyRate > 0, let endDate = c.completionDeadline, Date() > endDate else { return 0 }
-        let days = Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0
-        return Double(max(0, days)) * (c.penaltyRate / 100) * c.totalContractAmount
+        guard let c = contract, c.dailyPenaltyRate > 0,
+              let endDate = c.completionDeadline, Date() > endDate else { return 0 }
+        let days = max(0, Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0)
+        let daily = c.totalContractAmount * (c.dailyPenaltyRate / 100)
+        let cap   = c.totalContractAmount * (c.maxPenaltyRate / 100)
+        return min(Double(days) * daily, cap)
     }
     var penaltyDays: Int {
-        guard let c = contract, c.penaltyRate > 0, let endDate = c.completionDeadline, Date() > endDate else { return 0 }
+        guard let c = contract, c.dailyPenaltyRate > 0,
+              let endDate = c.completionDeadline, Date() > endDate else { return 0 }
         return max(0, Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0)
     }
 }

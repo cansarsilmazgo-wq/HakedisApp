@@ -15,7 +15,7 @@ struct EditContractView: View {
     @State private var kdvRate: Double
     @State private var retentionRate: Double
     @State private var advanceRate: Double
-    @State private var penaltyRate: String
+    @State private var dailyPenaltyRateStr: String
     @State private var selectedContractor: Contractor?
 
     init(contract: Contract) {
@@ -28,7 +28,7 @@ struct EditContractView: View {
         _kdvRate = State(initialValue: contract.kdvRate)
         _retentionRate = State(initialValue: contract.retentionRate)
         _advanceRate = State(initialValue: contract.advanceRate)
-        _penaltyRate = State(initialValue: String(format: "%.4f", contract.penaltyRate))
+        _dailyPenaltyRateStr = State(initialValue: String(format: "%.4f", contract.dailyPenaltyRate))
         _selectedContractor = State(initialValue: contract.contractor)
     }
 
@@ -75,7 +75,7 @@ struct EditContractView: View {
                     }
                 }
                 Section("Ceza") {
-                    TextField("Günlük Gecikme Cezası Oranı %", text: $penaltyRate)
+                    TextField("Günlük Gecikme Cezası Oranı %", text: $dailyPenaltyRateStr)
                         .keyboardType(.decimalPad)
                 }
                 if !contractors.isEmpty {
@@ -108,7 +108,7 @@ struct EditContractView: View {
         contract.kdvRate = kdvRate
         contract.retentionRate = retentionRate
         contract.advanceRate = advanceRate
-        contract.penaltyRate = Double(penaltyRate.replacingOccurrences(of: ",", with: ".")) ?? 0
+        contract.dailyPenaltyRate = Double(dailyPenaltyRateStr.replacingOccurrences(of: ",", with: ".")) ?? 0
         contract.contractor = selectedContractor
         dismiss()
     }

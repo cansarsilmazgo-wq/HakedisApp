@@ -67,6 +67,7 @@ struct AddHakedisView: View {
     @State private var dueDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
     @State private var showingMeasurementImport = false
     @State private var measurementOverrides: [String: Double] = [:]
+    @State private var lumpSumCompletionPct: Double = 0.0
 
     var isValid: Bool { !periodName.trimmingCharacters(in: .whitespaces).isEmpty }
 
@@ -83,6 +84,28 @@ struct AddHakedisView: View {
                     Toggle("Vade Tarihi Belirle", isOn: $hasDueDate)
                     if hasDueDate {
                         DatePicker("Vade Tarihi", selection: $dueDate, displayedComponents: .date)
+                    }
+                }
+
+                if contract.contractType == .lumpSum {
+                    Section("Götürü Bedel Tamamlanması") {
+                        Stepper(
+                            "Tamamlanma: %\(Int(lumpSumCompletionPct))",
+                            value: $lumpSumCompletionPct,
+                            in: 0...100,
+                            step: 1
+                        )
+                        HStack {
+                            Text("Efektif Brüt Tutar")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text((contract.totalContractAmount * lumpSumCompletionPct / 100).currencyFormatted)
+                                .bold()
+                                .foregroundColor(.hakedisOrange)
+                        }
+                        Text("Götürü bedelde brüt tutar = sözleşme bedeli × tamamlanma %'si.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -165,6 +188,7 @@ struct AddHakedisView: View {
             dueDate: hasDueDate ? dueDate : nil
         )
         hakedis.contract = contract
+        hakedis.lumpSumCompletionPercentage = lumpSumCompletionPct
 
         // Auto-calculate: find previous hakedis cumulative quantities
         let previousHakedisler = contract.hakedisler.filter { $0.periodEnd < periodStart }
@@ -241,9 +265,11 @@ struct HakedisDetailView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text("Brüt Tutar")
+                            Text(hakedis.contract?.contractType == .lumpSum ? "Efektif Brüt (Götürü %\(Int(hakedis.lumpSumCompletionPercentage)))" : "Brüt Tutar")
                                 .font(.caption).foregroundColor(.secondary)
-                            Text(hakedis.grossAmount.currencyFormatted)
+                            Text((hakedis.contract?.contractType == .lumpSum
+                                  ? hakedis.effectiveGrossAmount
+                                  : hakedis.grossAmount).currencyFormatted)
                                 .font(.title3.bold())
                         }
                         Spacer()
@@ -357,6 +383,34 @@ struct HakedisDetailView: View {
                             Spacer()
                             Text(daysLeft <= 0 ? "Bugün" : "\(daysLeft) gün")
                                 .foregroundColor(.hakedisWarning)
+                        }
+                    }
+                }
+            }
+
+            // Götürü Bedel Tamamlanma Yüzdesi (sadece lump-sum sözleşmelerde)
+            if hakedis.contract?.contractType == .lumpSum {
+                Section("Götürü Bedel Tamamlanması") {
+                    Stepper(
+                        "Tamamlanma: %\(Int(hakedis.lumpSumCompletionPercentage))",
+                        value: Binding(
+                            get: { hakedis.lumpSumCompletionPercentage },
+                            set: { hakedis.lumpSumCompletionPercentage = $0 }
+                        ),
+                        in: 0...100,
+                        step: 1
+                    )
+                    HStack {
+                        Text("Efektif Brüt Tutar").foregroundColor(.secondary)
+                        Spacer()
+                        Text(hakedis.effectiveGrossAmount.currencyFormatted)
+                            .bold().foregroundColor(.hakedisOrange)
+                    }
+                    if let total = hakedis.contract?.totalContractAmount, total > 0 {
+                        HStack {
+                            Text("Sözleşme Bedeli").foregroundColor(.secondary).font(.caption)
+                            Spacer()
+                            Text(total.currencyFormatted).font(.caption)
                         }
                     }
                 }

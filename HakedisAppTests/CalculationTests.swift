@@ -758,4 +758,183 @@ final class CalculationTests: XCTestCase {
         XCTAssertEqual(item2.previousQuantity, 10)
         XCTAssertEqual(item2.currentQuantity, 15)
     }
+
+    // MARK: - Lump-Sum effectiveGrossAmount
+
+    func testLumpSumEffectiveGross_fiftyPercent() throws {
+        // Götürü bedel: 1_000_000 TL, %50 tamamlanma → effectiveGrossAmount = 500_000
+        let project = Project(name: "Test")
+        let contract = Contract(title: "Götürü", retentionRate: 0, advanceRate: 0)
+        contract.contractType = .lumpSum
+        let workItem = WorkItem(code: "L01", name: "Bina", unit: "adet",
+                                unitPrice: 1_000_000, contractedQuantity: 1)
+        workItem.contract = contract
+        contract.workItems.append(workItem)
+
+        let hakedis = Hakedis(periodName: "Dönem 1", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        hakedis.lumpSumCompletionPercentage = 50.0
+
+        context.insert(project)
+        context.insert(contract)
+        context.insert(workItem)
+        context.insert(hakedis)
+
+        XCTAssertEqual(contract.totalContractAmount, 1_000_000, accuracy: 0.01)
+        XCTAssertEqual(hakedis.lumpSumCompletionPercentage, 50.0)
+        XCTAssertEqual(hakedis.effectiveGrossAmount, 500_000, accuracy: 0.01,
+                       "Götürü %50 → 1_000_000 × 0.50 = 500_000")
+    }
+
+    func testLumpSumEffectiveGross_zeroPercent() throws {
+        // %0 tamamlanma → effectiveGrossAmount = 0
+        let contract = Contract(title: "Götürü", retentionRate: 0, advanceRate: 0)
+        contract.contractType = .lumpSum
+        let workItem = WorkItem(code: "L02", name: "Bina", unit: "adet",
+                                unitPrice: 500_000, contractedQuantity: 1)
+        workItem.contract = contract
+        contract.workItems.append(workItem)
+
+        let hakedis = Hakedis(periodName: "Dönem 1", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        hakedis.lumpSumCompletionPercentage = 0.0
+
+        context.insert(contract)
+        context.insert(workItem)
+        context.insert(hakedis)
+
+        XCTAssertEqual(hakedis.effectiveGrossAmount, 0, accuracy: 0.01,
+                       "%0 tamamlanma → effectiveGrossAmount = 0")
+    }
+
+    func testLumpSumEffectiveGross_hundredPercent() throws {
+        // %100 tamamlanma → effectiveGrossAmount = totalContractAmount
+        let contract = Contract(title: "Götürü", retentionRate: 0, advanceRate: 0)
+        contract.contractType = .lumpSum
+        let workItem = WorkItem(code: "L03", name: "Bina", unit: "adet",
+                                unitPrice: 750_000, contractedQuantity: 1)
+        workItem.contract = contract
+        contract.workItems.append(workItem)
+
+        let hakedis = Hakedis(periodName: "Dönem 1", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        hakedis.lumpSumCompletionPercentage = 100.0
+
+        context.insert(contract)
+        context.insert(workItem)
+        context.insert(hakedis)
+
+        XCTAssertEqual(hakedis.effectiveGrossAmount, contract.totalContractAmount, accuracy: 0.01,
+                       "%100 → effectiveGrossAmount = sözleşme bedeli")
+    }
+
+    func testUnitPriceContract_effectiveGrossEqualsGross() throws {
+        // Birim fiyat sözleşmede effectiveGrossAmount = grossAmount (items toplamı)
+        let (hakedis, _) = try makeHakedis(retentionRate: 0)
+        let item = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                               unit: "m³", unitPrice: 100, previousQuantity: 0, currentQuantity: 50)
+        insertItems([item], into: hakedis)
+        // contract.contractType default = .unitPrice
+        XCTAssertEqual(hakedis.effectiveGrossAmount, hakedis.grossAmount, accuracy: 0.01,
+                       "Birim fiyat sözleşmede effectiveGrossAmount = grossAmount")
+    }
+
+    // MARK: - Hakedis.penaltyAmount (dailyPenaltyRate bazlı, maxPenaltyRate cap'li)
+
+    func testHakedis_penaltyAmount_standard() throws {
+        // dailyPenaltyRate %0.1, 10 gün gecikme, totalContractAmount 100_000
+        // beklenen: 100_000 * 0.001 * 10 = 1_000
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        contract.dailyPenaltyRate = 0.1
+        contract.maxPenaltyRate = 20.0
+        contract.completionDeadline = Calendar.current.date(byAdding: .day, value: -10, to: Date())
+        let workItem = WorkItem(code: "P01", name: "Kazı", unit: "m³",
+                                unitPrice: 1_000, contractedQuantity: 100)
+        workItem.contract = contract
+        contract.workItems.append(workItem)
+        context.insert(contract)
+        context.insert(workItem)
+
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        context.insert(hakedis)
+
+        XCTAssertEqual(contract.totalContractAmount, 100_000, accuracy: 0.01)
+        XCTAssertEqual(hakedis.penaltyDays, 10)
+        XCTAssertEqual(hakedis.penaltyAmount, 1_000, accuracy: 0.01,
+                       "%0.1/gün × 10 gün × 100_000 = 1_000")
+    }
+
+    func testHakedis_penaltyAmount_cappedAtMax() throws {
+        // dailyPenaltyRate %1.0, 300 gün, maxPenaltyRate %20 → cap = 100_000 * 20% = 20_000
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        contract.dailyPenaltyRate = 1.0
+        contract.maxPenaltyRate = 20.0
+        contract.completionDeadline = Calendar.current.date(byAdding: .day, value: -300, to: Date())
+        let workItem = WorkItem(code: "P02", name: "Beton", unit: "m³",
+                                unitPrice: 1_000, contractedQuantity: 100)
+        workItem.contract = contract
+        contract.workItems.append(workItem)
+        context.insert(contract)
+        context.insert(workItem)
+
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        context.insert(hakedis)
+
+        XCTAssertEqual(hakedis.penaltyAmount, 20_000, accuracy: 0.01,
+                       "300 gün × %1 aşıyor, cap %20 = 20_000")
+    }
+
+    func testHakedis_penaltyAmount_zeroDailyRate() throws {
+        // dailyPenaltyRate = 0 → penaltyAmount = 0
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        contract.dailyPenaltyRate = 0.0
+        contract.completionDeadline = Calendar.current.date(byAdding: .day, value: -10, to: Date())
+        context.insert(contract)
+
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        context.insert(hakedis)
+
+        XCTAssertEqual(hakedis.penaltyAmount, 0, accuracy: 0.01,
+                       "dailyPenaltyRate = 0 → ceza yok")
+        XCTAssertEqual(hakedis.penaltyDays, 0)
+    }
+
+    func testHakedis_penaltyAmount_noDeadline() throws {
+        // completionDeadline yok → penaltyAmount = 0
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        contract.dailyPenaltyRate = 0.1
+        contract.completionDeadline = nil
+        context.insert(contract)
+
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        context.insert(hakedis)
+
+        XCTAssertEqual(hakedis.penaltyAmount, 0, accuracy: 0.01,
+                       "Teslim tarihi yok → ceza hesaplanamaz")
+    }
+
+    func testHakedis_penaltyAmount_consistency_with_contractDelayPenalty() throws {
+        // Hakedis.penaltyAmount, Contract.delayPenalty() ile tutarlı olmalı
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        contract.dailyPenaltyRate = 0.5
+        contract.maxPenaltyRate = 20.0
+        contract.completionDeadline = Calendar.current.date(byAdding: .day, value: -15, to: Date())
+        let workItem = WorkItem(code: "P03", name: "Sıva", unit: "m²",
+                                unitPrice: 100, contractedQuantity: 1_000)
+        workItem.contract = contract
+        contract.workItems.append(workItem)
+        context.insert(contract)
+        context.insert(workItem)
+
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        hakedis.contract = contract
+        context.insert(hakedis)
+
+        XCTAssertEqual(hakedis.penaltyAmount, contract.delayPenalty(), accuracy: 0.01,
+                       "Hakedis.penaltyAmount, Contract.delayPenalty() ile aynı sonucu vermelidir")
+    }
 }
