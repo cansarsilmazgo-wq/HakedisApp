@@ -10,12 +10,15 @@ struct SettingsView: View {
 
     // Varsayılan değerler
     @AppStorage("defaultRetentionRate") private var defaultRetentionRate = 10.0
+    @AppStorage("defaultAdvanceRate")   private var defaultAdvanceRate   = 0.0
+    @AppStorage("defaultKDVRate")       private var defaultKDVRate       = 0.0
 
     @Environment(\.modelContext) private var modelContext
     @Query private var projects:   [Project]
     @Query private var hakedisler: [Hakedis]
 
-    @State private var showingDeleteAlert = false
+    @State private var showingDeleteConfirm = false
+    @State private var showingDeleteFinalConfirm = false
     @State private var exportItem: ExportItem?
     @State private var isExporting = false
 
@@ -68,6 +71,26 @@ struct SettingsView: View {
                             .frame(width: 60)
                         Text("%").foregroundColor(.secondary)
                     }
+                    HStack {
+                        Text("Avans Oranı")
+                        Spacer()
+                        TextField("0", value: $defaultAdvanceRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                        Text("%").foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("KDV Oranı")
+                        Spacer()
+                        Picker("KDV", selection: $defaultKDVRate) {
+                            Text("KDV Yok").tag(0.0)
+                            Text("%1").tag(1.0)
+                            Text("%10").tag(10.0)
+                            Text("%20").tag(20.0)
+                        }
+                        .pickerStyle(.menu)
+                    }
                 }
 
                 // MARK: Uygulama
@@ -103,7 +126,7 @@ struct SettingsView: View {
                     .disabled(isExporting)
 
                     Button(role: .destructive) {
-                        showingDeleteAlert = true
+                        showingDeleteConfirm = true
                     } label: {
                         Label("Tüm Verileri Sil", systemImage: "trash")
                     }
@@ -133,11 +156,17 @@ struct SettingsView: View {
             .sheet(item: $exportItem) { item in
                 ShareSheet(items: [item.url])
             }
-            .alert("Tüm Verileri Sil", isPresented: $showingDeleteAlert) {
-                Button("Sil", role: .destructive) { deleteAllData() }
+            .confirmationDialog("Tüm Verileri Sil", isPresented: $showingDeleteConfirm, titleVisibility: .visible) {
+                Button("Evet, silmek istiyorum", role: .destructive) { showingDeleteFinalConfirm = true }
                 Button("İptal", role: .cancel) {}
             } message: {
                 Text("Bu işlem geri alınamaz. Tüm projeler, sözleşmeler, hakedişler ve günlük girişler silinecek.")
+            }
+            .confirmationDialog("Emin misiniz?", isPresented: $showingDeleteFinalConfirm, titleVisibility: .visible) {
+                Button("Tüm Verileri Kalıcı Olarak Sil", role: .destructive) { deleteAllData() }
+                Button("İptal", role: .cancel) {}
+            } message: {
+                Text("\(projects.count) proje ve \(hakedisler.count) hakediş kalıcı olarak silinecek.")
             }
         }
     }

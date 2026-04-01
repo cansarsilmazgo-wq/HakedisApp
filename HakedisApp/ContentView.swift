@@ -36,11 +36,17 @@ struct ContentView: View {
             NetworkStatusBanner()
                 .animation(.easeInOut, value: networkMonitor.isConnected)
         }
-        .task { WidgetDataManager.update(projects: projects, hakedisler: hakedisler) }
+        .task {
+            WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
+            NotificationManager.shared.clearBadge()
+        }
         .onChange(of: hakedisler.count) {
             WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
         }
         .onChange(of: projects.count) {
+            WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
+        }
+        .onChange(of: hakedisler.map { $0.totalPaid }.reduce(0, +)) {
             WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
         }
     }

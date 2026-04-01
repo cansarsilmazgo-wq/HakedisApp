@@ -575,6 +575,12 @@ struct HakedisDetailView: View {
                 showingRejectionCapture = true
             }
         }
+        .onChange(of: hakedis.dueDate) { _, newDueDate in
+            NotificationManager.shared.cancelHakedisDueDateAlerts(hakedisID: hakedis.id)
+            if newDueDate != nil {
+                NotificationManager.shared.scheduleHakedisDueDateAlerts(hakedis: hakedis)
+            }
+        }
         .onChange(of: hakedis.modelContext == nil) { _, isDeleted in
             if isDeleted { dismiss() }
         }

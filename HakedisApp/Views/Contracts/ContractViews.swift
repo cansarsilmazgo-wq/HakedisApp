@@ -66,6 +66,10 @@ struct AddContractView: View {
 
     let project: Project
 
+    @AppStorage("defaultRetentionRate") private var defaultRetentionRate = 10.0
+    @AppStorage("defaultAdvanceRate")   private var defaultAdvanceRate   = 0.0
+    @AppStorage("defaultKDVRate")       private var defaultKDVRate       = 0.0
+
     @State private var title = ""
     @State private var contractDate = Date()
     @State private var retentionRate = 10.0
@@ -167,6 +171,11 @@ struct AddContractView: View {
             }
             .navigationTitle("Yeni Sözleşme")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                retentionRate = defaultRetentionRate
+                advanceRate   = defaultAdvanceRate
+                kdvRate       = defaultKDVRate
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("İptal") { dismiss() }

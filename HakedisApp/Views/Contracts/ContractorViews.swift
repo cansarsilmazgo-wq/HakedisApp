@@ -176,12 +176,12 @@ struct ContractorDetailView: View {
 
             Section("Portal Şifresi") {
                 HStack {
-                    Image(systemName: contractor.portalPassword.isEmpty ? "lock.open" : "lock.fill")
-                        .foregroundColor(contractor.portalPassword.isEmpty ? .secondary : .hakedisOrange)
+                    Image(systemName: contractor.hasPortalPassword ? "lock.fill" : "lock.open")
+                        .foregroundColor(contractor.hasPortalPassword ? .hakedisOrange : .secondary)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(contractor.portalPassword.isEmpty ? "Şifre ayarlanmamış" : "Şifre aktif")
+                        Text(contractor.hasPortalPassword ? "Şifre aktif" : "Şifre ayarlanmamış")
                             .font(.subheadline)
-                        Text(contractor.portalPassword.isEmpty ? "Portal'a şifresiz erişilebilir" : "Portal girişinde şifre istenir")
+                        Text(contractor.hasPortalPassword ? "Portal girişinde şifre istenir" : "Portal'a şifresiz erişilebilir")
                             .font(.caption).foregroundColor(.secondary)
                     }
                     Spacer()
@@ -268,7 +268,7 @@ struct PortalPasswordSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Kaydet") {
-                        contractor.portalPassword = newPassword
+                        contractor.keychainPortalPassword = newPassword
                         dismiss()
                     }
                     .bold()

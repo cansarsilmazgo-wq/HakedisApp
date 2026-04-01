@@ -1,6 +1,43 @@
 import Foundation
 import SwiftData
+import Security
 import os
+
+// MARK: - Keychain Helper
+
+struct KeychainHelper {
+    static func write(_ value: String, forKey key: String) {
+        let data = Data(value.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data
+        ]
+        SecItemDelete(query as CFDictionary)
+        SecItemAdd(query as CFDictionary, nil)
+    }
+
+    static func read(forKey key: String) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        guard status == errSecSuccess, let data = result as? Data else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func delete(forKey key: String) {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+}
 
 // MARK: - New Enums (Phase 1)
 
@@ -131,6 +168,23 @@ final class Contractor {
         self.createdAt = Date()
         self.contracts = []
     }
+
+    var keychainPortalPassword: String {
+        get {
+            if let kc = KeychainHelper.read(forKey: "portal_\(id.uuidString)") { return kc }
+            if !portalPassword.isEmpty {
+                KeychainHelper.write(portalPassword, forKey: "portal_\(id.uuidString)")
+                portalPassword = ""
+            }
+            return KeychainHelper.read(forKey: "portal_\(id.uuidString)") ?? ""
+        }
+        set {
+            KeychainHelper.write(newValue, forKey: "portal_\(id.uuidString)")
+            if !portalPassword.isEmpty { portalPassword = "" }
+        }
+    }
+
+    var hasPortalPassword: Bool { !keychainPortalPassword.isEmpty }
 }
 
 @Model

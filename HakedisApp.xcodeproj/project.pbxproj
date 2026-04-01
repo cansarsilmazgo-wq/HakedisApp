@@ -70,6 +70,7 @@
 		S007 /* OfflineSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C007 /* OfflineSyncManager.swift */; };
 		S008 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C008 /* SettingsView.swift */; };
 		S009 /* CSVManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C009 /* CSVManager.swift */; };
+
 		S010 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C010 /* WidgetDataManager.swift */; };
 		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
 		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -104,6 +105,7 @@
 		C007 /* OfflineSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
 		C008 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
 		C009 /* CSVManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CSVManager.swift; path = HakedisApp/Views/Shared/CSVManager.swift; sourceTree = "<group>"; };
+
 		C010 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetDataManager.swift; path = HakedisApp/Views/Shared/WidgetDataManager.swift; sourceTree = "<group>"; };
 		C012 /* ChangeOrderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChangeOrderViews.swift; path = HakedisApp/Views/Contracts/ChangeOrderViews.swift; sourceTree = "<group>"; };
 		C013 /* ContractorPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPerformanceView.swift; path = HakedisApp/Views/Contracts/ContractorPerformanceView.swift; sourceTree = "<group>"; };
@@ -428,6 +430,7 @@
 				B011 /* HakedisViews.swift in Sources */,
 				S008 /* SettingsView.swift in Sources */,
 				S009 /* CSVManager.swift in Sources */,
+
 				S010 /* WidgetDataManager.swift in Sources */,
 				S007 /* OfflineSyncManager.swift in Sources */,
 				S006 /* NotificationManager.swift in Sources */,

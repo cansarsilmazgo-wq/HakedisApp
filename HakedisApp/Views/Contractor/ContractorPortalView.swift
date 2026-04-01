@@ -31,7 +31,7 @@ struct ContractorPortalView: View {
     }
 
     private func selectContractor(_ contractor: Contractor) {
-        if contractor.portalPassword.isEmpty {
+        if !contractor.hasPortalPassword {
             selectedContractor = contractor
             isAuthenticated = true
         } else {
@@ -73,8 +73,8 @@ struct ContractorPortalView: View {
                                     }
                                 }
                                 Spacer()
-                                Image(systemName: contractor.portalPassword.isEmpty ? "chevron.right" : "lock.fill")
-                                    .foregroundColor(contractor.portalPassword.isEmpty ? .secondary : .hakedisOrange)
+                                Image(systemName: contractor.hasPortalPassword ? "lock.fill" : "chevron.right")
+                                    .foregroundColor(contractor.hasPortalPassword ? .hakedisOrange : .secondary)
                                     .font(.caption)
                             }
                             .padding(16)
@@ -139,7 +139,7 @@ struct PortalLoginSheet: View {
                     }
 
                     Button {
-                        if enteredPassword == contractor.portalPassword {
+                        if enteredPassword == contractor.keychainPortalPassword {
                             onSuccess()
                         } else {
                             failed = true

@@ -27,10 +27,14 @@ class NotificationManager: ObservableObject {
         content.title = "Hakediş Onay Bekliyor"
         content.body = "\(hakedis.periodName) hakedişi onayınızı bekliyor."
         content.sound = .default
-        content.badge = 1
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-        let request = UNNotificationRequest(identifier: hakedis.id.uuidString, content: content, trigger: trigger)
+        var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: Date().addingTimeInterval(60))
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(identifier: "approval_\(hakedis.id.uuidString)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
+    }
+
+    func clearBadge() {
+        UNUserNotificationCenter.current().setBadgeCount(0, withCompletionHandler: nil)
     }
 
     func schedulePaymentOverdueAlert(hakedis: Hakedis, daysOverdue: Int) {
@@ -39,7 +43,9 @@ class NotificationManager: ObservableObject {
         content.title = "Geciken Ödeme Uyarısı"
         content.body = "\(hakedis.contract?.contractor?.name ?? "Taşeron") - \(hakedis.periodName): \(daysOverdue) gündür ödeme bekleniyor."
         content.sound = .default
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
+        components.hour = 9; components.minute = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         let request = UNNotificationRequest(identifier: "overdue_\(hakedis.id.uuidString)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
@@ -79,7 +85,9 @@ class NotificationManager: ObservableObject {
                 content.body = "\(contract.title): Bütçenin %\(Int(contract.budgetUtilization))'i kullanıldı."
             }
             content.sound = .default
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
+            components.hour = 9; components.minute = 0
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
             let request = UNNotificationRequest(identifier: notifId, content: content, trigger: trigger)
             UNUserNotificationCenter.current().add(request)
         }
@@ -134,7 +142,7 @@ class NotificationManager: ObservableObject {
 
     /// Sözleşme bitiş tarihinden 30, 14 ve 7 gün önce sabah 08:00'da bildirim zamanlar.
     func scheduleContractDeadlineAlerts(contract: Contract) {
-        guard isAuthorized, let deadline = contract.completionDeadline else { return }
+        guard isAuthorized, approvalAlertsEnabled, let deadline = contract.completionDeadline else { return }
         let daysBefore = [30, 14, 7]
 
         for days in daysBefore {
@@ -168,7 +176,7 @@ class NotificationManager: ObservableObject {
     // MARK: - Teminat Mektubu Bildirimleri
 
     func scheduleGuaranteeNotification(guarantee: Guarantee) {
-        guard isAuthorized else { return }
+        guard isAuthorized, approvalAlertsEnabled else { return }
         let daysBefore = [30, 7, 1]
         for days in daysBefore {
             guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: guarantee.expiryDate),
@@ -261,9 +269,7 @@ struct NotificationSettingsView: View {
                         manager.approvalAlertsEnabled = val
                         if !val {
                             UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-                                let ids = requests.filter { req in
-                                    !req.identifier.hasPrefix("overdue_") && req.identifier != "daily_reminder"
-                                }.map { $0.identifier }
+                                let ids = requests.filter { $0.identifier.hasPrefix("approval_") }.map { $0.identifier }
                                 UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
                             }
                         }

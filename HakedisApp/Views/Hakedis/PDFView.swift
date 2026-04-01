@@ -8,6 +8,7 @@ struct HakedisPDFPreviewView: View {
     @State private var pdfData: Data?
     @State private var shareURL: URL?
     @State private var isSharing = false
+    @State private var showWriteError = false
 
     var body: some View {
         Group {
@@ -30,9 +31,13 @@ struct HakedisPDFPreviewView: View {
                     let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
                     let url = FileManager.default.temporaryDirectory
                         .appendingPathComponent("\(name).pdf")
-                    try? data.write(to: url)
-                    shareURL = url
-                    isSharing = true
+                    do {
+                        try data.write(to: url)
+                        shareURL = url
+                        isSharing = true
+                    } catch {
+                        showWriteError = true
+                    }
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
@@ -41,6 +46,11 @@ struct HakedisPDFPreviewView: View {
         }
         .sheet(isPresented: $isSharing) {
             if let url = shareURL { ShareSheet(items: [url]) }
+        }
+        .alert("PDF Kaydedilemedi", isPresented: $showWriteError) {
+            Button("Tamam", role: .cancel) {}
+        } message: {
+            Text("PDF dosyası geçici klasöre yazılamadı.")
         }
         .onAppear {
             DispatchQueue.global(qos: .userInitiated).async {
@@ -74,31 +84,46 @@ struct PDFFileItem: Identifiable {
 struct HakedisShareButton: View {
     let hakedis: Hakedis
     @State private var pdfItem: PDFFileItem?
+    @State private var showWriteError = false
 
     var body: some View {
         Button {
             let data = HakedisPDFGenerator.generate(hakedis: hakedis)
             let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).pdf")
-            try? data.write(to: url)
-            pdfItem = PDFFileItem(url: url)
+            do {
+                try data.write(to: url)
+                pdfItem = PDFFileItem(url: url)
+            } catch {
+                showWriteError = true
+            }
         } label: {
             Image(systemName: "square.and.arrow.up")
         }
         .sheet(item: $pdfItem) { item in ShareSheet(items: [item.url]) }
+        .alert("PDF Kaydedilemedi", isPresented: $showWriteError) {
+            Button("Tamam", role: .cancel) {}
+        } message: {
+            Text("PDF dosyası geçici klasöre yazılamadı.")
+        }
     }
 }
 
 struct WhatsAppShareButton: View {
     let hakedis: Hakedis
     @State private var pdfItem: PDFFileItem?
+    @State private var showWriteError = false
 
     private func generateAndShare() {
         let data = HakedisPDFGenerator.generate(hakedis: hakedis)
         let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).pdf")
-        try? data.write(to: url)
-        pdfItem = PDFFileItem(url: url)
+        do {
+            try data.write(to: url)
+            pdfItem = PDFFileItem(url: url)
+        } catch {
+            showWriteError = true
+        }
     }
 
     var body: some View {
@@ -113,6 +138,11 @@ struct WhatsAppShareButton: View {
             .clipShape(Capsule())
         }
         .sheet(item: $pdfItem) { item in ShareSheet(items: [item.url]) }
+        .alert("PDF Kaydedilemedi", isPresented: $showWriteError) {
+            Button("Tamam", role: .cancel) {}
+        } message: {
+            Text("PDF dosyası geçici klasöre yazılamadı.")
+        }
     }
 }
 
@@ -239,7 +269,8 @@ struct HakedisPDFGenerator {
             }
 
             if hakedis.overdueInterest > 0 {
-                y = drawRow(label: "Gecikme Faizi (\(hakedis.daysOverdue) gün, %9 yıllık)",
+                let rate = hakedis.contract?.overdueInterestRate ?? 9.0
+                y = drawRow(label: "Gecikme Faizi (\(hakedis.daysOverdue) gün, %\(String(format: "%.1f", rate)) yıllık)",
                             value: hakedis.overdueInterest.currencyFormatted, y: y, isRed: true)
             }
 
@@ -455,6 +486,7 @@ struct ProjectPDFReportView: View {
     @State private var pdfData: Data?
     @State private var shareURL: URL?
     @State private var isSharing = false
+    @State private var showWriteError = false
 
     var body: some View {
         Group {
@@ -477,9 +509,13 @@ struct ProjectPDFReportView: View {
                     let name = project.name.replacingOccurrences(of: " ", with: "_")
                     let url = FileManager.default.temporaryDirectory
                         .appendingPathComponent("\(name)_rapor.pdf")
-                    try? data.write(to: url)
-                    shareURL = url
-                    isSharing = true
+                    do {
+                        try data.write(to: url)
+                        shareURL = url
+                        isSharing = true
+                    } catch {
+                        showWriteError = true
+                    }
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                 }
@@ -488,6 +524,11 @@ struct ProjectPDFReportView: View {
         }
         .sheet(isPresented: $isSharing) {
             if let url = shareURL { ShareSheet(items: [url]) }
+        }
+        .alert("PDF Kaydedilemedi", isPresented: $showWriteError) {
+            Button("Tamam", role: .cancel) {}
+        } message: {
+            Text("PDF dosyası geçici klasöre yazılamadı.")
         }
         .onAppear {
             DispatchQueue.global(qos: .userInitiated).async {
@@ -576,6 +617,12 @@ struct ProjectPDFGenerator {
                 for status in HakedisStatus.allCases {
                     let filtered = allHakedisler.filter { $0.status == status }
                     if !filtered.isEmpty {
+                        if y > pageHeight - 80 {
+                            drawPageFooter(page: pageNumber)
+                            pageNumber += 1
+                            ctx.beginPage()
+                            y = margin
+                        }
                         let total = filtered.reduce(0.0) { $0 + $1.netAmount }
                         y = HakedisPDFGenerator.drawRow(
                             label: "\(status.rawValue) (\(filtered.count) adet)",
