@@ -367,8 +367,16 @@ struct ProjectDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink(destination: ProjectPDFReportView(project: project)) {
-                    Image(systemName: "doc.richtext")
+                HStack(spacing: 4) {
+                    NavigationLink(destination: SCurveView(project: project)) {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                    }
+                    NavigationLink(destination: WeeklyReportView(project: project)) {
+                        Image(systemName: "calendar.badge.clock")
+                    }
+                    NavigationLink(destination: ProjectPDFReportView(project: project)) {
+                        Image(systemName: "doc.richtext")
+                    }
                 }
             }
         }

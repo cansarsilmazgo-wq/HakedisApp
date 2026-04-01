@@ -374,14 +374,14 @@ struct PhotoWorkItemLinkSheet: View {
             Text("Poz seçilmedi")
                 .foregroundColor(.secondary)
                 .font(.subheadline)
-        } else {
+        } else if let item = selectedWorkItem {
             VStack(alignment: .leading, spacing: 2) {
-                Text(selectedWorkItem!.code)
+                Text(item.code)
                     .font(.caption.bold())
                     .foregroundColor(.hakedisOrange)
-                Text(selectedWorkItem!.name)
+                Text(item.name)
                     .font(.subheadline)
-                Text("Birim: \(selectedWorkItem!.unit) — Birim Fiyat: \(selectedWorkItem!.unitPrice.currencyFormatted)")
+                Text("Birim: \(item.unit) — Birim Fiyat: \(item.unitPrice.currencyFormatted)")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }

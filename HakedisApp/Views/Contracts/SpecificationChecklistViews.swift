@@ -958,9 +958,11 @@ struct SpecificationItemDetailView: View {
                         HStack {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundColor(.hakedisSuccess)
-                            Text("Kapatıldı: \(item.closedAt!.shortFormatted)")
-                                .font(.subheadline)
-                                .foregroundColor(.hakedisSuccess)
+                            if let closedDate = item.closedAt {
+                                Text("Kapatıldı: \(closedDate.shortFormatted)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.hakedisSuccess)
+                            }
                         }
                     }
                 }

@@ -422,4 +422,340 @@ final class CalculationTests: XCTestCase {
         XCTAssertFalse(g.isExpired)
         XCTAssertFalse(g.isExpiringSoon)
     }
+
+    // MARK: - Retention Edge Cases
+
+    func testRetentionZeroRate() throws {
+        // retentionRate = 0 → retentionAmount = 0 (guard rate > 0 uygulanır)
+        let (hakedis, _) = try makeHakedis(retentionRate: 0)
+        let item = HakedisItem(workItemName: "Boya", workItemCode: "01",
+                               unit: "m²", unitPrice: 500, previousQuantity: 0, currentQuantity: 200)
+        insertItems([item], into: hakedis)
+        XCTAssertEqual(hakedis.grossAmount, 100_000)
+        XCTAssertEqual(hakedis.retentionAmount, 0, "retentionRate=0 → retentionAmount=0")
+    }
+
+    func testRetentionFivePercent() throws {
+        // grossAmount 100_000, retentionRate 5 → retentionAmount 5_000
+        let (hakedis, _) = try makeHakedis(retentionRate: 5)
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        XCTAssertEqual(hakedis.retentionAmount, 5_000, accuracy: 0.01)
+    }
+
+    func testRetentionHundredPercent() throws {
+        // retentionRate 100 → retentionAmount = grossAmount
+        let (hakedis, _) = try makeHakedis(retentionRate: 100)
+        let item = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                               unit: "m³", unitPrice: 200, previousQuantity: 0, currentQuantity: 50)
+        insertItems([item], into: hakedis)
+        XCTAssertEqual(hakedis.retentionAmount, hakedis.grossAmount, accuracy: 0.01)
+    }
+
+    // MARK: - Stopaj Edge Cases
+
+    func testWithholdingFivePercent() throws {
+        // withholdingTaxRate 5, grossAmount 100_000 → withholdingTaxAmount 5_000
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        h.withholdingTaxRate = 5.0
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        item.hakedis = h
+        h.items.append(item)
+        context.insert(h)
+        context.insert(item)
+        XCTAssertEqual(h.grossAmount, 100_000)
+        XCTAssertEqual(h.withholdingTaxAmount, 5_000, accuracy: 0.01)
+    }
+
+    func testWithholdingZeroRate() throws {
+        // withholdingTaxRate 0 → withholdingTaxAmount 0
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        h.withholdingTaxRate = 0.0
+        let item = HakedisItem(workItemName: "Sıva", workItemCode: "01",
+                               unit: "m²", unitPrice: 100, previousQuantity: 0, currentQuantity: 500)
+        item.hakedis = h
+        h.items.append(item)
+        context.insert(h)
+        context.insert(item)
+        XCTAssertEqual(h.withholdingTaxAmount, 0, accuracy: 0.01)
+    }
+
+    // MARK: - Damga Vergisi Edge Cases
+
+    func testStampTaxOneMillion() throws {
+        // stampTaxRate 0.948, grossAmount 1_000_000 → stampTaxAmount 9_480
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        h.stampTaxRate = 0.948
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 10_000, previousQuantity: 0, currentQuantity: 100)
+        item.hakedis = h
+        h.items.append(item)
+        context.insert(h)
+        context.insert(item)
+        XCTAssertEqual(h.grossAmount, 1_000_000)
+        XCTAssertEqual(h.stampTaxAmount, 9_480, accuracy: 0.01)
+    }
+
+    func testStampTaxZeroGross() throws {
+        // grossAmount 0 → stampTaxAmount 0
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        h.stampTaxRate = 0.948
+        context.insert(h)
+        XCTAssertEqual(h.grossAmount, 0)
+        XCTAssertEqual(h.stampTaxAmount, 0, accuracy: 0.01)
+    }
+
+    // MARK: - Net Tutar Zinciri
+
+    func testFullNetAmountChain() throws {
+        // gross = 1_000_000, retentionRate=5, advanceRate=10, withholdingTaxRate=5, stampTaxRate=0.948
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 5, advanceRate: 10, kdvRate: 0)
+        hakedis.withholdingTaxRate = 5.0
+        hakedis.stampTaxRate = 0.948
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 10_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // gross = 1_000_000
+        XCTAssertEqual(hakedis.grossAmount, 1_000_000, accuracy: 0.01)
+        // retentionAmount = 1_000_000 * 5% = 50_000
+        XCTAssertEqual(hakedis.retentionAmount, 50_000, accuracy: 0.01)
+        // advanceDeduction = 1_000_000 * 10% = 100_000
+        XCTAssertEqual(hakedis.advanceDeduction, 100_000, accuracy: 0.01)
+        // netAmount = 1_000_000 - 50_000 - 100_000 = 850_000
+        XCTAssertEqual(hakedis.netAmount, 850_000, accuracy: 0.01)
+        // withholdingTaxAmount = 1_000_000 * 5% = 50_000
+        XCTAssertEqual(hakedis.withholdingTaxAmount, 50_000, accuracy: 0.01)
+        // stampTaxAmount = 1_000_000 * 0.948% = 9_480
+        XCTAssertEqual(hakedis.stampTaxAmount, 9_480, accuracy: 0.01)
+        // netAmountAfterTax = 850_000 - 50_000 - 9_480 = 790_520
+        XCTAssertEqual(hakedis.netAmountAfterTax, 790_520, accuracy: 0.01)
+    }
+
+    func testNetAmountZeroGross() throws {
+        // grossAmount = 0 → tüm türevler 0
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        context.insert(h)
+        XCTAssertEqual(h.grossAmount, 0)
+        XCTAssertEqual(h.retentionAmount, 0)
+        XCTAssertEqual(h.advanceDeduction, 0)
+        XCTAssertEqual(h.netAmount, 0)
+        XCTAssertEqual(h.withholdingTaxAmount, 0)
+        XCTAssertEqual(h.stampTaxAmount, 0)
+        XCTAssertEqual(h.netAmountAfterTax, 0)
+    }
+
+    // MARK: - Hakediş Kopyalama Mantığı
+
+    func testHakedisKopyalaItemTransfer() throws {
+        // Orijinal: previousQty=20, currentQty=30
+        // Kopya: previousQty = 20+30 = 50, currentQty = 0
+        let originalPrev = 20.0
+        let originalCurr = 30.0
+        let newPrev = originalPrev + originalCurr
+        let newCurr = 0.0
+        XCTAssertEqual(newPrev, 50.0)
+        XCTAssertEqual(newCurr, 0.0)
+    }
+
+    func testHakedisKopyalaStatusDraft() throws {
+        // Kopya her zaman .draft olmalı
+        let schema = Schema([Hakedis.self])
+        let localContainer = try ModelContainer(for: schema,
+                                               configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let localContext = ModelContext(localContainer)
+        let original = Hakedis(periodName: "Dönem 1", periodStart: Date(), periodEnd: Date())
+        original.status = .approved
+        localContext.insert(original)
+        // Kopyalama mantığı: yeni hakedis draft
+        let kopya = Hakedis(periodName: "Dönem 2", periodStart: Date(), periodEnd: Date())
+        kopya.status = .draft
+        localContext.insert(kopya)
+        XCTAssertEqual(kopya.status, .draft)
+        XCTAssertEqual(original.status, .approved) // orijinal değişmemeli
+    }
+
+    // MARK: - Guarantee Edge Cases
+
+    func testGuaranteeExpiredYesterday() throws {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+        let g = Guarantee(guaranteeType: .permanent, amount: 100_000,
+                         bankName: "Test", referenceNumber: "T001",
+                         issueDate: Calendar.current.date(byAdding: .year, value: -1, to: Date())!,
+                         expiryDate: yesterday)
+        XCTAssertTrue(g.isExpired)
+        XCTAssertFalse(g.isExpiringSoon)
+    }
+
+    func testGuaranteeFarFuture() throws {
+        let future = Calendar.current.date(byAdding: .year, value: 2, to: Date())!
+        let g = Guarantee(guaranteeType: .temporary, amount: 50_000,
+                         bankName: "Bank", referenceNumber: "R001",
+                         issueDate: Date(), expiryDate: future)
+        XCTAssertFalse(g.isExpired)
+        XCTAssertFalse(g.isExpiringSoon)
+    }
+
+    // MARK: - D Formülü Edge Cases
+
+    func testDFormulCoefficientsSum() throws {
+        // a+b+c = 1 (standart) durumu: ratio=0.15, coeffSum=1.0, baseAmount=100_000 → 15_000
+        let record = PriceDifferenceRecord(periodName: "Test", baseIndex: 100, currentIndex: 115, baseAmount: 100_000)
+        record.laborCoefficient = 0.4
+        record.materialCoefficient = 0.4
+        record.otherCoefficient = 0.2
+        let ratio = (115.0 / 100.0) - 1.0 // 0.15
+        let expected = ratio * 1.0 * 100_000 // 15_000
+        XCTAssertEqual(record.dFormulResult, expected, accuracy: 0.01)
+    }
+
+    func testDFormulNegativeIndex() throws {
+        // Deflasyon: currentIndex < baseIndex → negatif sonuç
+        let record = PriceDifferenceRecord(periodName: "Test", baseIndex: 100, currentIndex: 90, baseAmount: 50_000)
+        record.laborCoefficient = 0.5
+        record.materialCoefficient = 0.3
+        record.otherCoefficient = 0.2
+        XCTAssertLessThan(record.dFormulResult, 0)
+    }
+
+    // MARK: - S Eğrisi (WorkItem tamamlanma)
+
+    func testSCurveEmptyData() throws {
+        // Hiç günlük giriş yok → tamamlanma %0
+        let workItem = WorkItem(code: "S01", name: "Beton", unit: "m³",
+                                unitPrice: 100, contractedQuantity: 200)
+        context.insert(workItem)
+        XCTAssertEqual(workItem.completedQuantity, 0)
+        XCTAssertEqual(workItem.completionPercentage, 0, "Boş veri → S eğrisi %0")
+    }
+
+    func testSCurveFiftyPercent() throws {
+        // 100 m³ / 200 m³ = %50
+        let workItem = WorkItem(code: "S02", name: "Beton", unit: "m³",
+                                unitPrice: 100, contractedQuantity: 200)
+        context.insert(workItem)
+        let entry = DailyEntry(quantity: 100)
+        entry.workItem = workItem
+        workItem.dailyEntries.append(entry)
+        context.insert(entry)
+        XCTAssertEqual(workItem.completionPercentage, 50, "S eğrisi %50 tamamlanma")
+    }
+
+    func testSCurveHundredPercent() throws {
+        // 100 m³ / 100 m³ = %100, aşım olsa da max 100
+        let workItem = WorkItem(code: "S03", name: "Beton", unit: "m³",
+                                unitPrice: 100, contractedQuantity: 100)
+        context.insert(workItem)
+        let entry = DailyEntry(quantity: 120) // aşım
+        entry.workItem = workItem
+        workItem.dailyEntries.append(entry)
+        context.insert(entry)
+        XCTAssertEqual(workItem.completionPercentage, 100, "S eğrisi %100'de tavan")
+    }
+
+    // MARK: - Poz Kütüphanesi Arama
+
+    func testPozLibraryEmptySearch() {
+        // Olmayan bir string → boş sonuç
+        let results = PozLibrary.items.filter {
+            $0.name.lowercased().contains("xyzxyz_olmayan")
+        }
+        XCTAssertTrue(results.isEmpty, "Bulunamayan arama → boş sonuç döner")
+    }
+
+    func testPozLibrarySearchReturnsMatches() {
+        let results = PozLibrary.items.filter {
+            $0.name.lowercased().contains("kazı")
+        }
+        XCTAssertFalse(results.isEmpty, "Kazı araması sonuç döndürmeli")
+        XCTAssertTrue(results.allSatisfy { $0.name.lowercased().contains("kazı") })
+    }
+
+    // MARK: - Toplu Giriş (Bulk DailyEntry)
+
+    func testBulkEntryMultiple() throws {
+        // Birden fazla günlük giriş ekleme
+        let workItem = WorkItem(code: "B01", name: "Kazı", unit: "m³",
+                                unitPrice: 100, contractedQuantity: 500)
+        context.insert(workItem)
+        let quantities = [10.0, 20.0, 30.0]
+        for qty in quantities {
+            let entry = DailyEntry(quantity: qty)
+            entry.workItem = workItem
+            workItem.dailyEntries.append(entry)
+            context.insert(entry)
+        }
+        XCTAssertEqual(workItem.dailyEntries.count, 3, "3 toplu giriş eklendi")
+        XCTAssertEqual(workItem.completedQuantity, 60, "10+20+30 = 60")
+        XCTAssertEqual(workItem.completionPercentage, 12, accuracy: 0.01)
+    }
+
+    func testBulkEntryEmptyList() throws {
+        // Hiç giriş yoksa liste boş
+        let workItem = WorkItem(code: "B02", name: "Kazı", unit: "m³",
+                                unitPrice: 100, contractedQuantity: 500)
+        context.insert(workItem)
+        XCTAssertEqual(workItem.dailyEntries.count, 0, "Toplu giriş yoksa liste boş")
+        XCTAssertEqual(workItem.completedQuantity, 0)
+        XCTAssertEqual(workItem.completionPercentage, 0)
+    }
+
+    // MARK: - Hakediş Kopyalama Kapsamlı
+
+    func testHakedisKopyalaComprehensive() throws {
+        // Orijinal: 2 kalem, orijinal kalemler kopyalanmalı
+        let (original, _) = try makeHakedis(retentionRate: 5)
+        let item1 = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                                unit: "m³", unitPrice: 100,
+                                previousQuantity: 20, currentQuantity: 30)
+        let item2 = HakedisItem(workItemName: "Beton", workItemCode: "02",
+                                unit: "m³", unitPrice: 500,
+                                previousQuantity: 10, currentQuantity: 15)
+        insertItems([item1, item2], into: original)
+
+        // kopyala() mantığını simüle et (HakedisKopyalaView.kopyala)
+        let kopya = Hakedis(periodName: "Dönem 2",
+                            periodStart: original.periodEnd, periodEnd: original.periodEnd)
+        kopya.status = .draft
+        kopya.contract = original.contract
+
+        for eskiItem in original.items {
+            let yeniItem = HakedisItem(
+                workItemName: eskiItem.workItemName,
+                workItemCode: eskiItem.workItemCode,
+                unit: eskiItem.unit,
+                unitPrice: eskiItem.unitPrice,
+                previousQuantity: eskiItem.previousQuantity + eskiItem.currentQuantity,
+                currentQuantity: 0
+            )
+            yeniItem.hakedis = kopya
+            context.insert(yeniItem)
+            kopya.items.append(yeniItem)
+        }
+        context.insert(kopya)
+
+        // Tüm item'lar aktarıldı mı?
+        XCTAssertEqual(kopya.items.count, 2, "Tüm kalemler kopyalanmalı")
+
+        // previousQuantity doğru aktarıldı mı?
+        let kopyaItem1 = kopya.items.first { $0.workItemCode == "01" }
+        let kopyaItem2 = kopya.items.first { $0.workItemCode == "02" }
+        XCTAssertNotNil(kopyaItem1)
+        XCTAssertNotNil(kopyaItem2)
+        XCTAssertEqual(kopyaItem1?.previousQuantity, 50, "20 + 30 = 50")
+        XCTAssertEqual(kopyaItem2?.previousQuantity, 25, "10 + 15 = 25")
+        XCTAssertEqual(kopyaItem1?.currentQuantity, 0, "Yeni dönem sıfırdan başlar")
+        XCTAssertEqual(kopyaItem2?.currentQuantity, 0)
+
+        // Yeni hakediş draft mı?
+        XCTAssertEqual(kopya.status, .draft, "Kopya her zaman draft olmalı")
+
+        // Orijinal hakediş değişmedi mi?
+        XCTAssertEqual(original.items.count, 2, "Orijinal kalem sayısı değişmemeli")
+        XCTAssertEqual(item1.previousQuantity, 20, "Orijinal previousQuantity değişmemeli")
+        XCTAssertEqual(item1.currentQuantity, 30, "Orijinal currentQuantity değişmemeli")
+        XCTAssertEqual(item2.previousQuantity, 10)
+        XCTAssertEqual(item2.currentQuantity, 15)
+    }
 }

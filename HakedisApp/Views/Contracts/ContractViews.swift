@@ -910,6 +910,7 @@ struct AddWorkItemView: View {
     @State private var contractedQuantity = ""
     @State private var location = ""
     @State private var showingTemplatePicker = false
+    @State private var showingPozLibrary = false
 
     let units = ["m²", "m³", "m", "adet", "ton", "kg", "lt", "saat", "gün"]
 
@@ -927,6 +928,12 @@ struct AddWorkItemView: View {
                         showingTemplatePicker = true
                     } label: {
                         Label("Şablondan Seç", systemImage: "list.bullet.rectangle")
+                            .foregroundColor(.hakedisOrange)
+                    }
+                    Button {
+                        showingPozLibrary = true
+                    } label: {
+                        Label("Poz Kütüphanesi", systemImage: "books.vertical")
                             .foregroundColor(.hakedisOrange)
                     }
                 } footer: {
@@ -989,6 +996,13 @@ struct AddWorkItemView: View {
                     code = template.code
                     name = template.name
                     unit = template.unit
+                }
+            }
+            .sheet(isPresented: $showingPozLibrary) {
+                PozLibraryView { poz in
+                    code = poz.code
+                    name = poz.name
+                    unit = poz.unit
                 }
             }
         }
