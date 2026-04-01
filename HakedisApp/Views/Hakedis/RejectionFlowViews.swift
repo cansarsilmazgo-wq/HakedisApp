@@ -107,10 +107,14 @@ struct RejectionCaptureSheet: View {
     }
 
     private func save() {
+        let periodDays = hakedis.contract?.objectionPeriodDays
+            ?? hakedis.contract?.contractSector.defaultObjectionDays
+            ?? 30
         let revision = HakedisRevision(
             version: hakedis.nextRevisionVersion,
             rejectionReason: hakedis.approvalNote.isEmpty ? "—" : hakedis.approvalNote,
-            officialLetterNo: officialLetterNo.isEmpty ? nil : officialLetterNo
+            officialLetterNo: officialLetterNo.isEmpty ? nil : officialLetterNo,
+            objectionPeriodDays: periodDays
         )
         revision.objectionText = objectionText.isEmpty ? nil : objectionText
         revision.hakedis = hakedis

@@ -999,10 +999,13 @@ struct AddWorkItemView: View {
                 }
             }
             .sheet(isPresented: $showingPozLibrary) {
-                PozLibraryView { poz in
+                PozLibraryView { poz, suggestedPrice in
                     code = poz.code
                     name = poz.name
                     unit = poz.unit
+                    if let price = suggestedPrice {
+                        unitPrice = String(format: "%.2f", price)
+                    }
                 }
             }
         }

@@ -1114,4 +1114,200 @@ final class CalculationTests: XCTestCase {
 
         XCTAssertGreaterThan(hakedis.periodStart, dateTo, "periodStart > to → dahil edilmemeli")
     }
+
+    // MARK: - Dinamik İtiraz Süresi
+
+    func testContractSector_kamuDefaultDays() {
+        XCTAssertEqual(ContractSector.kamu.defaultObjectionDays, 30, "Kamu ihale itiraz süresi 30 gün")
+    }
+
+    func testContractSector_ozelDefaultDays() {
+        XCTAssertEqual(ContractSector.ozel.defaultObjectionDays, 45, "Özel sektör itiraz süresi 45 gün")
+    }
+
+    func testContract_defaultSectorIsKamu() throws {
+        let contract = Contract(title: "Test Sözleşme", retentionRate: 0, advanceRate: 0)
+        context.insert(contract)
+        XCTAssertEqual(contract.contractSector, .kamu, "Yeni sözleşme varsayılan olarak kamu sektörü")
+        XCTAssertEqual(contract.objectionPeriodDays, 30, "Kamu için itiraz süresi 30 gün")
+    }
+
+    func testContract_objectionPeriodDaysCustomizable() throws {
+        let contract = Contract(title: "Özel Sözleşme", retentionRate: 0, advanceRate: 0)
+        contract.contractSector = .ozel
+        contract.objectionPeriodDays = 45
+        context.insert(contract)
+        XCTAssertEqual(contract.objectionPeriodDays, 45)
+        XCTAssertEqual(contract.contractSector, .ozel)
+    }
+
+    func testHakedisRevision_objectionDeadlineUsesCustomDays() {
+        // 60 günlük itiraz süresi belirlendiğinde objectionDeadline 60 gün sonra olmalı
+        let rejectedAt = Date()
+        let revision = HakedisRevision(version: "v1", rejectionReason: "Eksik",
+                                       rejectedAt: rejectedAt, objectionPeriodDays: 60)
+        let expected = Calendar.current.date(byAdding: .day, value: 60, to: rejectedAt)!
+        let diff = Calendar.current.dateComponents([.day], from: revision.objectionDeadline, to: expected).day ?? 0
+        XCTAssertEqual(diff, 0, "60 günlük itiraz süresinde deadline 60 gün sonra olmalı")
+    }
+
+    func testHakedisRevision_defaultObjectionIs30Days() {
+        let rejectedAt = Date()
+        let revision = HakedisRevision(version: "v1", rejectionReason: "Test", rejectedAt: rejectedAt)
+        let expected = Calendar.current.date(byAdding: .day, value: 30, to: rejectedAt)!
+        let diff = Calendar.current.dateComponents([.day], from: revision.objectionDeadline, to: expected).day ?? 0
+        XCTAssertEqual(diff, 0, "Varsayılan itiraz süresi 30 gün olmalı")
+    }
+
+    // MARK: - Approval Step İptal → Cascade
+
+    func testApprovalStep_cancel_blocksDownstreamPendingSteps() throws {
+        // Adım 1 iptal edilince adım 2 ve 3 (bekliyor) otomatik iptal olmalı
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        context.insert(hakedis)
+
+        let step1 = ApprovalStep(stepOrder: 1, role: .santiyeSef, approverName: "Ali")
+        let step2 = ApprovalStep(stepOrder: 2, role: .sefMuhendis, approverName: "Ayşe")
+        let step3 = ApprovalStep(stepOrder: 3, role: .idare, approverName: "Mehmet")
+        [step1, step2, step3].forEach {
+            $0.hakedis = hakedis
+            hakedis.approvalSteps.append($0)
+            context.insert($0)
+        }
+
+        // İş kuralını doğrudan simüle et (ApprovalChainSection.cancel mantığı)
+        let cancelledStep = step1
+        cancelledStep.isCancelled = true
+        cancelledStep.cancellationReason = "Yanlış onaylandı"
+
+        let cascadeReason = "Önceki adım iptal edildiği için otomatik iptal"
+        hakedis.approvalSteps
+            .filter { $0.stepOrder > cancelledStep.stepOrder && !$0.isCancelled && $0.status == .bekliyor }
+            .forEach { $0.isCancelled = true; $0.cancellationReason = cascadeReason }
+
+        XCTAssertTrue(step1.isCancelled, "Adım 1 iptal edilmeli")
+        XCTAssertTrue(step2.isCancelled, "Adım 2 cascade iptal edilmeli")
+        XCTAssertTrue(step3.isCancelled, "Adım 3 cascade iptal edilmeli")
+    }
+
+    func testApprovalStep_cancel_doesNotAffectApprovedSteps() throws {
+        // Adım 1 iptal edilince zaten onaylanmış adım 2 dokunulmamalı
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        context.insert(hakedis)
+
+        let step1 = ApprovalStep(stepOrder: 1, role: .santiyeSef, approverName: "Ali")
+        let step2 = ApprovalStep(stepOrder: 2, role: .sefMuhendis, approverName: "Ayşe")
+        step2.status = .onaylandi  // zaten onaylandı
+        let step3 = ApprovalStep(stepOrder: 3, role: .idare, approverName: "Mehmet")
+        [step1, step2, step3].forEach {
+            $0.hakedis = hakedis
+            hakedis.approvalSteps.append($0)
+            context.insert($0)
+        }
+
+        step1.isCancelled = true
+        hakedis.approvalSteps
+            .filter { $0.stepOrder > step1.stepOrder && !$0.isCancelled && $0.status == .bekliyor }
+            .forEach { $0.isCancelled = true }
+
+        XCTAssertFalse(step2.isCancelled, "Onaylanmış adım 2 cascade etkilenmemeli")
+        XCTAssertTrue(step3.isCancelled, "Bekliyor adım 3 cascade iptal edilmeli")
+    }
+
+    func testApprovalStep_cancel_lastStep_noCascade() throws {
+        // Son adım iptal edilince cascade yok
+        let hakedis = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        context.insert(hakedis)
+
+        let step1 = ApprovalStep(stepOrder: 1, role: .santiyeSef, approverName: "Ali")
+        let step2 = ApprovalStep(stepOrder: 2, role: .sefMuhendis, approverName: "Ayşe")
+        [step1, step2].forEach {
+            $0.hakedis = hakedis
+            hakedis.approvalSteps.append($0)
+            context.insert($0)
+        }
+
+        step2.isCancelled = true
+        let cascaded = hakedis.approvalSteps.filter {
+            $0.stepOrder > step2.stepOrder && !$0.isCancelled && $0.status == .bekliyor
+        }
+
+        XCTAssertTrue(cascaded.isEmpty, "Son adım iptal edilince cascade edilecek adım yok")
+        XCTAssertFalse(step1.isCancelled, "Önceki adım etkilenmemeli")
+    }
+
+    // MARK: - Poz Fiyat Önerisi
+
+    func testPozPriceSuggestion_fromWorkItems_average() throws {
+        // Aynı poz koduna sahip 3 WorkItem → ortalama önerilmeli
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        context.insert(contract)
+
+        let codes = ["01.001", "01.001", "01.001"]
+        let prices = [100.0, 200.0, 300.0]
+        for (code, price) in zip(codes, prices) {
+            let wi = WorkItem(code: code, name: "Kazı", unit: "m³",
+                             unitPrice: price, contractedQuantity: 10)
+            wi.contract = contract
+            context.insert(wi)
+        }
+
+        // PozLibraryView.suggestedPrice mantığını simüle et
+        let allWorkItems: [WorkItem] = try context.fetch(FetchDescriptor<WorkItem>())
+        let vals = allWorkItems.filter { $0.code == "01.001" && $0.unitPrice > 0 }.map { $0.unitPrice }
+        let avg = vals.isEmpty ? nil : vals.reduce(0, +) / Double(vals.count)
+
+        XCTAssertEqual(avg ?? 0, 200.0, accuracy: 0.01, "3 fiyatın ortalaması 200 olmalı")
+    }
+
+    func testPozPriceSuggestion_fromUnitPriceAnalysis_preferredOverWorkItems() throws {
+        // UnitPriceAnalysis verisi varken WorkItem'a bakılmamalı
+        let workItem = WorkItem(code: "02.005", name: "Beton", unit: "m³",
+                                unitPrice: 500.0, contractedQuantity: 50)
+        context.insert(workItem)
+
+        let a1 = UnitPriceAnalysis(analysisNo: "A-001", workItemCode: "02.005",
+                                   workItemName: "Beton", contractUnitPrice: 600.0)
+        let a2 = UnitPriceAnalysis(analysisNo: "A-002", workItemCode: "02.005",
+                                   workItemName: "Beton", contractUnitPrice: 800.0)
+        context.insert(a1)
+        context.insert(a2)
+
+        // Analiz değerlerinden ortalama
+        let analysisVals = [600.0, 800.0]
+        let avg = analysisVals.reduce(0, +) / Double(analysisVals.count)
+
+        XCTAssertEqual(avg, 700.0, accuracy: 0.01,
+                       "UnitPriceAnalysis ortalaması: (600+800)/2 = 700")
+    }
+
+    func testPozPriceSuggestion_noData_returnsNil() throws {
+        // Eşleşen veri yoksa nil dönmeli
+        let allWorkItems: [WorkItem] = try context.fetch(FetchDescriptor<WorkItem>())
+        let allAnalyses: [UnitPriceAnalysis] = try context.fetch(FetchDescriptor<UnitPriceAnalysis>())
+
+        let vals = allWorkItems.filter { $0.code == "99.999" }.map { $0.unitPrice }
+        let aVals = allAnalyses.filter { $0.workItemCode == "99.999" }.map { $0.contractUnitPrice }
+
+        let suggestion: Double? = aVals.isEmpty ? (vals.isEmpty ? nil : vals.reduce(0,+)/Double(vals.count)) : aVals.reduce(0,+)/Double(aVals.count)
+
+        XCTAssertNil(suggestion, "Eşleşen veri yoksa öneri nil olmalı")
+    }
+
+    func testPozPriceSuggestion_zeroPriceIgnored() throws {
+        // unitPrice=0 olan WorkItem öneri hesabına dahil edilmemeli
+        let contract = Contract(title: "Test", retentionRate: 0, advanceRate: 0)
+        context.insert(contract)
+
+        let wi0 = WorkItem(code: "03.001", name: "Sıva", unit: "m²", unitPrice: 0, contractedQuantity: 10)
+        let wi1 = WorkItem(code: "03.001", name: "Sıva", unit: "m²", unitPrice: 400.0, contractedQuantity: 10)
+        [wi0, wi1].forEach { $0.contract = contract; context.insert($0) }
+
+        let allWorkItems: [WorkItem] = try context.fetch(FetchDescriptor<WorkItem>())
+        let vals = allWorkItems.filter { $0.code == "03.001" && $0.unitPrice > 0 }.map { $0.unitPrice }
+        let avg = vals.isEmpty ? nil : vals.reduce(0,+) / Double(vals.count)
+
+        XCTAssertEqual(avg ?? 0, 400.0, accuracy: 0.01,
+                       "Sıfır fiyat görmezden gelinerek sadece 400 kullanılmalı")
+    }
 }

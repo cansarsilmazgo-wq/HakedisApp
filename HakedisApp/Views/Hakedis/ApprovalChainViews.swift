@@ -145,6 +145,18 @@ struct ApprovalChainSection: View {
         step.isCancelled = true
         step.cancellationReason = reason
         appendAudit(step, "İptal edildi: \(reason)")
+
+        // İş kuralı: iptal edilen adımdan sonraki bekliyor adımlar da iptal edilir.
+        // Gerekçe: önceki onay halkası bozulduğunda aşağı akış adımlarının
+        // "aktif" görünmesi veya yanlışlıkla onaylanması önlenir.
+        let cascadeReason = "Önceki adım iptal edildiği için otomatik iptal (\(step.role.rawValue))"
+        hakedis.approvalSteps
+            .filter { $0.stepOrder > step.stepOrder && !$0.isCancelled && $0.status == .bekliyor }
+            .forEach { downstream in
+                downstream.isCancelled = true
+                downstream.cancellationReason = cascadeReason
+                appendAudit(downstream, cascadeReason)
+            }
     }
 
     private func appendAudit(_ step: ApprovalStep, _ action: String) {

@@ -12,6 +12,8 @@ struct EditContractView: View {
     @State private var hasDeadline: Bool
     @State private var completionDeadline: Date
     @State private var contractType: ContractType
+    @State private var contractSector: ContractSector
+    @State private var objectionPeriodDays: Int
     @State private var kdvRate: Double
     @State private var retentionRate: Double
     @State private var advanceRate: Double
@@ -25,6 +27,8 @@ struct EditContractView: View {
         _hasDeadline = State(initialValue: contract.completionDeadline != nil)
         _completionDeadline = State(initialValue: contract.completionDeadline ?? Date())
         _contractType = State(initialValue: contract.contractType)
+        _contractSector = State(initialValue: contract.contractSector)
+        _objectionPeriodDays = State(initialValue: contract.objectionPeriodDays)
         _kdvRate = State(initialValue: contract.kdvRate)
         _retentionRate = State(initialValue: contract.retentionRate)
         _advanceRate = State(initialValue: contract.advanceRate)
@@ -45,6 +49,15 @@ struct EditContractView: View {
                         ForEach(ContractType.allCases, id: \.self) { t in
                             Text(t.rawValue).tag(t)
                         }
+                    }
+                    Picker("Sektör", selection: $contractSector) {
+                        ForEach(ContractSector.allCases, id: \.self) { s in
+                            Text(s.rawValue).tag(s)
+                        }
+                    }
+                    .onChange(of: contractSector) { _, newSector in
+                        // Sektör değişince varsayılan itiraz süresini güncelle
+                        objectionPeriodDays = newSector.defaultObjectionDays
                     }
                 }
                 Section("Tarihler") {
@@ -78,6 +91,15 @@ struct EditContractView: View {
                     TextField("Günlük Gecikme Cezası Oranı %", text: $dailyPenaltyRateStr)
                         .keyboardType(.decimalPad)
                 }
+                Section {
+                    Stepper("İtiraz Süresi: \(objectionPeriodDays) gün",
+                            value: $objectionPeriodDays, in: 1...180, step: 1)
+                    Text("\(contractSector.rawValue) için varsayılan: \(contractSector.defaultObjectionDays) gün")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } header: {
+                    Text("İtiraz & Red")
+                }
                 if !contractors.isEmpty {
                     Section("Yüklenici") {
                         Picker("Yüklenici", selection: $selectedContractor) {
@@ -105,6 +127,8 @@ struct EditContractView: View {
         contract.contractDate = contractDate
         contract.completionDeadline = hasDeadline ? completionDeadline : nil
         contract.contractType = contractType
+        contract.contractSector = contractSector
+        contract.objectionPeriodDays = objectionPeriodDays
         contract.kdvRate = kdvRate
         contract.retentionRate = retentionRate
         contract.advanceRate = advanceRate

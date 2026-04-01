@@ -16,6 +16,19 @@ enum ContractType: String, Codable, CaseIterable {
     case mixed = "Karma"
 }
 
+enum ContractSector: String, Codable, CaseIterable {
+    case kamu  = "Kamu İhalesi"
+    case ozel  = "Özel Sektör"
+
+    /// Kanun gereği varsayılan itiraz süresi (gün)
+    var defaultObjectionDays: Int {
+        switch self {
+        case .kamu: return 30  // 4735 sayılı Kanun md. 58
+        case .ozel: return 45  // Sözleşmeye göre, tipik özel sektör uygulaması
+        }
+    }
+}
+
 enum GuaranteeType: String, Codable, CaseIterable {
     case temporary = "Geçici Teminat"
     case permanent = "Kesin Teminat"
@@ -150,6 +163,8 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var testRecords: [TestRecord]
     @Relationship(deleteRule: .cascade) var acceptanceRecords: [AcceptanceRecord]
     var contractType: ContractType = ContractType.unitPrice
+    var contractSector: ContractSector = ContractSector.kamu
+    var objectionPeriodDays: Int = 30
     @Relationship(deleteRule: .cascade) var guarantees: [Guarantee] = []
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
@@ -722,13 +737,13 @@ final class HakedisRevision {
     var createdAt: Date
 
     init(version: String, rejectionReason: String, rejectedAt: Date = Date(),
-         officialLetterNo: String? = nil) {
+         officialLetterNo: String? = nil, objectionPeriodDays: Int = 30) {
         self.id = UUID()
         self.version = version
         self.rejectionReason = rejectionReason
         self.officialLetterNo = officialLetterNo
         self.rejectedAt = rejectedAt
-        self.objectionDeadline = Calendar.current.date(byAdding: .day, value: 30, to: rejectedAt)!
+        self.objectionDeadline = Calendar.current.date(byAdding: .day, value: objectionPeriodDays, to: rejectedAt)!
         self.createdAt = Date()
     }
 
