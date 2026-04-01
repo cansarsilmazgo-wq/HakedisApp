@@ -62,7 +62,7 @@ struct VATWithholdingRow: View {
                 Divider().frame(height: 36)
                 vatStat(label: "Yüklenici Öder", value: record.contractorPays.currencyFormatted, color: .hakedisOrange)
                 Divider().frame(height: 36)
-                vatStat(label: "İdare Öder", value: record.ownerPays.currencyFormatted, color: .blue)
+                vatStat(label: "İdare Öder", value: record.ownerPays.currencyFormatted, color: .hakedisInfo)
             }
         }
         .padding(12)
@@ -107,7 +107,7 @@ struct AddVATWithholdingView: View {
                     let owner = total * withholdingRatio.ratio
                     Section("Dağılım") {
                         HStack { Text("Yüklenici"); Spacer(); Text(contractor.currencyFormatted).foregroundColor(.hakedisOrange) }
-                        HStack { Text("İdare"); Spacer(); Text(owner.currencyFormatted).foregroundColor(.blue) }
+                        HStack { Text("İdare"); Spacer(); Text(owner.currencyFormatted).foregroundColor(.hakedisInfo) }
                     }
                 }
             }

@@ -287,7 +287,7 @@ private struct RevisionRecordRow: View {
     private var typeColor: Color {
         switch record.type {
         case RevisionType.priceRevision.rawValue:    return .hakedisOrange
-        case RevisionType.quantityRevision.rawValue: return .blue
+        case RevisionType.quantityRevision.rawValue: return .hakedisInfo
         case RevisionType.extraWork.rawValue:        return .hakedisSuccess
         default: return .secondary
         }

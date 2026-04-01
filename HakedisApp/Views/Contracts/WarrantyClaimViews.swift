@@ -25,7 +25,10 @@ struct WarrantyClaimSection: View {
             }
 
             if acceptanceRecord.warrantyClaims.isEmpty {
-                EmptyStateView(icon: "shield.fill", title: "Talep Yok", subtitle: "Henüz garanti talebi bulunmuyor.")
+                EmptyStateView(icon: "shield.fill", title: "Talep Yok",
+                               subtitle: "Henüz garanti talebi bulunmuyor.",
+                               actionTitle: "Talep Ekle",
+                               action: { showAdd = true })
             } else {
                 ForEach(acceptanceRecord.warrantyClaims.sorted { $0.claimDate > $1.claimDate }) { claim in
                     WarrantyClaimRow(claim: claim)

@@ -11,7 +11,7 @@ struct HakedisListRow: View {
         case .pendingApproval: return .hakedisWarning
         case .approved: return .hakedisSuccess
         case .rejected: return .hakedisDanger
-        case .paid: return .blue
+        case .paid: return .hakedisPaid
         }
     }
 
@@ -50,6 +50,8 @@ struct HakedisListRow: View {
             }
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(hakedis.periodName), \(hakedis.status.rawValue), \(hakedis.netAmount.currencyFormatted)\(hakedis.isOverdue ? ", \(hakedis.daysOverdue) gün gecikme" : "")")
     }
 }
 
@@ -254,7 +256,7 @@ struct HakedisDetailView: View {
         case .pendingApproval: return .hakedisWarning
         case .approved: return .hakedisSuccess
         case .rejected: return .hakedisDanger
-        case .paid: return .blue
+        case .paid: return .hakedisPaid
         }
     }
 
@@ -666,7 +668,7 @@ struct HakedisStatusWorkflow: View {
                             hakedis.status = .paid
                         }
                         .buttonStyle(.borderedProminent)
-                        .tint(.blue)
+                        .tint(.hakedisPaid)
                     }
                 case .rejected:
                     Button("Taslağa Al") {

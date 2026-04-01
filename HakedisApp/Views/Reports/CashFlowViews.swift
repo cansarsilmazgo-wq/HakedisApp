@@ -155,7 +155,7 @@ struct CashFlowView: View {
                         x: .value("Ay", entry.ay),
                         y: .value("Kümülatif (K ₺)", entry.kumulatif)
                     )
-                    .foregroundStyle(Color.purple)
+                    .foregroundStyle(Color.hakedisInfo)
                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
                     .symbol(Circle().strokeBorder(lineWidth: 2))
                     .symbolSize(36)
@@ -164,7 +164,7 @@ struct CashFlowView: View {
                         x: .value("Ay", entry.ay),
                         y: .value("Kümülatif (K ₺)", entry.kumulatif)
                     )
-                    .foregroundStyle(Color.purple.opacity(0.07))
+                    .foregroundStyle(Color.hakedisInfo.opacity(0.07))
                 }
 
                 // Sıfır çizgisi (kümülatif için referans)
@@ -173,7 +173,7 @@ struct CashFlowView: View {
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 4]))
             }
             .chartForegroundStyleScale([
-                "Hakediş":  Color.blue,
+                "Hakediş":  Color.hakedisPaid,
                 "Tahsilat": Color.hakedisSuccess
             ])
             .chartYAxis {
@@ -193,9 +193,9 @@ struct CashFlowView: View {
             }
             .chartLegend(position: .bottom, alignment: .leading) {
                 HStack(spacing: 16) {
-                    legendDot(color: .blue,           label: "Beklenen Hakediş")
-                    legendDot(color: .hakedisSuccess, label: "Beklenen Tahsilat")
-                    legendLine(color: .purple,         label: "Kümülatif Nakit")
+                    legendDot(color: .hakedisPaid,     label: "Beklenen Hakediş")
+                    legendDot(color: .hakedisSuccess,  label: "Beklenen Tahsilat")
+                    legendLine(color: .hakedisInfo,    label: "Kümülatif Nakit")
                 }
                 .font(.caption2)
                 .padding(.top, 4)
@@ -360,7 +360,7 @@ struct CashFlowMonthCard: View {
                 cashFlowStat(
                     label: "Beklenen Hakediş",
                     value: hakedis.currencyFormatted,
-                    color: .blue,
+                    color: .hakedisPaid,
                     icon: "doc.text"
                 )
                 Divider().frame(height: 36)

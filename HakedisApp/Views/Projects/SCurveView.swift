@@ -65,7 +65,7 @@ struct SCurveView: View {
                                 ForEach(plannedData, id: \.date) { point in
                                     LineMark(x: .value("Tarih", point.date),
                                              y: .value("Planlanan", point.value))
-                                    .foregroundStyle(Color.blue)
+                                    .foregroundStyle(Color.hakedisInfo)
                                     .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
                                 }
                                 .foregroundStyle(by: .value("Seri", "Planlanan"))
@@ -102,7 +102,7 @@ struct SCurveView: View {
 
                         HStack(spacing: 20) {
                             HStack(spacing: 6) {
-                                Rectangle().fill(Color.blue).frame(width: 20, height: 2)
+                                Rectangle().fill(Color.hakedisInfo).frame(width: 20, height: 2)
                                 Text("Planlanan").font(.caption).foregroundColor(.secondary)
                             }
                             HStack(spacing: 6) {

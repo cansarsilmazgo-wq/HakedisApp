@@ -1068,13 +1068,13 @@ struct WorkItemDetailView: View {
                 Section {
                     HStack(spacing: 8) {
                         Image(systemName: "arrow.down.circle.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(.hakedisInfo)
                         Text("İş eksilişi \(String(format: "%.0f", abs(pct)))%%")
                             .font(.caption.bold())
-                            .foregroundColor(.blue)
+                            .foregroundColor(.hakedisInfo)
                     }
                     .padding(10)
-                    .background(Color.blue.opacity(0.1))
+                    .background(Color.hakedisInfo.opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .listRowInsets(EdgeInsets())

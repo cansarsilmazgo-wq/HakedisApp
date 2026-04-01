@@ -44,6 +44,7 @@ struct ProjectListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Yeni proje ekle")
                 }
             }
             .sheet(isPresented: $showingAddProject) {

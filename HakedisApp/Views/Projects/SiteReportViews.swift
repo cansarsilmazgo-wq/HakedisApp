@@ -158,8 +158,8 @@ struct SiteReportRow: View {
         case .sunny:  return .hakedisWarning
         case .cloudy: return .secondary
         case .rainy:  return .hakedisOrange
-        case .snowy:  return .blue
-        case .foggy:  return .gray
+        case .snowy:  return .hakedisInfo
+        case .foggy:  return .secondary
         case .windy:  return .hakedisSuccess
         }
     }

@@ -272,7 +272,7 @@ struct ContractorHakedisRow: View {
         case .pendingApproval: return .hakedisWarning
         case .approved: return .hakedisSuccess
         case .rejected: return .hakedisDanger
-        case .paid: return .blue
+        case .paid: return .hakedisPaid
         }
     }
     var body: some View {

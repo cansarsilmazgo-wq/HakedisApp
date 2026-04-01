@@ -315,6 +315,7 @@ struct DashboardView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showingSearch = true } label: { Image(systemName: "magnifyingglass") }
+                        .accessibilityLabel("Ara")
                 }
             }
             .sheet(isPresented: $showingSearch) { UniversalSearchView() }
@@ -371,7 +372,7 @@ struct HakedisRowCard: View {
                 StatusBadge(text: hakedis.status.rawValue, color: .hakedisWarning)
             }
         }
-        .padding(14)
+        .padding(Spacing.card)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
@@ -413,7 +414,7 @@ struct PaymentAlertCard: View {
                 }
             }
         }
-        .padding(14)
+        .padding(Spacing.card)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -446,7 +447,7 @@ struct BudgetAlarmCard: View {
                 Text("kullanım").font(.caption2).foregroundColor(.secondary)
             }
         }
-        .padding(14)
+        .padding(Spacing.card)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -479,7 +480,7 @@ struct ChangeOrderAlertCard: View {
                 Text("Onay bekliyor").font(.caption2).foregroundColor(.secondary)
             }
         }
-        .padding(14)
+        .padding(Spacing.card)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -504,7 +505,8 @@ struct ProjectMiniCard: View {
                 Text(project.name)
                     .font(.subheadline.bold())
                 Spacer()
-                StatusBadge(text: project.status.rawValue, color: .hakedisSuccess)
+                StatusBadge(text: project.status.rawValue,
+                            color: project.status == .active ? .hakedisSuccess : project.status == .completed ? .hakedisInfo : .hakedisWarning)
             }
             if !project.location.isEmpty {
                 Text(project.location)
@@ -519,7 +521,7 @@ struct ProjectMiniCard: View {
                     .frame(width: 40, alignment: .trailing)
             }
         }
-        .padding(14)
+        .padding(Spacing.card)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
@@ -534,7 +536,7 @@ struct CorrespondenceOverdueCard: View {
             Image(systemName: "envelope.badge.fill")
                 .foregroundColor(.hakedisDanger)
                 .font(.title3)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(record.subject).font(.subheadline.bold()).lineLimit(1)
                 Text(contract.title).font(.caption).foregroundColor(.secondary)
                 Text("Cevap süresi doldu").font(.caption2).foregroundColor(.hakedisDanger)
@@ -542,7 +544,7 @@ struct CorrespondenceOverdueCard: View {
             Spacer()
             StatusBadge(text: record.direction.rawValue, color: .hakedisDanger)
         }
-        .padding(12)
+        .padding(Spacing.cardSmall)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1))
@@ -558,7 +560,7 @@ struct BlockingTestCard: View {
             Image(systemName: "xmark.seal.fill")
                 .foregroundColor(.hakedisDanger)
                 .font(.title3)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(record.testName).font(.subheadline.bold()).lineLimit(1)
                 Text(contract.title).font(.caption).foregroundColor(.secondary)
                 Text("Hakediş onayını engelliyor").font(.caption2).foregroundColor(.hakedisDanger)
@@ -566,7 +568,7 @@ struct BlockingTestCard: View {
             Spacer()
             StatusBadge(text: record.status.rawValue, color: .hakedisDanger)
         }
-        .padding(12)
+        .padding(Spacing.cardSmall)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1))
@@ -582,7 +584,7 @@ struct WarrantyExpiryCard: View {
             Image(systemName: "shield.lefthalf.filled.badge.checkmark")
                 .foregroundColor(.hakedisWarning)
                 .font(.title3)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(record.acceptanceType.rawValue).font(.subheadline.bold())
                 Text(contract.title).font(.caption).foregroundColor(.secondary)
                 Text("\(record.warrantyDaysLeft) gün kaldı").font(.caption2).foregroundColor(.hakedisWarning)
@@ -595,7 +597,7 @@ struct WarrantyExpiryCard: View {
                 }
             }
         }
-        .padding(12)
+        .padding(Spacing.cardSmall)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisWarning.opacity(0.3), lineWidth: 1))
@@ -633,7 +635,7 @@ struct DashboardFinancialSummary: View {
                         Text("Hakedişe Alınan")
                             .font(.caption2).foregroundColor(.secondary)
                         Spacer()
-                        Text(String(format: "%.0f%%", invoicedRatio * 100))
+                        Text((invoicedRatio * 100).percentFormatted)
                             .font(.caption2).foregroundColor(.hakedisOrange)
                     }
                 }

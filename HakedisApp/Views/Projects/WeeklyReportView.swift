@@ -78,7 +78,7 @@ struct WeeklyReportView: View {
                         StatCard(title: "İş Kalemi", value: "\(workItemSummaries.count)",
                                  color: .hakedisSuccess, icon: "square.grid.2x2")
                         StatCard(title: "Fotoğraf", value: "\(photoCount)",
-                                 color: .blue, icon: "photo")
+                                 color: .hakedisInfo, icon: "photo")
                         StatCard(title: "Çalışılan Gün",
                                  value: "\(Set(weekEntries.map { Calendar.current.startOfDay(for: $0.date) }).count)",
                                  color: .hakedisWarning, icon: "calendar")

@@ -7,6 +7,14 @@ extension Color {
     static let hakedisSuccess = Color(red: 0.20, green: 0.78, blue: 0.35)
     static let hakedisWarning = Color(red: 1.0, green: 0.75, blue: 0.0)
     static let hakedisDanger = Color(red: 0.95, green: 0.23, blue: 0.23)
+    static let hakedisPaid = Color(UIColor.systemBlue)
+    static let hakedisInfo = Color(UIColor.systemIndigo)
+}
+
+enum Spacing {
+    static let card: CGFloat = 14
+    static let cardSmall: CGFloat = 12
+    static let section: CGFloat = 24
 }
 
 struct StatCard: View {
@@ -21,7 +29,7 @@ struct StatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Image(systemName: icon).font(.caption).foregroundColor(color)
+                Image(systemName: icon).font(.subheadline).foregroundColor(color)
                 Text(title).font(.caption).foregroundColor(.secondary)
                 Spacer()
             }
@@ -31,6 +39,8 @@ struct StatCard: View {
         .padding(14)
         .background(Color.hakedisCard)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)\(subtitle.map { ", \($0)" } ?? "")")
     }
 }
 
@@ -44,6 +54,7 @@ struct StatusBadge: View {
             .background(color.opacity(0.15))
             .foregroundColor(color)
             .clipShape(Capsule())
+            .accessibilityLabel(text)
     }
 }
 

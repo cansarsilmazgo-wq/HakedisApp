@@ -94,10 +94,10 @@ struct SoilRecordRow: View {
                 HStack {
                     Image(systemName: "flask.fill")
                         .font(.caption2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.hakedisInfo)
                     Text("\(record.labTests.count) laboratuvar testi")
                         .font(.caption2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.hakedisInfo)
                 }
             }
         }

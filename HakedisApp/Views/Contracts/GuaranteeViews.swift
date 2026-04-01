@@ -25,7 +25,9 @@ struct GuaranteeSection: View {
 
             if contract.guarantees.isEmpty {
                 EmptyStateView(icon: "shield", title: "Teminat Yok",
-                               subtitle: "Henüz teminat mektubu kaydedilmedi.")
+                               subtitle: "Henüz teminat mektubu kaydedilmedi.",
+                               actionTitle: "Teminat Ekle",
+                               action: { showAdd = true })
             } else {
                 ForEach(contract.guarantees.sorted { $0.expiryDate < $1.expiryDate }, id: \.id) { g in
                     GuaranteeRow(guarantee: g)

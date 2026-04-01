@@ -51,7 +51,10 @@ struct TestRecordSection: View {
             }
 
             if contract.testRecords.isEmpty {
-                EmptyStateView(icon: "flask.fill", title: "Test Yok", subtitle: "Henüz deney/test kaydı bulunmuyor.")
+                EmptyStateView(icon: "flask.fill", title: "Test Yok",
+                               subtitle: "Henüz deney/test kaydı bulunmuyor.",
+                               actionTitle: "Test Ekle",
+                               action: { showAdd = true })
             } else {
                 ForEach(contract.testRecords.sorted { $0.testDate > $1.testDate }) { record in
                     TestRecordRow(record: record)

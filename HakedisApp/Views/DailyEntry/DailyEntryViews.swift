@@ -96,18 +96,21 @@ struct DateChip: View {
         }
     }
 
-    private var dayAbbr: String {
+    private static let dayAbbrFormatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "tr_TR")
         f.dateFormat = "EEE"
-        return f.string(from: date)
-    }
+        return f
+    }()
 
-    private var dayNumber: String {
+    private static let dayNumberFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "d"
-        return f.string(from: date)
-    }
+        return f
+    }()
+
+    private var dayAbbr: String { DateChip.dayAbbrFormatter.string(from: date) }
+    private var dayNumber: String { DateChip.dayNumberFormatter.string(from: date) }
 }
 
 // MARK: - Daily Entry Row
@@ -297,7 +300,7 @@ struct AddDailyEntryView: View {
                     }
                 }
             }
-            .navigationTitle("Saha Girişi")
+            .navigationTitle("Yeni Saha Girişi")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

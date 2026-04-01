@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @State private var showingSearch = false
     @StateObject private var networkMonitor = NetworkMonitor.shared
     @Query private var projects: [Project]
     @Query private var hakedisler: [Hakedis]
@@ -12,30 +11,27 @@ struct ContentView: View {
             TabView {
                 DashboardView()
                     .tabItem { Label("Ana Ekran", systemImage: "square.grid.2x2") }
+                    .accessibilityLabel("Ana Ekran")
                 ProjectListView()
                     .tabItem { Label("Projeler", systemImage: "building.2") }
+                    .accessibilityLabel("Projeler")
                 ContractorListView()
                     .tabItem { Label("Taşeronlar", systemImage: "person.2") }
+                    .accessibilityLabel("Taşeronlar")
                 DailyEntryListView()
                     .tabItem { Label("Saha", systemImage: "pencil.and.list.clipboard") }
+                    .accessibilityLabel("Saha Girişi")
                 PhotoGalleryView()
                     .tabItem { Label("Galeri", systemImage: "photo.on.rectangle.angled") }
+                    .accessibilityLabel("Fotoğraf Galerisi")
                 ReportsView()
                     .tabItem { Label("Raporlar", systemImage: "chart.bar") }
+                    .accessibilityLabel("Raporlar")
                 SettingsView()
                     .tabItem { Label("Ayarlar", systemImage: "gear") }
+                    .accessibilityLabel("Ayarlar")
             }
             .tint(.hakedisOrange)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingSearch = true
-                    } label: {
-                        Image(systemName: "magnifyingglass")
-                    }
-                }
-            }
-            .sheet(isPresented: $showingSearch) { UniversalSearchView() }
 
             NetworkStatusBanner()
                 .animation(.easeInOut, value: networkMonitor.isConnected)
