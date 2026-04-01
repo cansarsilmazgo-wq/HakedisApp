@@ -7,6 +7,7 @@ struct ProjectListView: View {
     @Query(sort: \Project.createdAt, order: .reverse) private var projects: [Project]
     @State private var showingAddProject = false
     @State private var searchText = ""
+    @State private var projectToDelete: Project?
 
     private var filtered: [Project] {
         if searchText.isEmpty { return projects }
@@ -31,7 +32,11 @@ struct ProjectListView: View {
                                 ProjectRow(project: project)
                             }
                         }
-                        .onDelete(perform: deleteProjects)
+                        .onDelete { offsets in
+                            if let index = offsets.first {
+                                projectToDelete = filtered[index]
+                            }
+                        }
                     }
                     .searchable(text: $searchText, prompt: "Proje ara...")
                 }
@@ -50,12 +55,19 @@ struct ProjectListView: View {
             .sheet(isPresented: $showingAddProject) {
                 AddProjectView()
             }
-        }
-    }
-
-    private func deleteProjects(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(filtered[index])
+            .confirmationDialog(
+                projectToDelete != nil
+                    ? "\(projectToDelete!.name) silinsin mi? \(projectToDelete!.contracts.count) sözleşme ve tüm hakedişler kalıcı olarak silinecek."
+                    : "",
+                isPresented: Binding(get: { projectToDelete != nil }, set: { if !$0 { projectToDelete = nil } }),
+                titleVisibility: .visible
+            ) {
+                Button("Projeyi Sil", role: .destructive) {
+                    if let p = projectToDelete { modelContext.delete(p) }
+                    projectToDelete = nil
+                }
+                Button("İptal", role: .cancel) { projectToDelete = nil }
+            }
         }
     }
 }

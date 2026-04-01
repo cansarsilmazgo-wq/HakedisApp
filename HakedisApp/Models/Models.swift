@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import os
 
 // MARK: - New Enums (Phase 1)
 
@@ -165,6 +166,7 @@ final class Contract {
     var contractType: ContractType = ContractType.unitPrice
     var contractSector: ContractSector = ContractSector.kamu
     var objectionPeriodDays: Int = 30
+    var overdueInterestRate: Double = 9.0
     @Relationship(deleteRule: .cascade) var guarantees: [Guarantee] = []
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
@@ -273,8 +275,8 @@ final class WorkItem {
         self.code = code
         self.name = name
         self.unit = unit
-        self.unitPrice = unitPrice
-        self.contractedQuantity = contractedQuantity
+        self.unitPrice = max(0, unitPrice)
+        self.contractedQuantity = max(0, contractedQuantity)
         self.location = location
         self.revisionHistory = []
         self.dailyEntries = []
@@ -289,10 +291,9 @@ final class WorkItem {
         return min((completedQuantity / contractedQuantity) * 100, 100)
     }
     var remainingQuantity: Double { contractedQuantity - completedQuantity }
-    var totalExecutedQuantity: Double { dailyEntries.reduce(0) { $0 + $1.quantity } }
     var workIncreasePercentage: Double {
         guard contractedQuantity > 0 else { return 0 }
-        return ((totalExecutedQuantity - contractedQuantity) / contractedQuantity) * 100
+        return ((completedQuantity - contractedQuantity) / contractedQuantity) * 100
     }
     var workIncreaseStatus: WorkIncreaseStatus {
         let pct = workIncreasePercentage
@@ -325,7 +326,7 @@ final class DailyEntry {
     init(date: Date = Date(), quantity: Double, location: String = "", notes: String = "") {
         self.id = UUID()
         self.date = date
-        self.quantity = quantity
+        self.quantity = max(0, quantity)
         self.location = location
         self.notes = notes
         self.photoData = []
@@ -378,17 +379,17 @@ final class Hakedis {
 
     var retentionAmount: Double {
         guard let rate = contract?.retentionRate, rate > 0 else { return 0 }
-        return grossAmount * (rate / 100)
+        return effectiveGrossAmount * (rate / 100)
     }
 
-    /// Avans kesintisi: brüt × avans oranı
+    /// Avans kesintisi: efektif brüt × avans oranı (lumpSum'da effectiveGrossAmount kullanılır)
     var advanceDeduction: Double {
         guard let rate = contract?.advanceRate, rate > 0 else { return 0 }
-        return grossAmount * (rate / 100)
+        return effectiveGrossAmount * (rate / 100)
     }
 
     /// Teminat ve avans sonrası KDV matrahı
-    var netAmount: Double { grossAmount - retentionAmount - advanceDeduction }
+    var netAmount: Double { effectiveGrossAmount - retentionAmount - advanceDeduction }
 
     /// KDV tutarı (net × kdv oranı)
     var kdvAmount: Double {
@@ -411,11 +412,12 @@ final class Hakedis {
         return max(0, days)
     }
 
-    /// Gecikme faizi (yasal oran: %9 yıllık → günlük %0.0246575)
+    /// Gecikme faizi — sözleşmedeki yıllık faiz oranı, KDV öncesi net tutar üzerinden hesaplanır
     var overdueInterest: Double {
         guard daysOverdue > 0 else { return 0 }
-        let dailyRate = 9.0 / 365.0 / 100.0
-        return remainingAmount * dailyRate * Double(daysOverdue)
+        let rate = contract?.overdueInterestRate ?? 9.0
+        let dailyRate = rate / 365.0 / 100.0
+        return netAmountAfterTax * dailyRate * Double(daysOverdue)
     }
 
     var isOverdue: Bool { daysOverdue > 0 }
@@ -430,19 +432,11 @@ final class Hakedis {
         }
         return grossAmount
     }
-    /// Gecikme cezası — Contract.delayPenalty() ile aynı mantık; dailyPenaltyRate × gün, maxPenaltyRate cap'li
-    var penaltyAmount: Double {
-        guard let c = contract, c.dailyPenaltyRate > 0,
-              let endDate = c.completionDeadline, Date() > endDate else { return 0 }
-        let days = max(0, Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0)
-        let daily = c.totalContractAmount * (c.dailyPenaltyRate / 100)
-        let cap   = c.totalContractAmount * (c.maxPenaltyRate / 100)
-        return min(Double(days) * daily, cap)
-    }
+    /// Gecikme cezası — Contract.delayPenalty() delegasyonu
+    var penaltyAmount: Double { contract?.delayPenalty() ?? 0 }
     var penaltyDays: Int {
-        guard let c = contract, c.dailyPenaltyRate > 0,
-              let endDate = c.completionDeadline, Date() > endDate else { return 0 }
-        return max(0, Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0)
+        guard let c = contract, c.dailyPenaltyRate > 0 else { return 0 }
+        return c.delayDays()
     }
 }
 
@@ -1092,7 +1086,7 @@ final class LaborRecord {
         do {
             return try JSONDecoder().decode([LaborEntryData].self, from: data)
         } catch {
-            print("LaborRecord JSON decode hatası: \(error)")
+            Logger(subsystem: "HakedisApp", category: "Models").error("LaborRecord JSON decode: \(error.localizedDescription, privacy: .public)")
             return []
         }
     }
@@ -1698,7 +1692,7 @@ final class SoilRecord {
         do {
             return try JSONDecoder().decode([SoilLabTest].self, from: data)
         } catch {
-            print("SoilRecord JSON decode hatası: \(error)")
+            Logger(subsystem: "HakedisApp", category: "Models").error("SoilRecord JSON decode: \(error.localizedDescription, privacy: .public)")
             return []
         }
     }
@@ -1847,7 +1841,7 @@ final class AcceptanceRecord {
         do {
             return try JSONDecoder().decode([String].self, from: data)
         } catch {
-            print("AcceptanceRecord prerequisites JSON decode hatası: \(error)")
+            Logger(subsystem: "HakedisApp", category: "Models").error("AcceptanceRecord prerequisites JSON decode: \(error.localizedDescription, privacy: .public)")
             return []
         }
     }
@@ -1862,7 +1856,7 @@ final class AcceptanceRecord {
         do {
             return try JSONDecoder().decode([String].self, from: data)
         } catch {
-            print("AcceptanceRecord completedPrerequisites JSON decode hatası: \(error)")
+            Logger(subsystem: "HakedisApp", category: "Models").error("AcceptanceRecord completedPrerequisites JSON decode: \(error.localizedDescription, privacy: .public)")
             return []
         }
     }

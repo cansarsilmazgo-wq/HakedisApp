@@ -221,6 +221,7 @@ struct ContractDetailView: View {
     @State private var workItemSearch = ""
     @State private var showingEditContract = false
     @State private var showingMultipleEntry = false
+    @State private var hakedisToDelete: Hakedis?
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
@@ -534,8 +535,7 @@ struct ContractDetailView: View {
                         .swipeActions(edge: .trailing) {
                             if hakedis.status == .draft {
                                 Button(role: .destructive) {
-                                    contract.hakedisler.removeAll { $0.id == hakedis.id }
-                                    modelContext.delete(hakedis)
+                                    hakedisToDelete = hakedis
                                 } label: {
                                     Label("Sil", systemImage: "trash")
                                 }
@@ -655,6 +655,20 @@ struct ContractDetailView: View {
         }
         .sheet(item: $measurementWorkItem) { item in
             MeasurementBookListSheet(workItem: item)
+        }
+        .confirmationDialog(
+            hakedisToDelete != nil ? "\"\(hakedisToDelete!.periodName)\" taslak hakedişi silinsin mi?" : "",
+            isPresented: Binding(get: { hakedisToDelete != nil }, set: { if !$0 { hakedisToDelete = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Hakedişi Sil", role: .destructive) {
+                if let h = hakedisToDelete {
+                    contract.hakedisler.removeAll { $0.id == h.id }
+                    modelContext.delete(h)
+                }
+                hakedisToDelete = nil
+            }
+            Button("İptal", role: .cancel) { hakedisToDelete = nil }
         }
     }
 }
@@ -1029,6 +1043,7 @@ struct WorkItemDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showingEdit = false
     @State private var showingAnalysis = false
+    @State private var entryToDelete: DailyEntry?
 
     var body: some View {
         List {
@@ -1172,8 +1187,7 @@ struct WorkItemDetailView: View {
                         }
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                workItem.dailyEntries.removeAll { $0.id == entry.id }
-                                modelContext.delete(entry)
+                                entryToDelete = entry
                             } label: { Label("Sil", systemImage: "trash") }
                         }
                     }
@@ -1192,6 +1206,17 @@ struct WorkItemDetailView: View {
         }
         .sheet(isPresented: $showingAnalysis) {
             UnitPriceAnalysisListSheet(workItem: workItem)
+        }
+        .confirmationDialog(
+            entryToDelete != nil ? "\(entryToDelete!.date.shortFormatted) tarihli giriş silinsin mi?" : "",
+            isPresented: Binding(get: { entryToDelete != nil }, set: { if !$0 { entryToDelete = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Girişi Sil", role: .destructive) {
+                if let e = entryToDelete { modelContext.delete(e) }
+                entryToDelete = nil
+            }
+            Button("İptal", role: .cancel) { entryToDelete = nil }
         }
     }
 }

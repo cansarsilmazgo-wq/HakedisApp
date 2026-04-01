@@ -243,12 +243,14 @@ struct AddHakedisView: View {
 // MARK: - Hakedis Detail
 struct HakedisDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     let hakedis: Hakedis
     @State private var showingAddPayment = false
     @State private var showingRejectionCapture = false
     @State private var editingItem: HakedisItem?
     @State private var showingKopyala = false
     @State private var showingPetition = false
+    @State private var paymentToDelete: Payment?
 
     var statusColor: Color {
         switch hakedis.status {
@@ -501,11 +503,7 @@ struct HakedisDetailView: View {
                         }
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
-                                hakedis.payments.removeAll { $0.id == payment.id }
-                                modelContext.delete(payment)
-                                if hakedis.status == .paid && hakedis.remainingAmount > 0 {
-                                    hakedis.status = .approved
-                                }
+                                paymentToDelete = payment
                             } label: {
                                 Label("Sil", systemImage: "trash")
                             }
@@ -576,6 +574,26 @@ struct HakedisDetailView: View {
             if newStatus == .rejected {
                 showingRejectionCapture = true
             }
+        }
+        .onChange(of: hakedis.modelContext == nil) { _, isDeleted in
+            if isDeleted { dismiss() }
+        }
+        .confirmationDialog(
+            paymentToDelete != nil ? "\(paymentToDelete!.amount.currencyFormatted) tutarındaki ödeme silinsin mi?" : "",
+            isPresented: Binding(get: { paymentToDelete != nil }, set: { if !$0 { paymentToDelete = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Ödemeyi Sil", role: .destructive) {
+                if let p = paymentToDelete {
+                    hakedis.payments.removeAll { $0.id == p.id }
+                    modelContext.delete(p)
+                    if hakedis.status == .paid && hakedis.remainingAmount > 0 {
+                        hakedis.status = .approved
+                    }
+                }
+                paymentToDelete = nil
+            }
+            Button("İptal", role: .cancel) { paymentToDelete = nil }
         }
     }
 }

@@ -3,8 +3,10 @@ import SwiftData
 
 @main
 struct HakedisApp: App {
+    private let modelContainer: ModelContainer?
+    private let dbError: String?
 
-    private static let sharedModelContainer: ModelContainer = {
+    init() {
         let schema = Schema([
             Project.self, Contractor.self, Contract.self, WorkItem.self,
             DailyEntry.self, Hakedis.self, HakedisItem.self, Payment.self,
@@ -21,32 +23,53 @@ struct HakedisApp: App {
             Guarantee.self
         ])
 
-        // Store URL'sini açıkça belirt — böylece silme işlemi doğru yere gider
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let storeURL = appSupport.appendingPathComponent("hakedis.store")
         let config = ModelConfiguration(schema: schema, url: storeURL, cloudKitDatabase: .none)
 
         do {
-            return try ModelContainer(for: schema, configurations: [config])
+            self.modelContainer = try ModelContainer(for: schema, configurations: [config])
+            self.dbError = nil
         } catch {
-            // Schema uyumsuzluğu → SQLite store + WAL dosyalarını sil (-shm/-wal suffix'i)
+            // Schema uyumsuzluğu → SQLite store + WAL dosyalarını sil, yeniden dene
             for suffix in ["", "-shm", "-wal"] {
                 try? FileManager.default.removeItem(
                     at: URL(fileURLWithPath: storeURL.path + suffix)
                 )
             }
             do {
-                return try ModelContainer(for: schema, configurations: [config])
+                self.modelContainer = try ModelContainer(for: schema, configurations: [config])
+                self.dbError = nil
             } catch {
-                fatalError("ModelContainer oluşturulamadı: \(error.localizedDescription)")
+                self.modelContainer = nil
+                self.dbError = error.localizedDescription
             }
         }
-    }()
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if let container = modelContainer {
+                ContentView()
+                    .modelContainer(container)
+            } else {
+                VStack(spacing: 20) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 56))
+                        .foregroundColor(.orange)
+                    Text("Veritabanı Başlatılamadı")
+                        .font(.title2.bold())
+                    Text(dbError ?? "Bilinmeyen hata")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                    Text("Uygulamayı kapatıp yeniden açın.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+            }
         }
-        .modelContainer(HakedisApp.sharedModelContainer)
     }
 }

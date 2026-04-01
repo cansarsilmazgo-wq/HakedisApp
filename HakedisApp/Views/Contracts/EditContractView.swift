@@ -18,6 +18,7 @@ struct EditContractView: View {
     @State private var retentionRate: Double
     @State private var advanceRate: Double
     @State private var dailyPenaltyRateStr: String
+    @State private var overdueInterestRate: Double
     @State private var selectedContractor: Contractor?
 
     init(contract: Contract) {
@@ -33,6 +34,7 @@ struct EditContractView: View {
         _retentionRate = State(initialValue: contract.retentionRate)
         _advanceRate = State(initialValue: contract.advanceRate)
         _dailyPenaltyRateStr = State(initialValue: String(format: "%.4f", contract.dailyPenaltyRate))
+        _overdueInterestRate = State(initialValue: contract.overdueInterestRate)
         _selectedContractor = State(initialValue: contract.contractor)
     }
 
@@ -87,9 +89,15 @@ struct EditContractView: View {
                             .frame(width: 140)
                     }
                 }
-                Section("Ceza") {
+                Section("Ceza & Faiz") {
                     TextField("Günlük Gecikme Cezası Oranı %", text: $dailyPenaltyRateStr)
                         .keyboardType(.decimalPad)
+                    HStack {
+                        Text("Gecikme Faizi %\(String(format: "%.1f", overdueInterestRate))")
+                        Spacer()
+                        Slider(value: $overdueInterestRate, in: 1...30, step: 0.5)
+                            .frame(width: 140)
+                    }
                 }
                 Section {
                     Stepper("İtiraz Süresi: \(objectionPeriodDays) gün",
@@ -133,6 +141,7 @@ struct EditContractView: View {
         contract.retentionRate = retentionRate
         contract.advanceRate = advanceRate
         contract.dailyPenaltyRate = Double(dailyPenaltyRateStr.replacingOccurrences(of: ",", with: ".")) ?? 0
+        contract.overdueInterestRate = overdueInterestRate
         contract.contractor = selectedContractor
         dismiss()
     }

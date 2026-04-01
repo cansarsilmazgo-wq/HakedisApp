@@ -306,9 +306,12 @@ final class TestProjesiAScenarioTests: XCTestCase {
         hakedis.dueDate = cal.date(byAdding: .day, value: -30, to: Date())
         hakedis.status  = .approved
 
-        // Faiz = kalan × (9% / 365) × gün
-        // kalan = netAmount = 5.036,25
-        let expectedInterest = 5_036.25 * (9.0 / 365.0 / 100.0) * 30
+        // K4 fix: gecikme faizi netAmountAfterTax üzerinden hesaplanır
+        // grossAmount=6375, netAmount=5036.25, stopaj=191.25, damga=60.435 → netAmtAfterTax≈4784.565
+        let grossAmt = 75.0 * 85.0
+        let netAmt = grossAmt * (1 - 0.06 - 0.15)
+        let netAmtAfterTax = netAmt - (grossAmt * 3.0 / 100) - (grossAmt * 0.948 / 100)
+        let expectedInterest = netAmtAfterTax * (9.0 / 365.0 / 100.0) * 30
         XCTAssertEqual(hakedis.daysOverdue,    30)
         XCTAssertTrue(hakedis.isOverdue)
         XCTAssertEqual(hakedis.overdueInterest, expectedInterest, accuracy: 0.01,

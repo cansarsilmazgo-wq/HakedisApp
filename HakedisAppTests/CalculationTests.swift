@@ -196,7 +196,11 @@ final class CalculationTests: XCTestCase {
         insertItems([item], into: hakedis)
         hakedis.dueDate = Calendar.current.date(byAdding: .day, value: -30, to: Date())
         hakedis.status = .approved
-        let expected = 100_000 * (9.0 / 365.0 / 100.0) * 30
+        // K4 fix: gecikme faizi netAmountAfterTax üzerinden hesaplanır
+        // netAmount=100_000, stopaj=3_000, damga=948 → netAmountAfterTax=96_052
+        let grossAmt = 100_000.0
+        let netAmtAfterTax = grossAmt - (grossAmt * 3.0 / 100) - (grossAmt * 0.948 / 100)
+        let expected = netAmtAfterTax * (9.0 / 365.0 / 100.0) * 30
         XCTAssertEqual(hakedis.daysOverdue, 30)
         XCTAssertEqual(hakedis.overdueInterest, expected, accuracy: 1.0)
         XCTAssertTrue(hakedis.isOverdue)
