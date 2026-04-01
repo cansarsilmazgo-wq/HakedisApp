@@ -219,6 +219,8 @@ struct ContractDetailView: View {
     @State private var measurementWorkItem: WorkItem?
     @State private var showCumulative = false
     @State private var workItemSearch = ""
+    @State private var showingEditContract = false
+    @State private var showingMultipleEntry = false
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
@@ -484,6 +486,14 @@ struct ContractDetailView: View {
                             Image(systemName: "plus.circle.fill")
                                 .foregroundColor(.hakedisOrange)
                         }
+                        if !contract.workItems.isEmpty {
+                            Button {
+                                showingMultipleEntry = true
+                            } label: {
+                                Image(systemName: "list.bullet.rectangle.portrait")
+                                    .foregroundColor(.hakedisOrange)
+                            }
+                        }
                     }
                 }
                 .textCase(nil)
@@ -578,15 +588,31 @@ struct ContractDetailView: View {
 
             // Geçici / Kesin Kabul
             AcceptanceSection(contract: contract)
+
+            // Teminat Mektupları
+            Section {
+                GuaranteeSection(contract: contract)
+            }
         }
         .navigationTitle(contract.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink(destination: ContractRevisionHistoryView(contract: contract)) {
-                    Image(systemName: "clock.arrow.circlepath")
+                HStack(spacing: 8) {
+                    Button { showingEditContract = true } label: {
+                        Image(systemName: "square.and.pencil")
+                    }
+                    NavigationLink(destination: ContractRevisionHistoryView(contract: contract)) {
+                        Image(systemName: "clock.arrow.circlepath")
+                    }
                 }
             }
+        }
+        .sheet(isPresented: $showingEditContract) {
+            EditContractView(contract: contract)
+        }
+        .sheet(isPresented: $showingMultipleEntry) {
+            MultipleEntryView(contract: contract)
         }
         .sheet(isPresented: $showingAddWorkItem) {
             AddWorkItemView(contract: contract)
@@ -988,6 +1014,55 @@ struct WorkItemDetailView: View {
 
     var body: some View {
         List {
+            // İş artışı uyarı bannerı
+            let pct = workItem.workIncreasePercentage
+            if pct >= 20 {
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.hakedisDanger)
+                        Text("İş artışı \(String(format: "%.0f", pct))%% — yasal sınır aşıldı! İdareye bildirim gerekli.")
+                            .font(.caption.bold())
+                            .foregroundColor(.hakedisDanger)
+                    }
+                    .padding(10)
+                    .background(Color.hakedisDanger.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            } else if pct >= 15 {
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.hakedisWarning)
+                        Text("İş artışı \(String(format: "%.0f", pct))%% — %20 sınırına yaklaşıyor.")
+                            .font(.caption.bold())
+                            .foregroundColor(.hakedisWarning)
+                    }
+                    .padding(10)
+                    .background(Color.hakedisWarning.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            } else if pct < 0 {
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundColor(.blue)
+                        Text("İş eksilişi \(String(format: "%.0f", abs(pct)))%%")
+                            .font(.caption.bold())
+                            .foregroundColor(.blue)
+                    }
+                    .padding(10)
+                    .background(Color.blue.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+
             Section("Poz Bilgileri") {
                 LabeledContent("Poz No", value: workItem.code)
                 LabeledContent("İş Kalemi", value: workItem.name)

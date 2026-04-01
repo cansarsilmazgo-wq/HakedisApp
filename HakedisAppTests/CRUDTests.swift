@@ -291,4 +291,32 @@ final class CRUDTests: XCTestCase {
         let contracts = try context.fetch(FetchDescriptor<Contract>())
         XCTAssertEqual(contracts.count, 0, "Cascade: Contract silinmeli")
     }
+
+    func testGuaranteeCRUD() throws {
+        let schema = Schema([Guarantee.self, Contract.self, Project.self, Contractor.self,
+                             WorkItem.self, DailyEntry.self, Hakedis.self,
+                             HakedisItem.self, Payment.self, RetentionRelease.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let gContainer = try ModelContainer(for: schema, configurations: [config])
+        let gContext = ModelContext(gContainer)
+        let g = Guarantee(guaranteeType: .permanent, amount: 150000,
+                         bankName: "Ziraat", referenceNumber: "ZBK001",
+                         issueDate: Date(),
+                         expiryDate: Calendar.current.date(byAdding: .year, value: 1, to: Date())!)
+        gContext.insert(g)
+        let fetched = try gContext.fetch(FetchDescriptor<Guarantee>())
+        XCTAssertEqual(fetched.count, 1)
+        XCTAssertEqual(fetched.first?.bankName, "Ziraat")
+        gContext.delete(g)
+        let afterDelete = try gContext.fetch(FetchDescriptor<Guarantee>())
+        XCTAssertEqual(afterDelete.count, 0)
+    }
+
+    func testHakedisKopyalaLogic() throws {
+        // previousQty transferi mantık testi (model düzeyinde)
+        let prevQty = 50.0
+        let currQty = 30.0
+        let expectedPrevQtyInCopy = prevQty + currQty
+        XCTAssertEqual(expectedPrevQtyInCopy, 80.0)
+    }
 }

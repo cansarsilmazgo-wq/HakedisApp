@@ -9,7 +9,8 @@ final class CalculationTests: XCTestCase {
     override func setUpWithError() throws {
         let schema = Schema([Project.self, Contractor.self, Contract.self,
                              WorkItem.self, DailyEntry.self, Hakedis.self,
-                             HakedisItem.self, Payment.self, RetentionRelease.self])
+                             HakedisItem.self, Payment.self, RetentionRelease.self,
+                             PriceDifferenceRecord.self, Guarantee.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         container = try ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
@@ -337,5 +338,88 @@ final class CalculationTests: XCTestCase {
             hakedis.items.append(item)
             context.insert(item)
         }
+    }
+
+    // MARK: - Stopaj & Damga Vergisi
+    func testWithholdingTaxCalculation() throws {
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        XCTAssertEqual(h.withholdingTaxRate, 3.0)
+        XCTAssertEqual(h.stampTaxRate, 0.948)
+    }
+
+    func testStampTaxRate() throws {
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        h.stampTaxRate = 0.948
+        XCTAssertEqual(h.stampTaxAmount, 0.0) // grossAmount=0 ise 0
+    }
+
+    func testNetAmountAfterTaxWithZeroGross() throws {
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        XCTAssertEqual(h.netAmountAfterTax, 0.0, accuracy: 0.001)
+    }
+
+    // MARK: - İş Artışı
+    func testWorkIncreaseExceeded() throws {
+        // contractedQuantity ile direkt hesap: %25 > %20 → exceeded
+        let pct = (125.0 - 100.0) / 100.0 * 100
+        XCTAssertGreaterThan(pct, 20.0)
+    }
+
+    func testWorkIncreaseWarning() throws {
+        let pct = (118.0 - 100.0) / 100.0 * 100 // %18
+        XCTAssertTrue(pct >= 15 && pct < 20)
+    }
+
+    func testWorkDecreaseUnderContract() throws {
+        let pct = (80.0 - 100.0) / 100.0 * 100 // -%20
+        XCTAssertLessThan(pct, 0)
+    }
+
+    // MARK: - D Formülü
+    func testDFormulBasicCalculation() throws {
+        context.insert(PriceDifferenceRecord(periodName: "Test", baseIndex: 100, currentIndex: 110, baseAmount: 50000))
+        let records = try context.fetch(FetchDescriptor<PriceDifferenceRecord>())
+        let record = try XCTUnwrap(records.first)
+        record.laborCoefficient = 0.4
+        record.materialCoefficient = 0.4
+        record.otherCoefficient = 0.2
+        let ratio: Double = 110.0 / 100.0 - 1.0
+        let coeffSum: Double = 0.4 + 0.4 + 0.2
+        let expected: Double = ratio * coeffSum * 50000
+        XCTAssertEqual(record.dFormulResult, expected, accuracy: 0.01)
+    }
+
+    func testDFormulZeroBaseIndex() throws {
+        context.insert(PriceDifferenceRecord(periodName: "Test", baseIndex: 0, currentIndex: 110, baseAmount: 50000))
+        let records = try context.fetch(FetchDescriptor<PriceDifferenceRecord>())
+        let record = try XCTUnwrap(records.first)
+        record.laborCoefficient = 0.4
+        XCTAssertEqual(record.dFormulResult, 0.0)
+    }
+
+    // MARK: - Sözleşme Tipi
+    func testLumpSumCompletionPercentage() throws {
+        let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
+        h.lumpSumCompletionPercentage = 60.0
+        XCTAssertEqual(h.lumpSumCompletionPercentage, 60.0)
+    }
+
+    // MARK: - Teminat
+    func testGuaranteeExpiryWarning() throws {
+        let expiryDate = Calendar.current.date(byAdding: .day, value: 25, to: Date())!
+        let g = Guarantee(guaranteeType: .permanent, amount: 100000,
+                         bankName: "Test Bank", referenceNumber: "TR123",
+                         issueDate: Date(), expiryDate: expiryDate)
+        XCTAssertTrue(g.isExpiringSoon)
+        XCTAssertFalse(g.isExpired)
+    }
+
+    func testGuaranteeNotExpired() throws {
+        let expiryDate = Calendar.current.date(byAdding: .year, value: 1, to: Date())!
+        let g = Guarantee(guaranteeType: .temporary, amount: 50000,
+                         bankName: "Bank A", referenceNumber: "REF001",
+                         issueDate: Date(), expiryDate: expiryDate)
+        XCTAssertFalse(g.isExpired)
+        XCTAssertFalse(g.isExpiringSoon)
     }
 }

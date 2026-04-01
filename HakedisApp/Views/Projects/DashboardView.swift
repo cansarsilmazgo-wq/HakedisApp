@@ -628,7 +628,7 @@ struct DashboardFinancialSummary: View {
                         Text(totalContractValue.currencyFormatted)
                             .font(.subheadline.bold())
                     }
-                    ProgressBarView(value: invoicedRatio, color: .hakedisOrange)
+                    ProgressBarView(progress: invoicedRatio, color: .hakedisOrange)
                     HStack {
                         Text("Hakedişe Alınan")
                             .font(.caption2).foregroundColor(.secondary)

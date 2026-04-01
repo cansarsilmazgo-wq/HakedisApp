@@ -221,6 +221,8 @@ struct HakedisDetailView: View {
     @State private var showingAddPayment = false
     @State private var showingRejectionCapture = false
     @State private var editingItem: HakedisItem?
+    @State private var showingKopyala = false
+    @State private var showingPetition = false
 
     var statusColor: Color {
         switch hakedis.status {
@@ -292,6 +294,8 @@ struct HakedisDetailView: View {
                             }
                         }
                     }
+                    // Stopaj ve Damga Vergisi
+                    HakedisVergiSection(hakedis: hakedis)
                     if hakedis.totalPaid > 0 {
                         Divider()
                         HStack {
@@ -470,6 +474,20 @@ struct HakedisDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 8) {
+                    if hakedis.status == .approved || hakedis.status == .paid {
+                        Button {
+                            showingKopyala = true
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                        }
+                    }
+                    if hakedis.status == .rejected {
+                        Button {
+                            showingPetition = true
+                        } label: {
+                            Image(systemName: "doc.text")
+                        }
+                    }
                     NavigationLink(destination: HakedisApprovalAnalysisView(hakedis: hakedis)) {
                         Image(systemName: "chart.bar.doc.horizontal")
                     }
@@ -483,6 +501,12 @@ struct HakedisDetailView: View {
         }
         .navigationTitle(hakedis.periodName)
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingKopyala) {
+            HakedisKopyalaView(hakedis: hakedis)
+        }
+        .sheet(isPresented: $showingPetition) {
+            PetitionGeneratorView(hakedis: hakedis)
+        }
         .sheet(isPresented: $showingAddPayment) {
             AddPaymentView(hakedis: hakedis)
         }
@@ -867,5 +891,52 @@ struct EditHakedisItemView: View {
         guard let qty = enteredQty else { return }
         item.currentQuantity = qty
         dismiss()
+    }
+}
+
+// MARK: - Hakediş Vergi & Ceza Özet Bölümü
+struct HakedisVergiSection: View {
+    let hakedis: Hakedis
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Divider()
+            if hakedis.withholdingTaxAmount > 0 {
+                HStack {
+                    Text("Stopaj (%\(String(format: "%.1f", hakedis.withholdingTaxRate)))")
+                        .font(.caption).foregroundColor(.secondary)
+                    Spacer()
+                    Text("−\(hakedis.withholdingTaxAmount.currencyFormatted)")
+                        .font(.subheadline).foregroundColor(.hakedisDanger)
+                }
+            }
+            HStack {
+                Text("Damga Vergisi (%\(String(format: "%.3f", hakedis.stampTaxRate)))")
+                    .font(.caption).foregroundColor(.secondary)
+                Spacer()
+                Text("−\(hakedis.stampTaxAmount.currencyFormatted)")
+                    .font(.subheadline).foregroundColor(.hakedisDanger)
+            }
+            HStack {
+                Text("Net Ödenecek")
+                    .font(.subheadline.bold())
+                Spacer()
+                Text(hakedis.netAmountAfterTax.currencyFormatted)
+                    .font(.subheadline.bold())
+                    .foregroundColor(.hakedisOrange)
+            }
+            if hakedis.penaltyAmount > 0 {
+                HStack {
+                    Label("\(hakedis.penaltyDays) gün gecikme cezası", systemImage: "calendar.badge.exclamationmark")
+                        .font(.caption).foregroundColor(.hakedisDanger)
+                    Spacer()
+                    Text("−\(hakedis.penaltyAmount.currencyFormatted)")
+                        .font(.subheadline.bold()).foregroundColor(.hakedisDanger)
+                }
+                .padding(8)
+                .background(Color.hakedisDanger.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+        }
     }
 }

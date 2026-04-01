@@ -1,6 +1,66 @@
 import Foundation
 import SwiftData
 
+// MARK: - New Enums (Phase 1)
+
+enum WorkIncreaseStatus: String, Codable {
+    case underContract = "Eksiliş"
+    case normal = "Normal"
+    case warning = "Uyarı"
+    case exceeded = "Aşıldı"
+}
+
+enum ContractType: String, Codable, CaseIterable {
+    case unitPrice = "Birim Fiyat"
+    case lumpSum = "Götürü Bedel"
+    case mixed = "Karma"
+}
+
+enum GuaranteeType: String, Codable, CaseIterable {
+    case temporary = "Geçici Teminat"
+    case permanent = "Kesin Teminat"
+    case additional = "Ek Teminat"
+    case other = "Diğer"
+}
+
+// MARK: - Guarantee Model
+
+@Model
+final class Guarantee {
+    var id: UUID = UUID()
+    var guaranteeType: GuaranteeType = GuaranteeType.temporary
+    var amount: Double = 0.0
+    var bankName: String = ""
+    var referenceNumber: String = ""
+    var issueDate: Date = Date()
+    var expiryDate: Date = Date()
+    var isReturned: Bool = false
+    var returnedDate: Date? = nil
+    var notes: String = ""
+    var contract: Contract? = nil
+
+    init(guaranteeType: GuaranteeType, amount: Double, bankName: String, referenceNumber: String, issueDate: Date, expiryDate: Date) {
+        self.id = UUID()
+        self.guaranteeType = guaranteeType
+        self.amount = amount
+        self.bankName = bankName
+        self.referenceNumber = referenceNumber
+        self.issueDate = issueDate
+        self.expiryDate = expiryDate
+    }
+
+    var isExpiringSoon: Bool {
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day ?? 0
+        return !isReturned && days >= 0 && days <= 30
+    }
+    var isExpired: Bool {
+        !isReturned && expiryDate < Date()
+    }
+    var daysUntilExpiry: Int {
+        Calendar.current.dateComponents([.day], from: Date(), to: expiryDate).day ?? 0
+    }
+}
+
 @Model
 final class Project {
     var id: UUID
@@ -89,6 +149,9 @@ final class Contract {
     @Relationship(deleteRule: .cascade) var soilRecords: [SoilRecord]
     @Relationship(deleteRule: .cascade) var testRecords: [TestRecord]
     @Relationship(deleteRule: .cascade) var acceptanceRecords: [AcceptanceRecord]
+    var contractType: ContractType = ContractType.unitPrice
+    var penaltyRate: Double = 0.0
+    @Relationship(deleteRule: .cascade) var guarantees: [Guarantee] = []
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -117,6 +180,7 @@ final class Contract {
         self.soilRecords = []
         self.testRecords = []
         self.acceptanceRecords = []
+        self.guarantees = []
     }
 
     var hasHandover: Bool { !handoverRecords.isEmpty }
@@ -211,6 +275,18 @@ final class WorkItem {
         return min((completedQuantity / contractedQuantity) * 100, 100)
     }
     var remainingQuantity: Double { contractedQuantity - completedQuantity }
+    var totalExecutedQuantity: Double { dailyEntries.reduce(0) { $0 + $1.quantity } }
+    var workIncreasePercentage: Double {
+        guard contractedQuantity > 0 else { return 0 }
+        return ((totalExecutedQuantity - contractedQuantity) / contractedQuantity) * 100
+    }
+    var workIncreaseStatus: WorkIncreaseStatus {
+        let pct = workIncreasePercentage
+        if pct >= 20 { return .exceeded }
+        else if pct >= 15 { return .warning }
+        else if pct > 0 { return .normal }
+        else { return .underContract }
+    }
 }
 
 @Model
@@ -224,6 +300,13 @@ final class DailyEntry {
     var workItem: WorkItem?
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var photoAnnotations: [PhotoAnnotation]
+    var gpsLatitude: Double? = nil
+    var gpsLongitude: Double? = nil
+    var gpsAccuracy: Double? = nil
+    var weatherCondition: String = ""
+    var temperatureC: Double? = nil
+    var windSpeedKmh: Double? = nil
+    var weatherFetchedAt: Date? = nil
 
     init(date: Date = Date(), quantity: Double, location: String = "", notes: String = "") {
         self.id = UUID()
@@ -254,6 +337,9 @@ final class Hakedis {
     @Relationship(deleteRule: .cascade) var approvalSteps: [ApprovalStep]
     @Relationship(deleteRule: .cascade) var revisions: [HakedisRevision]
     @Relationship(deleteRule: .cascade) var vatWithholdings: [VATWithholdingRecord]
+    var withholdingTaxRate: Double = 3.0
+    var stampTaxRate: Double = 0.948
+    var lumpSumCompletionPercentage: Double = 0.0
 
     init(periodName: String, periodStart: Date, periodEnd: Date, dueDate: Date? = nil) {
         self.id = UUID()
@@ -319,6 +405,26 @@ final class Hakedis {
     }
 
     var isOverdue: Bool { daysOverdue > 0 }
+
+    var withholdingTaxAmount: Double { grossAmount * withholdingTaxRate / 100 }
+    var stampTaxAmount: Double { grossAmount * stampTaxRate / 100 }
+    var netAmountAfterTax: Double { netAmount - withholdingTaxAmount - stampTaxAmount }
+    var effectiveGrossAmount: Double {
+        guard let c = contract else { return grossAmount }
+        if c.contractType == .lumpSum {
+            return c.totalContractAmount * (lumpSumCompletionPercentage / 100)
+        }
+        return grossAmount
+    }
+    var penaltyAmount: Double {
+        guard let c = contract, c.penaltyRate > 0, let endDate = c.completionDeadline, Date() > endDate else { return 0 }
+        let days = Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0
+        return Double(max(0, days)) * (c.penaltyRate / 100) * c.totalContractAmount
+    }
+    var penaltyDays: Int {
+        guard let c = contract, c.penaltyRate > 0, let endDate = c.completionDeadline, Date() > endDate else { return 0 }
+        return max(0, Calendar.current.dateComponents([.day], from: endDate, to: Date()).day ?? 0)
+    }
 }
 
 enum HakedisStatus: String, Codable, CaseIterable {
@@ -1282,6 +1388,9 @@ final class PriceDifferenceRecord {
     var coefficient: Double       // katsayı (ör: 0.90)
     var contract: Contract?
     var createdAt: Date
+    var laborCoefficient: Double = 0.0
+    var materialCoefficient: Double = 0.0
+    var otherCoefficient: Double = 0.0
 
     init(periodName: String, baseIndex: Double, currentIndex: Double,
          baseAmount: Double, coefficient: Double = 1.0) {
@@ -1303,6 +1412,13 @@ final class PriceDifferenceRecord {
     var priceDifference: Double { baseAmount * (indexRatio - 1) * coefficient }
 
     var isGain: Bool { priceDifference > 0 }
+
+    var dFormulResult: Double {
+        guard baseIndex > 0 else { return 0 }
+        let ratio = (currentIndex / baseIndex) - 1
+        let coeffSum = laborCoefficient + materialCoefficient + otherCoefficient
+        return ratio * coeffSum * baseAmount
+    }
 }
 
 // MARK: - KDV Tevkifatı (VATWithholdingRecord)

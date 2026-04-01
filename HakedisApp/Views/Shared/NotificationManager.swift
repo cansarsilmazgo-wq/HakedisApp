@@ -164,6 +164,44 @@ class NotificationManager: ObservableObject {
         let ids = [30, 14, 7].map { "deadline_\(contractID.uuidString)_d\($0)" }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
+
+    // MARK: - Teminat Mektubu Bildirimleri
+
+    func scheduleGuaranteeNotification(guarantee: Guarantee) {
+        guard isAuthorized else { return }
+        let daysBefore = [30, 7, 1]
+        for days in daysBefore {
+            guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: guarantee.expiryDate),
+                  triggerDate > Date() else { continue }
+            let content = UNMutableNotificationContent()
+            content.sound = .default
+            switch days {
+            case 1:
+                content.title = "Teminat Mektubu Süresi Doluyor!"
+                content.body = "\(guarantee.bankName) teminat mektubu yarın süresi doluyor! (Ref: \(guarantee.referenceNumber))"
+            case 7:
+                content.title = "Teminat Mektubu Uyarısı"
+                content.body = "\(guarantee.bankName) teminat mektubu 7 gün içinde süresi doluyor. (Ref: \(guarantee.referenceNumber))"
+            default:
+                content.title = "Teminat Mektubu Hatırlatma"
+                content.body = "\(guarantee.bankName) teminat mektubu 30 gün içinde süresi dolacak. (Ref: \(guarantee.referenceNumber))"
+            }
+            var components = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
+            components.hour = 9
+            components.minute = 0
+            let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "guarantee_\(guarantee.id.uuidString)_d\(days)",
+                content: content, trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request)
+        }
+    }
+
+    func cancelGuaranteeNotifications(guaranteeID: UUID) {
+        let ids = [30, 7, 1].map { "guarantee_\(guaranteeID.uuidString)_d\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
 }
 
 struct NotificationSettingsView: View {

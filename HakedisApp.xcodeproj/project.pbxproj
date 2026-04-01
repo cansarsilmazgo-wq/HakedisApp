@@ -25,8 +25,18 @@
 		S036 /* TestRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C036 /* TestRecordViews.swift */; };
 		S037 /* AcceptanceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C037 /* AcceptanceViews.swift */; };
 		S038 /* WarrantyClaimViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C038 /* WarrantyClaimViews.swift */; };
+		S039 /* EditContractView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039 /* EditContractView.swift */; };
+		S03A /* GuaranteeViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03A /* GuaranteeViews.swift */; };
+		S03B /* MultipleEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03B /* MultipleEntryView.swift */; };
+		S03C /* PetitionGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03C /* PetitionGeneratorView.swift */; };
+		S03D /* SCurveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03D /* SCurveView.swift */; };
+		S03E /* WeeklyReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03E /* WeeklyReportView.swift */; };
+		S03F /* PozLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03F /* PozLibraryView.swift */; };
+		S040 /* PozLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
+		S041 /* HakedisKopyalaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C041 /* HakedisKopyalaView.swift */; };
 		TB004 /* Models.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
 		TB008 /* CashFlowEngine.swift in TestSources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
+		TB011 /* PozLibrary.swift in TestSources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
 		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
 		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
 		SPM_BF2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP2 /* FirebaseCrashlytics */; };
@@ -137,6 +147,15 @@
 		C036 /* TestRecordViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TestRecordViews.swift; path = HakedisApp/Views/Contracts/TestRecordViews.swift; sourceTree = "<group>"; };
 		C037 /* AcceptanceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AcceptanceViews.swift; path = HakedisApp/Views/Contracts/AcceptanceViews.swift; sourceTree = "<group>"; };
 		C038 /* WarrantyClaimViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WarrantyClaimViews.swift; path = HakedisApp/Views/Contracts/WarrantyClaimViews.swift; sourceTree = "<group>"; };
+		C039 /* EditContractView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EditContractView.swift; path = HakedisApp/Views/Contracts/EditContractView.swift; sourceTree = "<group>"; };
+		C03A /* GuaranteeViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GuaranteeViews.swift; path = HakedisApp/Views/Contracts/GuaranteeViews.swift; sourceTree = "<group>"; };
+		C03B /* MultipleEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MultipleEntryView.swift; path = HakedisApp/Views/DailyEntry/MultipleEntryView.swift; sourceTree = "<group>"; };
+		C03C /* PetitionGeneratorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PetitionGeneratorView.swift; path = HakedisApp/Views/Hakedis/PetitionGeneratorView.swift; sourceTree = "<group>"; };
+		C03D /* SCurveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SCurveView.swift; path = HakedisApp/Views/Projects/SCurveView.swift; sourceTree = "<group>"; };
+		C03E /* WeeklyReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeeklyReportView.swift; path = HakedisApp/Views/Projects/WeeklyReportView.swift; sourceTree = "<group>"; };
+		C03F /* PozLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PozLibraryView.swift; path = HakedisApp/Views/Shared/PozLibraryView.swift; sourceTree = "<group>"; };
+		C040 /* PozLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PozLibrary.swift; path = HakedisApp/Views/Shared/PozLibrary.swift; sourceTree = "<group>"; };
+		C041 /* HakedisKopyalaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisKopyalaView.swift; path = HakedisApp/Views/Hakedis/HakedisKopyalaView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -203,6 +222,15 @@
 				C036 /* TestRecordViews.swift */,
 				C037 /* AcceptanceViews.swift */,
 				C038 /* WarrantyClaimViews.swift */,
+				C039 /* EditContractView.swift */,
+				C03A /* GuaranteeViews.swift */,
+				C03B /* MultipleEntryView.swift */,
+				C03C /* PetitionGeneratorView.swift */,
+				C03D /* SCurveView.swift */,
+				C03E /* WeeklyReportView.swift */,
+				C03F /* PozLibraryView.swift */,
+				C040 /* PozLibrary.swift */,
+				C041 /* HakedisKopyalaView.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -435,6 +463,15 @@
 				S036 /* TestRecordViews.swift in Sources */,
 				S037 /* AcceptanceViews.swift in Sources */,
 				S038 /* WarrantyClaimViews.swift in Sources */,
+				S039 /* EditContractView.swift in Sources */,
+				S03A /* GuaranteeViews.swift in Sources */,
+				S03B /* MultipleEntryView.swift in Sources */,
+				S03C /* PetitionGeneratorView.swift in Sources */,
+				S03D /* SCurveView.swift in Sources */,
+				S03E /* WeeklyReportView.swift in Sources */,
+				S03F /* PozLibraryView.swift in Sources */,
+				S040 /* PozLibrary.swift in Sources */,
+				S041 /* HakedisKopyalaView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -452,6 +489,7 @@
 				TB007 /* Grup3FeatureTests.swift in Sources */,
 				TB009 /* ApprovalAndHandoverTests.swift in Sources */,
 				TB010 /* NewFeaturesTests.swift in Sources */,
+				TB011 /* PozLibrary.swift in TestSources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,6 +606,7 @@
 				DEVELOPMENT_TEAM = 857PAZCN89;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Saha fotograflari icin gerekli";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Saha girişlerinde GPS konumu kaydetmek için gerekli";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

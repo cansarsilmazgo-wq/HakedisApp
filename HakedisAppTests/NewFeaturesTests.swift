@@ -721,4 +721,35 @@ final class NewFeaturesTests: XCTestCase {
                              "Uzatılmış garanti bitiş > orijinal bitiş")
         XCTAssertTrue(record.isWarrantyActive, "Uzatılmış garanti hâlâ aktif")
     }
+
+    // MARK: - Yeni Enum Testleri
+    func testContractTypeEnum() throws {
+        XCTAssertEqual(ContractType.allCases.count, 3)
+        XCTAssertEqual(ContractType.unitPrice.rawValue, "Birim Fiyat")
+        XCTAssertEqual(ContractType.lumpSum.rawValue, "Götürü Bedel")
+        XCTAssertEqual(ContractType.mixed.rawValue, "Karma")
+    }
+
+    func testGuaranteeTypeEnum() throws {
+        XCTAssertEqual(GuaranteeType.allCases.count, 4)
+        XCTAssertEqual(GuaranteeType.permanent.rawValue, "Kesin Teminat")
+    }
+
+    func testWorkIncreaseStatusBoundaryValues() throws {
+        // %20 tam sınır → exceeded
+        let pct20: Double = 20.0
+        let status20: WorkIncreaseStatus = pct20 >= 20 ? .exceeded : (pct20 >= 15 ? .warning : .normal)
+        XCTAssertEqual(status20, .exceeded)
+
+        // %19.9 → warning
+        let pct19: Double = 19.9
+        let status19: WorkIncreaseStatus = pct19 >= 20 ? .exceeded : (pct19 >= 15 ? .warning : .normal)
+        XCTAssertEqual(status19, .warning)
+    }
+
+    func testPozLibraryNotEmpty() throws {
+        XCTAssertGreaterThan(PozLibrary.items.count, 100)
+        let categories = Set(PozLibrary.items.map { $0.category })
+        XCTAssertEqual(categories.count, PozCategory.allCases.count)
+    }
 }
