@@ -10,7 +10,9 @@ final class CalculationTests: XCTestCase {
         let schema = Schema([Project.self, Contractor.self, Contract.self,
                              WorkItem.self, DailyEntry.self, Hakedis.self,
                              HakedisItem.self, Payment.self, RetentionRelease.self,
-                             PriceDifferenceRecord.self, Guarantee.self])
+                             PriceDifferenceRecord.self, Guarantee.self,
+                             UnitPriceAnalysis.self, TestRecord.self,
+                             LaborRecord.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         container = try ModelContainer(for: schema, configurations: [config])
         context = ModelContext(container)
@@ -936,5 +938,180 @@ final class CalculationTests: XCTestCase {
 
         XCTAssertEqual(hakedis.penaltyAmount, contract.delayPenalty(), accuracy: 0.01,
                        "Hakedis.penaltyAmount, Contract.delayPenalty() ile aynı sonucu vermelidir")
+    }
+
+    // MARK: - TestRecord.blocksApproval Onay Kontrolü
+
+    func testBlocksApproval_requiredAndFailed() {
+        // isRequiredForApproval=true, status=.kaldi → blocksApproval = true
+        let record = TestRecord(testName: "Basınç Testi", isRequiredForApproval: true)
+        record.status = .kaldi
+        XCTAssertTrue(record.blocksApproval, "Zorunlu başarısız test onayı bloke etmeli")
+    }
+
+    func testBlocksApproval_requiredButPassed() {
+        // isRequiredForApproval=true, status=.gecti → blocksApproval = false
+        let record = TestRecord(testName: "Basınç Testi", isRequiredForApproval: true)
+        record.status = .gecti
+        XCTAssertFalse(record.blocksApproval, "Zorunlu geçen test onayı bloke etmemeli")
+    }
+
+    func testBlocksApproval_notRequiredAndFailed() {
+        // isRequiredForApproval=false, status=.kaldi → blocksApproval = false
+        let record = TestRecord(testName: "Rutin Test", isRequiredForApproval: false)
+        record.status = .kaldi
+        XCTAssertFalse(record.blocksApproval, "Zorunlu olmayan test onayı bloke etmemeli")
+    }
+
+    func testBlocksApproval_contractWithMultipleTests() throws {
+        // Sözleşmede 1 zorunlu başarısız test var → hakediş onay engellenmeli
+        let contract = Contract(title: "Test Sözleşmesi", retentionRate: 0, advanceRate: 0)
+        context.insert(contract)
+
+        let t1 = TestRecord(testName: "Beton Basınç", isRequiredForApproval: true)
+        t1.status = .kaldi
+        t1.contract = contract
+        contract.testRecords.append(t1)
+        context.insert(t1)
+
+        let t2 = TestRecord(testName: "Su Yalıtım", isRequiredForApproval: false)
+        t2.status = .kaldi
+        t2.contract = contract
+        contract.testRecords.append(t2)
+        context.insert(t2)
+
+        let hasBlocking = contract.testRecords.contains { $0.blocksApproval }
+        XCTAssertTrue(hasBlocking, "Zorunlu başarısız test varsa hakediş onaylanamaz")
+    }
+
+    func testBlocksApproval_noBlockingTests() throws {
+        // Tüm zorunlu testler geçti → engel yok
+        let contract = Contract(title: "Test Sözleşmesi", retentionRate: 0, advanceRate: 0)
+        context.insert(contract)
+
+        let t1 = TestRecord(testName: "Beton Basınç", isRequiredForApproval: true)
+        t1.status = .gecti
+        t1.contract = contract
+        contract.testRecords.append(t1)
+        context.insert(t1)
+
+        let hasBlocking = contract.testRecords.contains { $0.blocksApproval }
+        XCTAssertFalse(hasBlocking, "Tüm zorunlu testler geçtiyse onay engellenmemel")
+    }
+
+    // MARK: - JSON Decode Hata Tespiti
+
+    func testLaborEntriesDecodeError_invalidJSON() throws {
+        let record = LaborRecord()
+        record.laborEntriesJSON = "bu-gecersiz-json"
+        context.insert(record)
+        XCTAssertTrue(record.laborEntriesDecodeError, "Geçersiz JSON → laborEntriesDecodeError = true")
+        XCTAssertEqual(record.laborEntries.count, 0, "Decode hatasında boş dizi döner")
+    }
+
+    func testLaborEntriesDecodeError_nilJSON() throws {
+        let record = LaborRecord()
+        record.laborEntriesJSON = nil
+        context.insert(record)
+        XCTAssertFalse(record.laborEntriesDecodeError, "Nil JSON → hata yok (nil guard)")
+        XCTAssertEqual(record.laborEntries.count, 0)
+    }
+
+    func testLaborEntriesDecodeError_validJSON() throws {
+        let record = LaborRecord()
+        let entries = [LaborEntryData(workerType: .usta, count: 2, hoursWorked: 8, shiftType: .gunduz)]
+        let data = try JSONEncoder().encode(entries)
+        record.laborEntriesJSON = String(data: data, encoding: .utf8)
+        context.insert(record)
+        XCTAssertFalse(record.laborEntriesDecodeError, "Geçerli JSON → decode hatası yok")
+        XCTAssertEqual(record.laborEntries.count, 1)
+    }
+
+    // MARK: - UnitPriceAnalysis WorkItem Erişimi
+
+    func testUnitPriceAnalysis_workItemRelationship() throws {
+        // WorkItem'e UnitPriceAnalysis eklenebilmeli ve ilişki çalışmalı
+        let workItem = WorkItem(code: "UPA01", name: "Beton İşi", unit: "m³",
+                                unitPrice: 500, contractedQuantity: 100)
+        context.insert(workItem)
+
+        let analysis = UnitPriceAnalysis(analysisNo: "A-001", workItemCode: "UPA01",
+                                         workItemName: "Beton İşi", contractUnitPrice: 480.0)
+        analysis.workItem = workItem
+        context.insert(analysis)
+        workItem.unitPriceAnalyses.append(analysis)
+
+        XCTAssertEqual(workItem.unitPriceAnalyses.count, 1, "WorkItem'e analiz eklenebilmeli")
+        XCTAssertEqual(workItem.unitPriceAnalyses.first?.contractUnitPrice ?? 0, 480.0, accuracy: 0.01)
+    }
+
+    func testUnitPriceAnalysis_multipleAnalyses() throws {
+        // Birden fazla analiz eklenebilmeli
+        let workItem = WorkItem(code: "UPA02", name: "Kazı", unit: "m³",
+                                unitPrice: 200, contractedQuantity: 500)
+        context.insert(workItem)
+
+        for i in 1...3 {
+            let analysis = UnitPriceAnalysis(analysisNo: "A-00\(i)", workItemCode: "UPA02",
+                                             workItemName: "Kazı", contractUnitPrice: Double(i) * 100.0)
+            analysis.workItem = workItem
+            context.insert(analysis)
+            workItem.unitPriceAnalyses.append(analysis)
+        }
+
+        XCTAssertEqual(workItem.unitPriceAnalyses.count, 3, "3 analiz eklenebilmeli")
+    }
+
+    // MARK: - Tarih Aralığı Filtresi (SearchFilterView logic)
+
+    func testDateRangeFilter_hakedisAfterFrom() throws {
+        // periodStart >= dateFrom → filtrelenmemeli (dahil)
+        let today = Date()
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+
+        let hakedis = Hakedis(periodName: "Dönem A", periodStart: today, periodEnd: tomorrow)
+        let dateFrom = yesterday
+
+        XCTAssertGreaterThanOrEqual(hakedis.periodStart, dateFrom, "periodStart >= from → dahil edilmeli")
+    }
+
+    func testDateRangeFilter_hakedisBeforeFrom_excluded() throws {
+        // periodStart < dateFrom → filtrelenmeli (dahil değil)
+        let today = Date()
+        let twoDaysAgo = Calendar.current.date(byAdding: .day, value: -2, to: today)!
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+
+        let hakedis = Hakedis(periodName: "Dönem B", periodStart: twoDaysAgo, periodEnd: tomorrow)
+        let dateFrom = yesterday
+
+        XCTAssertLessThan(hakedis.periodStart, dateFrom, "periodStart < from → dahil edilmemeli")
+    }
+
+    func testDateRangeFilter_hakedisBeforeTo_included() throws {
+        // periodStart <= dateTo → dahil
+        let today = Date()
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        let nextWeek = Calendar.current.date(byAdding: .day, value: 7, to: today)!
+
+        let hakedis = Hakedis(periodName: "Dönem C", periodStart: today, periodEnd: tomorrow)
+        let dateTo = nextWeek
+
+        XCTAssertLessThanOrEqual(hakedis.periodStart, dateTo, "periodStart <= to → dahil edilmeli")
+    }
+
+    func testDateRangeFilter_hakedisAfterTo_excluded() throws {
+        // periodStart > dateTo → dahil değil
+        let today = Date()
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
+        let twoDaysLater = Calendar.current.date(byAdding: .day, value: 2, to: today)!
+
+        let hakedis = Hakedis(periodName: "Dönem D",
+                               periodStart: twoDaysLater,
+                               periodEnd: Calendar.current.date(byAdding: .day, value: 3, to: today)!)
+        let dateTo = yesterday
+
+        XCTAssertGreaterThan(hakedis.periodStart, dateTo, "periodStart > to → dahil edilmemeli")
     }
 }

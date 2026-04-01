@@ -1025,6 +1025,7 @@ struct WorkItemDetailView: View {
     let workItem: WorkItem
     @Environment(\.modelContext) private var modelContext
     @State private var showingEdit = false
+    @State private var showingAnalysis = false
 
     var body: some View {
         List {
@@ -1120,6 +1121,25 @@ struct WorkItemDetailView: View {
                 .padding(.vertical, 4)
             }
 
+            Section("Birim Fiyat Analizi") {
+                Button {
+                    showingAnalysis = true
+                } label: {
+                    HStack {
+                        Image(systemName: "chart.bar.doc.horizontal")
+                            .foregroundColor(.hakedisOrange)
+                        Text("Analizleri Görüntüle")
+                        Spacer()
+                        Text("\(workItem.unitPriceAnalyses.count)")
+                            .foregroundColor(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .foregroundColor(.primary)
+            }
+
             Section("Günlük Girişler") {
                 if workItem.dailyEntries.isEmpty {
                     Text("Henüz giriş yapılmadı")
@@ -1166,6 +1186,9 @@ struct WorkItemDetailView: View {
         }
         .sheet(isPresented: $showingEdit) {
             EditWorkItemView(workItem: workItem)
+        }
+        .sheet(isPresented: $showingAnalysis) {
+            UnitPriceAnalysisListSheet(workItem: workItem)
         }
     }
 }

@@ -585,6 +585,11 @@ struct HakedisStatusWorkflow: View {
     @State private var noteText = ""
     @State private var pendingStatus: HakedisStatus? = nil
     @State private var showingNoteSheet = false
+    @State private var showBlockedAlert = false
+
+    private var hasBlockingTests: Bool {
+        hakedis.contract?.testRecords.contains { $0.blocksApproval } ?? false
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -630,8 +635,14 @@ struct HakedisStatusWorkflow: View {
             HStack(spacing: 12) {
                 switch hakedis.status {
                 case .draft:
-                    Button("Onaya Gönder") { hakedis.status = .pendingApproval }
-                        .buttonStyle(.borderedProminent).tint(.hakedisOrange)
+                    Button("Onaya Gönder") {
+                        if hasBlockingTests {
+                            showBlockedAlert = true
+                        } else {
+                            hakedis.status = .pendingApproval
+                        }
+                    }
+                    .buttonStyle(.borderedProminent).tint(.hakedisOrange)
                 case .pendingApproval:
                     Button("Reddet") {
                         noteText = hakedis.approvalNote
@@ -640,9 +651,13 @@ struct HakedisStatusWorkflow: View {
                     }
                     .buttonStyle(.bordered).tint(.hakedisDanger)
                     Button("Onayla") {
-                        noteText = hakedis.approvalNote
-                        pendingStatus = .approved
-                        showingNoteSheet = true
+                        if hasBlockingTests {
+                            showBlockedAlert = true
+                        } else {
+                            noteText = hakedis.approvalNote
+                            pendingStatus = .approved
+                            showingNoteSheet = true
+                        }
                     }
                     .buttonStyle(.borderedProminent).tint(.hakedisSuccess)
                 case .approved:
@@ -664,6 +679,11 @@ struct HakedisStatusWorkflow: View {
             }
         }
         .padding(.vertical, 4)
+        .alert("Onay Engelliyor", isPresented: $showBlockedAlert) {
+            Button("Tamam", role: .cancel) {}
+        } message: {
+            Text("Başarısız test kaydı var, onay verilemez.")
+        }
         .sheet(isPresented: $showingNoteSheet) {
             ApprovalNoteSheet(
                 title: pendingStatus == .rejected ? "Red Gerekçesi" : "Onay Notu",

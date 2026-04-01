@@ -1073,11 +1073,18 @@ final class LaborRecord {
     }
 
     var laborEntries: [LaborEntryData] {
-        guard let json = laborEntriesJSON,
-              let data = json.data(using: .utf8),
-              let entries = try? JSONDecoder().decode([LaborEntryData].self, from: data)
-        else { return [] }
-        return entries
+        guard let json = laborEntriesJSON, let data = json.data(using: .utf8) else { return [] }
+        do {
+            return try JSONDecoder().decode([LaborEntryData].self, from: data)
+        } catch {
+            print("LaborRecord JSON decode hatası: \(error)")
+            return []
+        }
+    }
+
+    var laborEntriesDecodeError: Bool {
+        guard let json = laborEntriesJSON, let data = json.data(using: .utf8) else { return false }
+        return (try? JSONDecoder().decode([LaborEntryData].self, from: data)) == nil
     }
 
     var totalWorkers: Int { laborEntries.reduce(0) { $0 + $1.count } }
@@ -1672,11 +1679,18 @@ final class SoilRecord {
     var canBeIncludedInHakedis: Bool { isSignedByEngineer && !photoData.isEmpty }
 
     var labTests: [SoilLabTest] {
-        guard let json = labTestsJSON,
-              let data = json.data(using: .utf8),
-              let tests = try? JSONDecoder().decode([SoilLabTest].self, from: data)
-        else { return [] }
-        return tests
+        guard let json = labTestsJSON, let data = json.data(using: .utf8) else { return [] }
+        do {
+            return try JSONDecoder().decode([SoilLabTest].self, from: data)
+        } catch {
+            print("SoilRecord JSON decode hatası: \(error)")
+            return []
+        }
+    }
+
+    var labTestsDecodeError: Bool {
+        guard let json = labTestsJSON, let data = json.data(using: .utf8) else { return false }
+        return (try? JSONDecoder().decode([SoilLabTest].self, from: data)) == nil
     }
 }
 
@@ -1814,19 +1828,33 @@ final class AcceptanceRecord {
     var deductionAmount: Double { contractAmount - actualAmount }
 
     var prerequisites: [String] {
-        guard let json = prerequisitesJSON,
-              let data = json.data(using: .utf8),
-              let list = try? JSONDecoder().decode([String].self, from: data)
-        else { return [] }
-        return list
+        guard let json = prerequisitesJSON, let data = json.data(using: .utf8) else { return [] }
+        do {
+            return try JSONDecoder().decode([String].self, from: data)
+        } catch {
+            print("AcceptanceRecord prerequisites JSON decode hatası: \(error)")
+            return []
+        }
+    }
+
+    var prerequisitesDecodeError: Bool {
+        guard let json = prerequisitesJSON, let data = json.data(using: .utf8) else { return false }
+        return (try? JSONDecoder().decode([String].self, from: data)) == nil
     }
 
     var completedPrerequisites: [String] {
-        guard let json = completedPrerequisitesJSON,
-              let data = json.data(using: .utf8),
-              let list = try? JSONDecoder().decode([String].self, from: data)
-        else { return [] }
-        return list
+        guard let json = completedPrerequisitesJSON, let data = json.data(using: .utf8) else { return [] }
+        do {
+            return try JSONDecoder().decode([String].self, from: data)
+        } catch {
+            print("AcceptanceRecord completedPrerequisites JSON decode hatası: \(error)")
+            return []
+        }
+    }
+
+    var completedPrerequisitesDecodeError: Bool {
+        guard let json = completedPrerequisitesJSON, let data = json.data(using: .utf8) else { return false }
+        return (try? JSONDecoder().decode([String].self, from: data)) == nil
     }
 
     var allPrerequisitesMet: Bool {

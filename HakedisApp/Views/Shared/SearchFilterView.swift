@@ -23,6 +23,9 @@ struct UniversalSearchView: View {
     @State private var query    = ""
     @State private var category: SearchCategory = .all
     @State private var hakedisStatusFilter: HakedisStatus? = nil
+    @State private var dateFrom: Date? = nil
+    @State private var dateTo: Date?   = nil
+    @State private var showDateFilter  = false
     @AppStorage("recentSearches") private var recentSearchesData: Data = Data()
 
     private var recentSearches: [String] {
@@ -61,6 +64,13 @@ struct UniversalSearchView: View {
 
         if let statusFilter = hakedisStatusFilter {
             filteredHakedisler = filteredHakedisler.filter { $0.status == statusFilter }
+        }
+        if let from = dateFrom {
+            filteredHakedisler = filteredHakedisler.filter { $0.periodStart >= from }
+        }
+        if let to = dateTo {
+            let endOfDay = Calendar.current.date(bySettingHour: 23, minute: 59, second: 59, of: to) ?? to
+            filteredHakedisler = filteredHakedisler.filter { $0.periodStart <= endOfDay }
         }
 
         return SearchResults(
@@ -110,6 +120,54 @@ struct UniversalSearchView: View {
                         .padding(.horizontal)
                     }
                     .padding(.bottom, 4)
+
+                    // Date range filter
+                    HStack(spacing: 8) {
+                        Button {
+                            showDateFilter.toggle()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "calendar")
+                                    .font(.caption)
+                                Text(dateFrom != nil || dateTo != nil ? "Tarih: \(dateRangeLabel)" : "Tarih Filtresi")
+                                    .font(.caption)
+                            }
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(dateFrom != nil || dateTo != nil
+                                        ? Color.hakedisOrange : Color(UIColor.secondarySystemGroupedBackground))
+                            .foregroundColor(dateFrom != nil || dateTo != nil ? .white : .primary)
+                            .clipShape(Capsule())
+                        }
+                        if dateFrom != nil || dateTo != nil {
+                            Button {
+                                dateFrom = nil
+                                dateTo = nil
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.secondary)
+                                    .font(.subheadline)
+                            }
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 4)
+
+                    if showDateFilter {
+                        VStack(spacing: 4) {
+                            DatePicker("Başlangıç", selection: Binding(
+                                get: { dateFrom ?? Date() },
+                                set: { dateFrom = $0 }
+                            ), displayedComponents: .date)
+                            .padding(.horizontal)
+                            DatePicker("Bitiş", selection: Binding(
+                                get: { dateTo ?? Date() },
+                                set: { dateTo = $0 }
+                            ), displayedComponents: .date)
+                            .padding(.horizontal)
+                        }
+                        .padding(.bottom, 4)
+                    }
                 }
 
                 Divider()
@@ -257,6 +315,14 @@ struct UniversalSearchView: View {
         case .rejected:         return .hakedisDanger
         case .paid:             return .blue
         }
+    }
+
+    private var dateRangeLabel: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "dd.MM.yy"
+        let from = dateFrom.map { fmt.string(from: $0) } ?? "…"
+        let to   = dateTo.map   { fmt.string(from: $0) } ?? "…"
+        return "\(from)–\(to)"
     }
 
     private func saveSearchTerm(_ term: String) {
