@@ -5,6 +5,10 @@ struct DashboardView: View {
     @Query private var projects: [Project]
     @Query private var hakedisler: [Hakedis]
     @Query private var dailyEntries: [DailyEntry]
+    @Query private var attendanceRecords: [Attendance]
+    @Query private var materials: [Material]
+    @Query private var safetyIncidents: [SafetyIncident]
+    @Query(sort: \SiteDiary.date, order: .reverse) private var siteDiaries: [SiteDiary]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -42,6 +46,22 @@ struct DashboardView: View {
     private var todayEntries: [DailyEntry] {
         let calendar = Calendar.current
         return dailyEntries.filter { calendar.isDateInToday($0.date) }
+    }
+
+    private var todayAttendance: [Attendance] {
+        attendanceRecords.filter { Calendar.current.isDateInToday($0.date) && $0.isPresent }
+    }
+
+    private var lowStockMaterials: [Material] {
+        materials.filter { $0.isLowStock }
+    }
+
+    private var openSafetyIncidents: [SafetyIncident] {
+        safetyIncidents.filter { !$0.isResolved }
+    }
+
+    private var latestDiary: SiteDiary? {
+        siteDiaries.first
     }
 
     private var contractsWithDeficiencies: [Contract] {
@@ -129,6 +149,67 @@ struct DashboardView: View {
                             totalPaid: totalPaid,
                             totalPending: totalPending
                         )
+                    }
+
+                    // Bugün Şantiye Özeti
+                    if !attendanceRecords.isEmpty || latestDiary != nil {
+                        DashboardSantiyeCard(
+                            workerCount: todayAttendance.count,
+                            lastDiary: latestDiary,
+                            lowStockCount: lowStockMaterials.count,
+                            openIncidentCount: openSafetyIncidents.count
+                        )
+                    }
+
+                    // Kritik Stok Uyarısı
+                    if !lowStockMaterials.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Kritik Stok Uyarısı")
+                            ForEach(lowStockMaterials.prefix(3), id: \.id) { mat in
+                                HStack(spacing: 10) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.hakedisDanger)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(mat.name).font(.subheadline.bold())
+                                        Text("Mevcut: \(mat.currentStock.quantityFormatted) \(mat.unit) / Min: \(mat.minimumStock.quantityFormatted)")
+                                            .font(.caption).foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    StatusBadge(text: "Kritik", color: .hakedisDanger)
+                                }
+                                .padding(Spacing.cardSmall)
+                                .background(Color.hakedisCard)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("\(mat.name) kritik stok seviyesinde")
+                            }
+                        }
+                    }
+
+                    // Açık ISG Olayları
+                    if !openSafetyIncidents.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            SectionHeader("Açık İSG Olayları (\(openSafetyIncidents.count))")
+                            ForEach(openSafetyIncidents.prefix(3), id: \.id) { incident in
+                                HStack(spacing: 10) {
+                                    Image(systemName: incident.incidentType.icon)
+                                        .foregroundColor(.hakedisDanger)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(incident.incidentType.rawValue).font(.subheadline.bold())
+                                        Text(String(incident.incidentDescription.prefix(50)))
+                                            .font(.caption).foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Text(incident.date.shortFormatted)
+                                        .font(.caption2).foregroundColor(.secondary)
+                                }
+                                .padding(Spacing.cardSmall)
+                                .background(Color.hakedisCard)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .accessibilityElement(children: .combine)
+                                .accessibilityLabel("ISG olayı: \(incident.incidentType.rawValue)")
+                            }
+                        }
                     }
 
                     // Pending Hakedis
@@ -310,6 +391,10 @@ struct DashboardView: View {
                 }
                 .padding(16)
             }
+            .refreshable {
+                // SwiftData @Query otomatik güncellenir; widget'ı yenile
+                WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
+            }
             .background(Color.hakedisBackground)
             .navigationTitle("Ana Ekran")
             .toolbar {
@@ -348,6 +433,77 @@ struct DashboardView: View {
         let allContracts = projects.flatMap { $0.contracts }
         for contract in allContracts where contract.isOverBudget || contract.budgetUtilization >= 80 {
             notificationManager.scheduleBudgetOverrunAlert(contract: contract)
+        }
+    }
+}
+
+// MARK: - DashboardSantiyeCard
+struct DashboardSantiyeCard: View {
+    let workerCount: Int
+    let lastDiary: SiteDiary?
+    let lowStockCount: Int
+    let openIncidentCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            SectionHeader("Bugün Şantiye")
+            HStack(spacing: 12) {
+                StatCard(
+                    title: "Bugün İşçi",
+                    value: "\(workerCount)",
+                    subtitle: "Sahada",
+                    color: .hakedisSuccess,
+                    icon: "person.3"
+                )
+
+                VStack(spacing: 8) {
+                    if let diary = lastDiary {
+                        HStack(spacing: 8) {
+                            Image(systemName: diary.weatherCondition.icon)
+                                .font(.title3)
+                                .foregroundColor(.hakedisWarning)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(diary.weatherCondition.rawValue)
+                                    .font(.subheadline.bold())
+                                if let temp = diary.temperature {
+                                    Text("\(Int(temp))°C")
+                                        .font(.caption).foregroundColor(.secondary)
+                                }
+                                Text(diary.date.shortFormatted)
+                                    .font(.caption2).foregroundColor(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(Spacing.cardSmall)
+                        .background(Color.hakedisCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("Hava: \(diary.weatherCondition.rawValue)")
+                    }
+
+                    if lowStockCount > 0 || openIncidentCount > 0 {
+                        HStack(spacing: 8) {
+                            if lowStockCount > 0 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "shippingbox")
+                                        .foregroundColor(.hakedisDanger)
+                                    Text("\(lowStockCount) kritik stok")
+                                        .font(.caption).foregroundColor(.hakedisDanger)
+                                }
+                            }
+                            if openIncidentCount > 0 {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "exclamationmark.shield")
+                                        .foregroundColor(.hakedisWarning)
+                                    Text("\(openIncidentCount) açık olay")
+                                        .font(.caption).foregroundColor(.hakedisWarning)
+                                }
+                            }
+                            Spacer()
+                        }
+                    }
+                }
+            }
         }
     }
 }
