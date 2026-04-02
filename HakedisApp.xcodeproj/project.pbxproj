@@ -81,6 +81,17 @@
 		S026 /* HakedisComparisonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C026 /* HakedisComparisonViews.swift */; };
 		S027 /* CashFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C027 /* CashFlowViews.swift */; };
 		S028 /* CashFlowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
+		NB001 /* SantiyeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N001 /* SantiyeTabView.swift */; };
+		NB002 /* FinansTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N002 /* FinansTabView.swift */; };
+		NB003 /* MoreTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N003 /* MoreTabView.swift */; };
+		NB004 /* SiteDiaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N004 /* SiteDiaryViews.swift */; };
+		NB005 /* AttendanceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N005 /* AttendanceViews.swift */; };
+		NB006 /* MaterialStockViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N006 /* MaterialStockViews.swift */; };
+		NB007 /* EquipmentManagementViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N007 /* EquipmentManagementViews.swift */; };
+		NB008 /* SafetyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N008 /* SafetyViews.swift */; };
+		NB009 /* AllHakedisListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N009 /* AllHakedisListView.swift */; };
+		NB010 /* AllPaymentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N010 /* AllPaymentsView.swift */; };
+		NB011 /* AllGuaranteeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N011 /* AllGuaranteeListView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -158,6 +169,17 @@
 		C03F /* PozLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PozLibraryView.swift; path = HakedisApp/Views/Shared/PozLibraryView.swift; sourceTree = "<group>"; };
 		C040 /* PozLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PozLibrary.swift; path = HakedisApp/Views/Shared/PozLibrary.swift; sourceTree = "<group>"; };
 		C041 /* HakedisKopyalaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisKopyalaView.swift; path = HakedisApp/Views/Hakedis/HakedisKopyalaView.swift; sourceTree = "<group>"; };
+		N001 /* SantiyeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SantiyeTabView.swift; path = HakedisApp/Views/Santiye/SantiyeTabView.swift; sourceTree = "<group>"; };
+		N002 /* FinansTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FinansTabView.swift; path = HakedisApp/Views/Finans/FinansTabView.swift; sourceTree = "<group>"; };
+		N003 /* MoreTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MoreTabView.swift; path = HakedisApp/Views/Shared/MoreTabView.swift; sourceTree = "<group>"; };
+		N004 /* SiteDiaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteDiaryViews.swift; path = HakedisApp/Views/Santiye/SiteDiaryViews.swift; sourceTree = "<group>"; };
+		N005 /* AttendanceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttendanceViews.swift; path = HakedisApp/Views/Santiye/AttendanceViews.swift; sourceTree = "<group>"; };
+		N006 /* MaterialStockViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialStockViews.swift; path = HakedisApp/Views/Santiye/MaterialStockViews.swift; sourceTree = "<group>"; };
+		N007 /* EquipmentManagementViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentManagementViews.swift; path = HakedisApp/Views/Santiye/EquipmentManagementViews.swift; sourceTree = "<group>"; };
+		N008 /* SafetyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyViews.swift; path = HakedisApp/Views/Santiye/SafetyViews.swift; sourceTree = "<group>"; };
+		N009 /* AllHakedisListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllHakedisListView.swift; path = HakedisApp/Views/Finans/AllHakedisListView.swift; sourceTree = "<group>"; };
+		N010 /* AllPaymentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllPaymentsView.swift; path = HakedisApp/Views/Finans/AllPaymentsView.swift; sourceTree = "<group>"; };
+		N011 /* AllGuaranteeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllGuaranteeListView.swift; path = HakedisApp/Views/Contracts/AllGuaranteeListView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -233,6 +255,17 @@
 				C03F /* PozLibraryView.swift */,
 				C040 /* PozLibrary.swift */,
 				C041 /* HakedisKopyalaView.swift */,
+				N001 /* SantiyeTabView.swift */,
+				N002 /* FinansTabView.swift */,
+				N003 /* MoreTabView.swift */,
+				N004 /* SiteDiaryViews.swift */,
+				N005 /* AttendanceViews.swift */,
+				N006 /* MaterialStockViews.swift */,
+				N007 /* EquipmentManagementViews.swift */,
+				N008 /* SafetyViews.swift */,
+				N009 /* AllHakedisListView.swift */,
+				N010 /* AllPaymentsView.swift */,
+				N011 /* AllGuaranteeListView.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -475,6 +508,17 @@
 				S03F /* PozLibraryView.swift in Sources */,
 				S040 /* PozLibrary.swift in Sources */,
 				S041 /* HakedisKopyalaView.swift in Sources */,
+				NB001 /* SantiyeTabView.swift in Sources */,
+				NB002 /* FinansTabView.swift in Sources */,
+				NB003 /* MoreTabView.swift in Sources */,
+				NB004 /* SiteDiaryViews.swift in Sources */,
+				NB005 /* AttendanceViews.swift in Sources */,
+				NB006 /* MaterialStockViews.swift in Sources */,
+				NB007 /* EquipmentManagementViews.swift in Sources */,
+				NB008 /* SafetyViews.swift in Sources */,
+				NB009 /* AllHakedisListView.swift in Sources */,
+				NB010 /* AllPaymentsView.swift in Sources */,
+				NB011 /* AllGuaranteeListView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -20,7 +20,12 @@ struct HakedisApp: App {
             Equipment.self, EquipmentUsage.self,
             SoilRecord.self, TestRecord.self,
             AcceptanceRecord.self, WarrantyClaim.self,
-            Guarantee.self
+            Guarantee.self,
+            SiteDiary.self,
+            Attendance.self,
+            Material.self, StockEntry.self,
+            EquipmentItem.self, EquipmentLog.self,
+            SafetyIncident.self, SafetyChecklist.self
         ])
 
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

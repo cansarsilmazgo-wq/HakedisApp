@@ -10,26 +10,24 @@ struct ContentView: View {
         ZStack(alignment: .top) {
             TabView {
                 DashboardView()
-                    .tabItem { Label("Ana Ekran", systemImage: "square.grid.2x2") }
+                    .tabItem { Label("Ana Ekran", systemImage: "house.fill") }
                     .accessibilityLabel("Ana Ekran")
+
                 ProjectListView()
-                    .tabItem { Label("Projeler", systemImage: "building.2") }
+                    .tabItem { Label("Projeler", systemImage: "folder.fill") }
                     .accessibilityLabel("Projeler")
-                ContractorListView()
-                    .tabItem { Label("Taşeronlar", systemImage: "person.2") }
-                    .accessibilityLabel("Taşeronlar")
-                DailyEntryListView()
-                    .tabItem { Label("Saha", systemImage: "pencil.and.list.clipboard") }
-                    .accessibilityLabel("Saha Girişi")
-                PhotoGalleryView()
-                    .tabItem { Label("Galeri", systemImage: "photo.on.rectangle.angled") }
-                    .accessibilityLabel("Fotoğraf Galerisi")
-                ReportsView()
-                    .tabItem { Label("Raporlar", systemImage: "chart.bar") }
-                    .accessibilityLabel("Raporlar")
-                SettingsView()
-                    .tabItem { Label("Ayarlar", systemImage: "gear") }
-                    .accessibilityLabel("Ayarlar")
+
+                SantiyeTabView()
+                    .tabItem { Label("Şantiye", systemImage: "hammer.fill") }
+                    .accessibilityLabel("Şantiye")
+
+                FinansTabView()
+                    .tabItem { Label("Finans", systemImage: "banknote.fill") }
+                    .accessibilityLabel("Finans")
+
+                MoreTabView()
+                    .tabItem { Label("Daha Fazla", systemImage: "ellipsis.circle.fill") }
+                    .accessibilityLabel("Daha Fazla")
             }
             .tint(.hakedisOrange)
 

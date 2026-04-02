@@ -1996,3 +1996,294 @@ final class WarrantyClaim {
         return Date() > deadline
     }
 }
+
+// MARK: - Şantiye Günlüğü (SiteDiary)
+
+enum WeatherCondition: String, Codable, CaseIterable {
+    case sunny = "Güneşli"
+    case cloudy = "Bulutlu"
+    case rainy = "Yağmurlu"
+    case snowy = "Karlı"
+    case stormy = "Fırtınalı"
+
+    var icon: String {
+        switch self {
+        case .sunny: return "sun.max.fill"
+        case .cloudy: return "cloud.fill"
+        case .rainy: return "cloud.rain.fill"
+        case .snowy: return "cloud.snow.fill"
+        case .stormy: return "cloud.bolt.fill"
+        }
+    }
+
+}
+
+@Model
+final class SiteDiary {
+    var id: UUID
+    var date: Date
+    var weatherCondition: WeatherCondition
+    var temperature: Double?
+    var workDescription: String
+    var problems: String?
+    var visitors: String?
+    var notes: String?
+    var photoData: [Data]
+    var project: Project?
+    var createdAt: Date
+
+    init(date: Date = Date(), weatherCondition: WeatherCondition = .sunny, workDescription: String = "") {
+        self.id = UUID()
+        self.date = date
+        self.weatherCondition = weatherCondition
+        self.workDescription = workDescription
+        self.photoData = []
+        self.createdAt = Date()
+    }
+}
+
+// MARK: - Puantaj (Attendance)
+
+@Model
+final class Attendance {
+    var id: UUID
+    var date: Date
+    var workerName: String
+    var workerRole: String?
+    var contractor: Contractor?
+    var project: Project?
+    var isPresent: Bool
+    var normalHours: Double
+    var overtimeHours: Double
+    var notes: String?
+    var createdAt: Date
+
+    init(date: Date = Date(), workerName: String, workerRole: String? = nil) {
+        self.id = UUID()
+        self.date = date
+        self.workerName = workerName
+        self.workerRole = workerRole
+        self.isPresent = true
+        self.normalHours = 8.0
+        self.overtimeHours = 0.0
+        self.createdAt = Date()
+    }
+
+    var totalHours: Double { normalHours + overtimeHours }
+    var isSGKDay: Bool { isPresent && totalHours >= 4 }
+}
+
+// MARK: - Malzeme / Stok Takibi
+
+enum StockEntryType: String, Codable, CaseIterable {
+    case incoming = "Giriş"
+    case outgoing = "Çıkış"
+}
+
+@Model
+final class Material {
+    var id: UUID
+    var name: String
+    var unit: String
+    var currentStock: Double
+    var minimumStock: Double
+    var unitPrice: Double
+    var project: Project?
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var entries: [StockEntry]
+
+    init(name: String, unit: String = "adet", minimumStock: Double = 0, unitPrice: Double = 0) {
+        self.id = UUID()
+        self.name = name
+        self.unit = unit
+        self.currentStock = 0
+        self.minimumStock = minimumStock
+        self.unitPrice = unitPrice
+        self.entries = []
+        self.createdAt = Date()
+    }
+
+    var isLowStock: Bool { currentStock < minimumStock }
+    var stockValue: Double { currentStock * unitPrice }
+}
+
+@Model
+final class StockEntry {
+    var id: UUID
+    var date: Date
+    var entryType: StockEntryType
+    var quantity: Double
+    var supplierName: String?
+    var deliveryNoteNo: String?
+    var usedForWorkItem: String?
+    var notes: String?
+    var photoData: Data?
+    var material: Material?
+    var createdAt: Date
+
+    init(date: Date = Date(), entryType: StockEntryType, quantity: Double) {
+        self.id = UUID()
+        self.date = date
+        self.entryType = entryType
+        self.quantity = quantity
+        self.createdAt = Date()
+    }
+}
+
+// MARK: - Ekipman Yönetimi (EquipmentItem)
+
+enum OwnershipType: String, Codable, CaseIterable {
+    case owned = "Öz Mal"
+    case rented = "Kiralık"
+}
+
+@Model
+final class EquipmentItem {
+    var id: UUID
+    var name: String
+    var plateNumber: String?
+    var ownershipType: OwnershipType
+    var dailyRentalCost: Double
+    var fuelType: String?
+    var project: Project?
+    var maintenanceIntervalHours: Double
+    var totalOperatingHours: Double
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade) var logs: [EquipmentLog]
+
+    init(name: String, ownershipType: OwnershipType = .owned, maintenanceIntervalHours: Double = 250) {
+        self.id = UUID()
+        self.name = name
+        self.ownershipType = ownershipType
+        self.dailyRentalCost = 0
+        self.maintenanceIntervalHours = maintenanceIntervalHours
+        self.totalOperatingHours = 0
+        self.logs = []
+        self.createdAt = Date()
+    }
+
+    var completedMaintenanceCount: Int {
+        logs.filter { $0.isMaintenanceDay }.count
+    }
+
+    var isMaintenanceDue: Bool {
+        guard maintenanceIntervalHours > 0 else { return false }
+        let nextThreshold = maintenanceIntervalHours * Double(completedMaintenanceCount + 1)
+        return totalOperatingHours >= nextThreshold
+    }
+
+    var monthlyCost: Double {
+        let rentalDays = logs.filter { _ in ownershipType == .rented }.count
+        let fuel = logs.reduce(0) { $0 + ($1.fuelCost ?? 0) }
+        return Double(rentalDays) * dailyRentalCost + fuel
+    }
+}
+
+@Model
+final class EquipmentLog {
+    var id: UUID
+    var date: Date
+    var operatingHours: Double
+    var fuelLiters: Double?
+    var fuelCost: Double?
+    var maintenanceNote: String?
+    var isMaintenanceDay: Bool
+    var equipment: EquipmentItem?
+
+    init(date: Date = Date(), operatingHours: Double = 0) {
+        self.id = UUID()
+        self.date = date
+        self.operatingHours = operatingHours
+        self.isMaintenanceDay = false
+    }
+}
+
+// MARK: - İSG (Güvenlik)
+
+enum IncidentType: String, Codable, CaseIterable {
+    case nearMiss = "Ramak Kala"
+    case warning = "Uyarı/İhlal"
+    case minorInjury = "Hafif Yaralanma"
+    case majorInjury = "Ciddi Yaralanma"
+
+    var icon: String {
+        switch self {
+        case .nearMiss: return "exclamationmark.triangle"
+        case .warning: return "bell.badge"
+        case .minorInjury: return "bandage"
+        case .majorInjury: return "cross.circle.fill"
+        }
+    }
+
+    var color: String {
+        switch self {
+        case .nearMiss: return "hakedisWarning"
+        case .warning: return "hakedisInfo"
+        case .minorInjury: return "hakedisWarning"
+        case .majorInjury: return "hakedisDanger"
+        }
+    }
+
+}
+
+enum ChecklistType: String, Codable, CaseIterable {
+    case toolbox = "Toolbox Toplantısı"
+    case ppe = "KKD Kontrolü"
+    case dailyInspection = "Günlük Denetim"
+    case scaffolding = "İskele Kontrolü"
+    case excavation = "Kazı Güvenliği"
+}
+
+@Model
+final class SafetyIncident {
+    var id: UUID
+    var date: Date
+    var incidentType: IncidentType
+    var incidentDescription: String
+    var location: String?
+    var involvedWorker: String?
+    var actionsTaken: String?
+    var preventiveMeasures: String?
+    var photoData: [Data]
+    var isResolved: Bool
+    var project: Project?
+    var createdAt: Date
+
+    init(date: Date = Date(), incidentType: IncidentType, incidentDescription: String) {
+        self.id = UUID()
+        self.date = date
+        self.incidentType = incidentType
+        self.incidentDescription = incidentDescription
+        self.photoData = []
+        self.isResolved = false
+        self.createdAt = Date()
+    }
+}
+
+@Model
+final class SafetyChecklist {
+    var id: UUID
+    var date: Date
+    var checklistType: ChecklistType
+    var items: String  // JSON encoded [ChecklistItem]
+    var completedBy: String
+    var notes: String?
+    var project: Project?
+    var createdAt: Date
+
+    init(date: Date = Date(), checklistType: ChecklistType, completedBy: String) {
+        self.id = UUID()
+        self.date = date
+        self.checklistType = checklistType
+        self.items = "[]"
+        self.completedBy = completedBy
+        self.createdAt = Date()
+    }
+}
+
+struct ChecklistItem: Codable, Identifiable {
+    var id: UUID = UUID()
+    var title: String
+    var isChecked: Bool = false
+    var note: String = ""
+}
