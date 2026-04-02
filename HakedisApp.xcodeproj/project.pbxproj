@@ -92,6 +92,7 @@
 		NB009 /* AllHakedisListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N009 /* AllHakedisListView.swift */; };
 		NB010 /* AllPaymentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N010 /* AllPaymentsView.swift */; };
 		NB011 /* AllGuaranteeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N011 /* AllGuaranteeListView.swift */; };
+		TB012 /* SantiyeModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T010 /* SantiyeModuleTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -180,6 +181,7 @@
 		N009 /* AllHakedisListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllHakedisListView.swift; path = HakedisApp/Views/Finans/AllHakedisListView.swift; sourceTree = "<group>"; };
 		N010 /* AllPaymentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllPaymentsView.swift; path = HakedisApp/Views/Finans/AllPaymentsView.swift; sourceTree = "<group>"; };
 		N011 /* AllGuaranteeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllGuaranteeListView.swift; path = HakedisApp/Views/Contracts/AllGuaranteeListView.swift; sourceTree = "<group>"; };
+		T010 /* SantiyeModuleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SantiyeModuleTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -291,6 +293,7 @@
 				T007 /* Grup3FeatureTests.swift */,
 				T008 /* ApprovalAndHandoverTests.swift */,
 				T009 /* NewFeaturesTests.swift */,
+			T010 /* SantiyeModuleTests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -537,6 +540,7 @@
 				TB009 /* ApprovalAndHandoverTests.swift in Sources */,
 				TB010 /* NewFeaturesTests.swift in Sources */,
 				TB011 /* PozLibrary.swift in TestSources */,
+				TB012 /* SantiyeModuleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
