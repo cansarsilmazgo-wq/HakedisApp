@@ -28,7 +28,7 @@ struct HakedisPDFPreviewView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     guard let data = pdfData else { return }
-                    let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
+                    let name = HakedisPDFGenerator.safeFileName(hakedis.periodName)
                     let url = FileManager.default.temporaryDirectory
                         .appendingPathComponent("\(name).pdf")
                     do {
@@ -89,7 +89,7 @@ struct HakedisShareButton: View {
     var body: some View {
         Button {
             let data = HakedisPDFGenerator.generate(hakedis: hakedis)
-            let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
+            let name = HakedisPDFGenerator.safeFileName(hakedis.periodName)
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).pdf")
             do {
                 try data.write(to: url)
@@ -116,7 +116,7 @@ struct WhatsAppShareButton: View {
 
     private func generateAndShare() {
         let data = HakedisPDFGenerator.generate(hakedis: hakedis)
-        let name = hakedis.periodName.replacingOccurrences(of: " ", with: "_")
+        let name = HakedisPDFGenerator.safeFileName(hakedis.periodName)
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).pdf")
         do {
             try data.write(to: url)
@@ -163,6 +163,17 @@ struct HakedisPDFGenerator {
         static let cumul:     CGFloat = 328
         static let price:     CGFloat = 384
         static let amount:    CGFloat = 452
+    }
+
+    // FIX-13: PDF dosya adından Türkçe karakterleri temizle
+    static func safeFileName(_ name: String) -> String {
+        let map: [(String, String)] = [
+            ("ş", "s"), ("Ş", "S"), ("ı", "i"), ("İ", "I"),
+            ("ğ", "g"), ("Ğ", "G"), ("ü", "u"), ("Ü", "U"),
+            ("ö", "o"), ("Ö", "O"), ("ç", "c"), ("Ç", "C"),
+            (" ", "_")
+        ]
+        return map.reduce(name) { $0.replacingOccurrences(of: $1.0, with: $1.1) }
     }
 
     static func generate(hakedis: Hakedis) -> Data {
@@ -234,6 +245,29 @@ struct HakedisPDFGenerator {
                 y = drawRow(label: "Gecikme Cezası (\(contract.delayDays()) gün)",
                             value: "−\(contract.delayPenalty().currencyFormatted)", y: y, isRed: true)
             }
+
+            // FIX-9: Stopaj satırı
+            if hakedis.withholdingTaxAmount > 0 {
+                y = drawRow(label: "Stopaj (%\(String(format: "%.1f", hakedis.withholdingTaxRate)))",
+                            value: "−\(hakedis.withholdingTaxAmount.currencyFormatted)", y: y, isRed: true)
+            }
+
+            // FIX-10: Damga Vergisi satırı
+            if hakedis.stampTaxAmount > 0 {
+                y = drawRow(label: "Damga Vergisi (‰\(String(format: "%.2f", hakedis.stampTaxRate * 10)))",
+                            value: "−\(hakedis.stampTaxAmount.currencyFormatted)", y: y, isRed: true)
+            }
+
+            // FIX-11: KDV Tevkifatı satırı
+            let totalTevkifat = hakedis.vatWithholdings.reduce(0.0) { $0 + $1.ownerPays }
+            if totalTevkifat > 0 {
+                y = drawRow(label: "KDV Tevkifatı",
+                            value: "−\(totalTevkifat.currencyFormatted)", y: y, isRed: true)
+            }
+
+            // FIX-12: Vergi Sonrası Net
+            y = drawRow(label: "Vergi Sonrası Net",
+                        value: hakedis.netAmountAfterTax.currencyFormatted, y: y)
 
             // KDV
             if hakedis.kdvAmount > 0 {

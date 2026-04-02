@@ -687,7 +687,8 @@ struct HakedisStatusWorkflow: View {
                     }
                     .buttonStyle(.borderedProminent).tint(.hakedisSuccess)
                 case .approved:
-                    if hakedis.remainingAmount <= 0 {
+                    // FIX-3: grossAmount > 0 kontrolü — sıfır hakedişi yanlışlıkla .paid yapılmasın
+                    if hakedis.remainingAmount <= 0 && hakedis.grossAmount > 0 {
                         Button("Ödendi Olarak İşaretle") {
                             hakedis.status = .paid
                         }
@@ -695,7 +696,12 @@ struct HakedisStatusWorkflow: View {
                         .tint(.hakedisPaid)
                     }
                 case .rejected:
+                    // FIX-5: Taslağa dönüşte onay zincirini temizle — yeni zincir kurulabilsin
                     Button("Taslağa Al") {
+                        for step in hakedis.approvalSteps {
+                            modelContext.delete(step)
+                        }
+                        hakedis.approvalSteps.removeAll()
                         hakedis.status = .draft
                     }
                     .buttonStyle(.bordered)
@@ -828,6 +834,8 @@ struct AddPaymentView: View {
     @State private var amount = ""
     @State private var paymentDate = Date()
     @State private var description = ""
+    // FIX-4: Fazla ödeme onay dialogu
+    @State private var showOverpaymentConfirm = false
 
     private var enteredAmount: Double {
         Double(amount.replacingOccurrences(of: ",", with: ".")) ?? 0
@@ -837,6 +845,7 @@ struct AddPaymentView: View {
         enteredAmount > hakedis.remainingAmount && hakedis.remainingAmount > 0
     }
 
+    // FIX-4: amount <= 0 ise kaydetme
     var isValid: Bool { enteredAmount > 0 }
 
     var body: some View {
@@ -873,10 +882,28 @@ struct AddPaymentView: View {
                     Button("İptal") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Kaydet") { save() }
-                        .disabled(!isValid)
-                        .bold()
+                    // FIX-4: Fazla ödeme ise onay iste, değilse direkt kaydet
+                    Button("Kaydet") {
+                        if isOverpayment {
+                            showOverpaymentConfirm = true
+                        } else {
+                            save()
+                        }
+                    }
+                    .disabled(!isValid)
+                    .bold()
                 }
+            }
+            // FIX-4: Fazla ödeme onay dialogu
+            .confirmationDialog(
+                "Fazla Ödeme",
+                isPresented: $showOverpaymentConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Yine de Kaydet", role: .destructive) { save() }
+                Button("İptal", role: .cancel) {}
+            } message: {
+                Text("Girilen tutar (\(enteredAmount.currencyFormatted)) kalan bakiyeyi (\(hakedis.remainingAmount.currencyFormatted)) aşıyor. Fazla ödeme giriyorsunuz, emin misiniz?")
             }
         }
     }

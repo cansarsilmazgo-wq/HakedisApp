@@ -55,6 +55,11 @@ struct HakedisKopyalaView: View {
                            periodStart: newStartDate, periodEnd: newEndDate)
         yeni.status = .draft
         yeni.contract = hakedis.contract
+        // FIX-7: Götürü bedel tamamlanma yüzdesini aktar
+        yeni.lumpSumCompletionPercentage = hakedis.lumpSumCompletionPercentage
+        // FIX-8: Özel vergi oranlarını aktar
+        yeni.withholdingTaxRate = hakedis.withholdingTaxRate
+        yeni.stampTaxRate = hakedis.stampTaxRate
 
         for eskiItem in hakedis.items {
             let yeniItem = HakedisItem(

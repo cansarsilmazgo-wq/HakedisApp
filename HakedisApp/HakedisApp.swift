@@ -52,6 +52,10 @@ struct HakedisApp: App {
             if let container = modelContainer {
                 ContentView()
                     .modelContainer(container)
+                    // FIX-23: İlk açılışta bildirim izni iste
+                    .onAppear {
+                        NotificationManager.shared.requestPermission()
+                    }
             } else {
                 VStack(spacing: 20) {
                     Image(systemName: "exclamationmark.triangle.fill")

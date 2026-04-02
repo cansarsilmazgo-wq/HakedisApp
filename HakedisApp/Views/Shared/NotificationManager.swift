@@ -37,15 +37,17 @@ class NotificationManager: ObservableObject {
         UNUserNotificationCenter.current().setBadgeCount(0, withCompletionHandler: nil)
     }
 
+    // FIX-21: Geciken ödeme bildirimi her gün 09:00'da tekrarlar
     func schedulePaymentOverdueAlert(hakedis: Hakedis, daysOverdue: Int) {
         guard isAuthorized, overdueAlertsEnabled else { return }
         let content = UNMutableNotificationContent()
         content.title = "Geciken Ödeme Uyarısı"
         content.body = "\(hakedis.contract?.contractor?.name ?? "Taşeron") - \(hakedis.periodName): \(daysOverdue) gündür ödeme bekleniyor."
         content.sound = .default
-        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date().addingTimeInterval(86400))
+        var components = DateComponents()
         components.hour = 9; components.minute = 0
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        // repeats: true — hakediş ödenene kadar her gün 09:00'da hatırlatır
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
         let request = UNNotificationRequest(identifier: "overdue_\(hakedis.id.uuidString)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
     }
@@ -175,8 +177,14 @@ class NotificationManager: ObservableObject {
 
     // MARK: - Teminat Mektubu Bildirimleri
 
+    // FIX-22: Teminat bildirimleri için ayrı toggle
+    var guaranteeAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "guaranteeAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "guaranteeAlertsEnabled") }
+    }
+
     func scheduleGuaranteeNotification(guarantee: Guarantee) {
-        guard isAuthorized, approvalAlertsEnabled else { return }
+        guard isAuthorized, guaranteeAlertsEnabled else { return }
         let daysBefore = [30, 7, 1]
         for days in daysBefore {
             guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: guarantee.expiryDate),
@@ -218,6 +226,8 @@ struct NotificationSettingsView: View {
     @AppStorage("overdueAlertsEnabled") private var overdueAlertsEnabled = false
     @AppStorage("approvalAlertsEnabled") private var approvalAlertsEnabled = false
     @AppStorage("budgetAlertsEnabled") private var budgetAlertsEnabled = false
+    // FIX-22: Teminat bildirimleri için ayrı AppStorage
+    @AppStorage("guaranteeAlertsEnabled") private var guaranteeAlertsEnabled = false
 
     var body: some View {
         Form {
@@ -274,16 +284,31 @@ struct NotificationSettingsView: View {
                             }
                         }
                     }
+                // FIX-22: Teminat bildirimlerini approvalAlertsEnabled'dan ayır
+                Toggle("Teminat Mektubu Uyarıları", isOn: $guaranteeAlertsEnabled)
+                    .tint(.hakedisOrange)
+                    .onChange(of: guaranteeAlertsEnabled) { _, val in
+                        manager.guaranteeAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { $0.identifier.hasPrefix("guarantee_") }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
             }
 
             Section("Bilgi") {
                 Text("Günlük hatırlatıcı her gün saat 17:00'de saha girişi yapmanızı hatırlatır.")
                     .font(.caption).foregroundColor(.secondary)
-                Text("Geciken ödeme uyarıları; hakediş vade tarihinden 7 gün önce (09:00), 3 gün önce (09:00) ve vade günü (09:00) otomatik olarak zamanlanır. Hakediş ödendiğinde iptal edilir.")
+                // FIX-21: Tekrarlayan geciken ödeme bildirimi bilgisi güncellendi
+                Text("Geciken ödeme uyarıları; ödeme yapılana kadar her gün 09:00'da tekrar eder. Vade bildirimleri 7, 3 gün önce ve vade günü zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Sözleşme bitiş tarihi uyarıları; bitiş tarihinden 30, 14 ve 7 gün önce sabah 08:00'de zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Bütçe aşımı uyarıları, sözleşme bütçesi %80 veya üzeri kullanıldığında tetiklenir.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Teminat uyarıları; son kullanım tarihinden 30, 7 ve 1 gün önce 09:00'da zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
             }
         }

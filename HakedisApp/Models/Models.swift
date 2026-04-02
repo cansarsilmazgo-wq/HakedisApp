@@ -456,8 +456,8 @@ final class Hakedis {
 
     var totalPaid: Double { payments.reduce(0) { $0 + $1.amount } }
 
-    /// Kalan ödeme (KDV dahil toplam – ödenen)
-    var remainingAmount: Double { totalWithKDV - totalPaid }
+    /// Kalan ödeme (KDV dahil toplam – gecikme cezası – ödenen)
+    var remainingAmount: Double { totalWithKDV - penaltyAmount - totalPaid }
 
     /// Ödeme gecikme günü (vade tarihi geçmişse ve hâlâ ödenmemişse)
     var daysOverdue: Int {
@@ -476,9 +476,14 @@ final class Hakedis {
 
     var isOverdue: Bool { daysOverdue > 0 }
 
-    var withholdingTaxAmount: Double { grossAmount * withholdingTaxRate / 100 }
-    var stampTaxAmount: Double { grossAmount * stampTaxRate / 100 }
+    /// Stopaj: KDV matrahı (netAmount) üzerinden kesilir — mevzuat gereği
+    var withholdingTaxAmount: Double { netAmount * withholdingTaxRate / 100 }
+    /// Damga vergisi: KDV matrahı (netAmount) üzerinden kesilir
+    var stampTaxAmount: Double { netAmount * stampTaxRate / 100 }
+    /// Stopaj ve damga sonrası net
     var netAmountAfterTax: Double { netAmount - withholdingTaxAmount - stampTaxAmount }
+    /// Gecikme cezası da düşüldükten sonra net ödeme
+    var netAmountAfterPenalty: Double { netAmountAfterTax - penaltyAmount }
     var effectiveGrossAmount: Double {
         guard let c = contract else { return grossAmount }
         if c.contractType == .lumpSum {
@@ -586,15 +591,17 @@ final class Milestone {
     var actualDate: Date?
     var notes: String
     var isCritical: Bool
+    var plannedAmount: Double = 0.0
     var project: Project?
     var createdAt: Date
 
-    init(title: String, plannedDate: Date, notes: String = "", isCritical: Bool = false) {
+    init(title: String, plannedDate: Date, notes: String = "", isCritical: Bool = false, plannedAmount: Double = 0.0) {
         self.id = UUID()
         self.title = title
         self.plannedDate = plannedDate
         self.notes = notes
         self.isCritical = isCritical
+        self.plannedAmount = plannedAmount
         self.createdAt = Date()
     }
 

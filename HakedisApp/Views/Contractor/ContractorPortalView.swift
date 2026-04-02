@@ -296,6 +296,19 @@ struct ContractorHakedisDetailView: View {
     let hakedis: Hakedis
     @State private var showingObjection = false
     @State private var objectionSubmitted = false
+    // FIX-19: PDF paylaşım
+    @State private var pdfItem: PDFFileItem?
+    @State private var showPDFError = false
+
+    var statusColor: Color {
+        switch hakedis.status {
+        case .draft: return .secondary
+        case .pendingApproval: return .hakedisWarning
+        case .approved: return .hakedisSuccess
+        case .rejected: return .hakedisDanger
+        case .paid: return .hakedisPaid
+        }
+    }
 
     var body: some View {
         List {
@@ -307,7 +320,7 @@ struct ContractorHakedisDetailView: View {
                             Text(hakedis.netAmount.currencyFormatted).font(.title2.bold())
                         }
                         Spacer()
-                        StatusBadge(text: hakedis.status.rawValue, color: .hakedisOrange)
+                        StatusBadge(text: hakedis.status.rawValue, color: statusColor)
                     }
                     Divider()
                     HStack {
@@ -319,6 +332,22 @@ struct ContractorHakedisDetailView: View {
                         VStack(alignment: .trailing, spacing: 4) {
                             Text("Teminat").font(.caption).foregroundColor(.secondary)
                             Text(hakedis.retentionAmount.currencyFormatted).font(.subheadline).foregroundColor(.hakedisDanger)
+                        }
+                    }
+                    if hakedis.totalPaid > 0 {
+                        Divider()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Ödenen").font(.caption).foregroundColor(.secondary)
+                                Text(hakedis.totalPaid.currencyFormatted).font(.subheadline).foregroundColor(.hakedisSuccess)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("Kalan").font(.caption).foregroundColor(.secondary)
+                                Text(hakedis.remainingAmount.currencyFormatted)
+                                    .font(.subheadline)
+                                    .foregroundColor(hakedis.remainingAmount > 0 ? .hakedisDanger : .hakedisSuccess)
+                            }
                         }
                     }
                 }
@@ -342,6 +371,63 @@ struct ContractorHakedisDetailView: View {
                 }
             }
 
+            // FIX-18: Ödeme geçmişi (read-only)
+            if !hakedis.payments.isEmpty {
+                Section("Ödeme Geçmişi") {
+                    ForEach(hakedis.payments.sorted { $0.paymentDate > $1.paymentDate }, id: \.id) { payment in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(payment.paymentDescription.isEmpty ? "Ödeme" : payment.paymentDescription)
+                                    .font(.subheadline)
+                                Text(payment.paymentDate.shortFormatted)
+                                    .font(.caption).foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(payment.amount.currencyFormatted)
+                                .font(.subheadline.bold())
+                                .foregroundColor(.hakedisSuccess)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+
+            // FIX-20: Red gerekçesi ve revizyon geçmişi
+            if hakedis.status == .rejected || !hakedis.revisions.isEmpty {
+                Section("Red & Revizyon Geçmişi") {
+                    if hakedis.status == .rejected && !hakedis.approvalNote.isEmpty {
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "xmark.circle.fill").foregroundColor(.hakedisDanger)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Red Gerekçesi").font(.caption).foregroundColor(.secondary)
+                                Text(hakedis.approvalNote).font(.subheadline)
+                            }
+                        }
+                    }
+                    ForEach(hakedis.revisions.sorted { $0.rejectedAt > $1.rejectedAt }, id: \.id) { rev in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(rev.version).font(.caption.bold().monospaced())
+                                    .foregroundColor(.hakedisDanger)
+                                Spacer()
+                                Text(rev.rejectedAt.shortFormatted).font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                            Text(rev.rejectionReason).font(.caption).foregroundColor(.secondary)
+                            if !rev.isExpired {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "clock.badge.exclamationmark")
+                                        .font(.caption2).foregroundColor(.hakedisWarning)
+                                    Text("İtiraz süresi: \(rev.objectionDaysLeft) gün")
+                                        .font(.caption2).foregroundColor(.hakedisWarning)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+
             if hakedis.status == .pendingApproval || hakedis.status == .approved {
                 Section {
                     if objectionSubmitted {
@@ -360,11 +446,33 @@ struct ContractorHakedisDetailView: View {
         }
         .navigationTitle(hakedis.periodName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            // FIX-19: PDF indirme butonu
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    let data = HakedisPDFGenerator.generate(hakedis: hakedis)
+                    let name = HakedisPDFGenerator.safeFileName(hakedis.periodName)
+                    let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(name).pdf")
+                    do {
+                        try data.write(to: url)
+                        pdfItem = PDFFileItem(url: url)
+                    } catch {
+                        showPDFError = true
+                    }
+                } label: {
+                    Image(systemName: "arrow.down.doc.fill")
+                }
+            }
+        }
         .sheet(isPresented: $showingObjection) {
             ObjectionView(hakedis: hakedis) {
                 objectionSubmitted = true
                 showingObjection = false
             }
+        }
+        .sheet(item: $pdfItem) { item in ShareSheet(items: [item.url]) }
+        .alert("PDF Oluşturulamadı", isPresented: $showPDFError) {
+            Button("Tamam", role: .cancel) {}
         }
     }
 }

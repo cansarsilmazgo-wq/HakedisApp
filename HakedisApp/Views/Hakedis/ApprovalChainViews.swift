@@ -25,7 +25,8 @@ struct ApprovalChainSection: View {
     }
 
     var body: some View {
-        if hakedis.approvalSteps.isEmpty {
+        // FIX-6: İptal edilmemiş adım yoksa kurulum ekranı göster
+        if hakedis.approvalSteps.filter({ !$0.isCancelled }).isEmpty {
             Button {
                 showingSetup = true
             } label: {

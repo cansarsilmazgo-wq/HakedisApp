@@ -14,34 +14,73 @@ struct SCurveView: View {
         project.milestones.sorted { $0.plannedDate < $1.plannedDate }
     }
 
+    // FIX-14: Planlanan veri — tutar ağırlıklı kümülatif S eğrisi
     private var plannedData: [(date: Date, value: Double)] {
         guard !milestones.isEmpty else { return [] }
-        let total = milestones.count
-        return milestones.enumerated().map { (i, m) in
-            (date: m.plannedDate, value: Double(i + 1) / Double(total) * 100)
+        let totalPlanned = milestones.reduce(0) { $0 + $1.plannedAmount }
+        if totalPlanned > 0 {
+            // Milestone'lara plannedAmount girilmişse ağırlıklı hesap
+            var cumulative: Double = 0
+            return milestones.sorted { $0.plannedDate < $1.plannedDate }.map { m in
+                cumulative += m.plannedAmount
+                return (date: m.plannedDate, value: min(cumulative / totalPlanned * 100, 100))
+            }
+        } else {
+            // plannedAmount girilmemişse eşit dağılım (fallback)
+            let total = milestones.count
+            return milestones.enumerated().map { (i, m) in
+                (date: m.plannedDate, value: Double(i + 1) / Double(total) * 100)
+            }
         }
     }
 
+    // FIX-15: Gerçekleşen veri — tutar bazlı (miktar × birim fiyat), birim karışımı olmaz
     private var actualData: [(date: Date, value: Double)] {
         let allItems = project.contracts.flatMap { $0.workItems }
         guard !allItems.isEmpty else { return [] }
-        let totalContracted = allItems.reduce(0) { $0 + $1.contractedQuantity }
-        guard totalContracted > 0 else { return [] }
+        let totalContractAmount = allItems.reduce(0) { $0 + $1.totalAmount }
+        guard totalContractAmount > 0 else { return [] }
 
-        let allEntries = allItems.flatMap { $0.dailyEntries }.sorted { $0.date < $1.date }
-        guard !allEntries.isEmpty else { return [] }
+        // Her iş kalemi için günlük tutar: entry.quantity × workItem.unitPrice
+        var amountByDay: [Date: Double] = [:]
+        for item in allItems {
+            for entry in item.dailyEntries {
+                let day = Calendar.current.startOfDay(for: entry.date)
+                amountByDay[day, default: 0] += entry.quantity * item.unitPrice
+            }
+        }
+        guard !amountByDay.isEmpty else { return [] }
 
         var result: [(date: Date, value: Double)] = []
         var cumulative: Double = 0
-        let grouped = Dictionary(grouping: allEntries) { entry -> Date in
-            Calendar.current.startOfDay(for: entry.date)
-        }
-        for (date, entries) in grouped.sorted(by: { $0.key < $1.key }) {
-            cumulative += entries.reduce(0) { $0 + $1.quantity }
-            result.append((date: date, value: min(cumulative / totalContracted * 100, 100)))
+        for (date, amount) in amountByDay.sorted(by: { $0.key < $1.key }) {
+            cumulative += amount
+            result.append((date: date, value: min(cumulative / totalContractAmount * 100, 100)))
         }
         return result
     }
+
+    // FIX-16: Seçilen aralığa göre verileri grupla
+    private func groupByInterval(_ data: [(date: Date, value: Double)]) -> [(date: Date, value: Double)] {
+        guard !data.isEmpty else { return data }
+        var grouped: [Date: Double] = [:]
+        for point in data {
+            let key: Date
+            switch selectedInterval {
+            case .weekly:
+                key = Calendar.current.dateInterval(of: .weekOfYear, for: point.date)?.start ?? point.date
+            case .monthly:
+                let comps = Calendar.current.dateComponents([.year, .month], from: point.date)
+                key = Calendar.current.date(from: comps) ?? point.date
+            }
+            // Kümülatif seri: her periyotta son (en yüksek) değeri al
+            grouped[key] = max(grouped[key] ?? 0, point.value)
+        }
+        return grouped.sorted(by: { $0.key < $1.key }).map { (date: $0.key, value: $0.value) }
+    }
+
+    private var groupedPlanned: [(date: Date, value: Double)] { groupByInterval(plannedData) }
+    private var groupedActual:  [(date: Date, value: Double)] { groupByInterval(actualData) }
 
     var body: some View {
         NavigationStack {
@@ -61,8 +100,8 @@ struct SCurveView: View {
                         .padding(.horizontal)
 
                         Chart {
-                            if !plannedData.isEmpty {
-                                ForEach(plannedData, id: \.date) { point in
+                            if !groupedPlanned.isEmpty {
+                                ForEach(groupedPlanned, id: \.date) { point in
                                     LineMark(x: .value("Tarih", point.date),
                                              y: .value("Planlanan", point.value))
                                     .foregroundStyle(Color.hakedisInfo)
@@ -71,8 +110,8 @@ struct SCurveView: View {
                                 .foregroundStyle(by: .value("Seri", "Planlanan"))
                             }
 
-                            if !actualData.isEmpty {
-                                ForEach(actualData, id: \.date) { point in
+                            if !groupedActual.isEmpty {
+                                ForEach(groupedActual, id: \.date) { point in
                                     LineMark(x: .value("Tarih", point.date),
                                              y: .value("Gerçekleşen", point.value))
                                     .foregroundStyle(Color.hakedisOrange)
@@ -111,6 +150,12 @@ struct SCurveView: View {
                             }
                         }
                         .padding(.horizontal)
+
+                        // Interval bilgi notu
+                        Text(selectedInterval == .weekly ? "Haftalık gruplandırma" : "Aylık gruplandırma")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal)
                     }
                 }
                 .padding(.vertical)

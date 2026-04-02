@@ -306,16 +306,17 @@ final class TestProjesiAScenarioTests: XCTestCase {
         hakedis.dueDate = cal.date(byAdding: .day, value: -30, to: Date())
         hakedis.status  = .approved
 
-        // K4 fix: gecikme faizi netAmountAfterTax üzerinden hesaplanır
-        // grossAmount=6375, netAmount=5036.25, stopaj=191.25, damga=60.435 → netAmtAfterTax≈4784.565
+        // FIX-1: Stopaj ve damga vergisi netAmount (KDV matrahı) üzerinden hesaplanır
+        // grossAmount=6375, retention=%6=382.5, advance=%15=956.25, netAmount=5036.25
+        // stopaj = netAmount * 3% = 151.09, damga = netAmount * 0.948% = 47.74 → netAmtAfterTax≈4837.42
         let grossAmt = 75.0 * 85.0
-        let netAmt = grossAmt * (1 - 0.06 - 0.15)
-        let netAmtAfterTax = netAmt - (grossAmt * 3.0 / 100) - (grossAmt * 0.948 / 100)
+        let netAmt = grossAmt * (1.0 - 0.06 - 0.15)          // 5036.25
+        let netAmtAfterTax = netAmt - (netAmt * 3.0 / 100) - (netAmt * 0.948 / 100)
         let expectedInterest = netAmtAfterTax * (9.0 / 365.0 / 100.0) * 30
-        XCTAssertEqual(hakedis.daysOverdue,    30)
+        XCTAssertEqual(hakedis.daysOverdue, 30)
         XCTAssertTrue(hakedis.isOverdue)
         XCTAssertEqual(hakedis.overdueInterest, expectedInterest, accuracy: 0.01,
-                       "30 günlük gecikme faizi yaklaşık 37,27 TL olmalı")
+                       "30 günlük gecikme faizi (FIX-1: netAmount bazlı stopaj/damga)")
     }
 
     // MARK: - Test 8: Statü Akışı

@@ -462,7 +462,8 @@ final class CalculationTests: XCTestCase {
     // MARK: - Stopaj Edge Cases
 
     func testWithholdingFivePercent() throws {
-        // withholdingTaxRate 5, grossAmount 100_000 → withholdingTaxAmount 5_000
+        // sözleşme yok → netAmount = grossAmount = 100_000
+        // withholdingTaxRate 5, netAmount 100_000 → withholdingTaxAmount 5_000
         let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
         h.withholdingTaxRate = 5.0
         let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
@@ -472,6 +473,7 @@ final class CalculationTests: XCTestCase {
         context.insert(h)
         context.insert(item)
         XCTAssertEqual(h.grossAmount, 100_000)
+        XCTAssertEqual(h.netAmount, 100_000, "Sözleşme yok → netAmount = grossAmount")
         XCTAssertEqual(h.withholdingTaxAmount, 5_000, accuracy: 0.01)
     }
 
@@ -491,7 +493,8 @@ final class CalculationTests: XCTestCase {
     // MARK: - Damga Vergisi Edge Cases
 
     func testStampTaxOneMillion() throws {
-        // stampTaxRate 0.948, grossAmount 1_000_000 → stampTaxAmount 9_480
+        // sözleşme yok → netAmount = grossAmount = 1_000_000
+        // stampTaxRate 0.948, netAmount 1_000_000 → stampTaxAmount 9_480
         let h = Hakedis(periodName: "Test", periodStart: Date(), periodEnd: Date())
         h.stampTaxRate = 0.948
         let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
@@ -501,6 +504,7 @@ final class CalculationTests: XCTestCase {
         context.insert(h)
         context.insert(item)
         XCTAssertEqual(h.grossAmount, 1_000_000)
+        XCTAssertEqual(h.netAmount, 1_000_000, "Sözleşme yok → netAmount = grossAmount")
         XCTAssertEqual(h.stampTaxAmount, 9_480, accuracy: 0.01)
     }
 
@@ -515,6 +519,7 @@ final class CalculationTests: XCTestCase {
 
     // MARK: - Net Tutar Zinciri
 
+    // FIX-1: Stopaj ve damga vergisi netAmount (KDV matrahı) üzerinden hesaplanmalı
     func testFullNetAmountChain() throws {
         // gross = 1_000_000, retentionRate=5, advanceRate=10, withholdingTaxRate=5, stampTaxRate=0.948
         let (hakedis, _) = try makeHakedisWithRates(retentionRate: 5, advanceRate: 10, kdvRate: 0)
@@ -531,12 +536,89 @@ final class CalculationTests: XCTestCase {
         XCTAssertEqual(hakedis.advanceDeduction, 100_000, accuracy: 0.01)
         // netAmount = 1_000_000 - 50_000 - 100_000 = 850_000
         XCTAssertEqual(hakedis.netAmount, 850_000, accuracy: 0.01)
-        // withholdingTaxAmount = 1_000_000 * 5% = 50_000
-        XCTAssertEqual(hakedis.withholdingTaxAmount, 50_000, accuracy: 0.01)
-        // stampTaxAmount = 1_000_000 * 0.948% = 9_480
-        XCTAssertEqual(hakedis.stampTaxAmount, 9_480, accuracy: 0.01)
-        // netAmountAfterTax = 850_000 - 50_000 - 9_480 = 790_520
-        XCTAssertEqual(hakedis.netAmountAfterTax, 790_520, accuracy: 0.01)
+        // FIX-1: Stopaj = netAmount * 5% = 850_000 * 5% = 42_500 (eski: grossAmount üzerinden 50_000)
+        XCTAssertEqual(hakedis.withholdingTaxAmount, 42_500, accuracy: 0.01)
+        // FIX-1: Damga = netAmount * 0.948% = 850_000 * 0.948% = 8_058
+        XCTAssertEqual(hakedis.stampTaxAmount, 8_058, accuracy: 0.01)
+        // netAmountAfterTax = 850_000 - 42_500 - 8_058 = 799_442
+        XCTAssertEqual(hakedis.netAmountAfterTax, 799_442, accuracy: 0.01)
+    }
+
+    // FIX-1: Stopaj, sözleşme kesintisi yoksa netAmount = grossAmount olur (birim fiyat, 0-0)
+    func test_withholdingOnNetAmount_noDeductions() throws {
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 0, advanceRate: 0, kdvRate: 0)
+        hakedis.withholdingTaxRate = 3.0
+        hakedis.stampTaxRate = 0.948
+        let item = HakedisItem(workItemName: "Beton", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // gross = netAmount = 100_000 (kesinti yok)
+        XCTAssertEqual(hakedis.grossAmount, 100_000, accuracy: 0.01)
+        XCTAssertEqual(hakedis.netAmount, 100_000, accuracy: 0.01)
+        // Stopaj = 100_000 * 3% = 3_000
+        XCTAssertEqual(hakedis.withholdingTaxAmount, 3_000, accuracy: 0.01)
+        // Damga = 100_000 * 0.948% = 948
+        XCTAssertEqual(hakedis.stampTaxAmount, 948, accuracy: 0.01)
+        // netAmountAfterTax = 100_000 - 3_000 - 948 = 96_052
+        XCTAssertEqual(hakedis.netAmountAfterTax, 96_052, accuracy: 0.01)
+    }
+
+    // FIX-1: Stopaj kesintileri sonraki netAmount üzerinden hesaplanmalı (teminat+avans düşüldükten sonra)
+    func test_withholdingOnNetAmount_withDeductions() throws {
+        let (hakedis, _) = try makeHakedisWithRates(retentionRate: 10, advanceRate: 20, kdvRate: 0)
+        hakedis.withholdingTaxRate = 3.0
+        hakedis.stampTaxRate = 0.948
+        let item = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // gross = 100_000
+        // retention = 10_000, advance = 20_000, net = 70_000
+        XCTAssertEqual(hakedis.netAmount, 70_000, accuracy: 0.01)
+        // Stopaj = netAmount * 3% = 70_000 * 3% = 2_100
+        XCTAssertEqual(hakedis.withholdingTaxAmount, 2_100, accuracy: 0.01)
+        // Damga = netAmount * 0.948% = 70_000 * 0.948% = 663.6
+        XCTAssertEqual(hakedis.stampTaxAmount, 663.6, accuracy: 0.01)
+        // netAmountAfterTax = 70_000 - 2_100 - 663.6 = 67_236.4
+        XCTAssertEqual(hakedis.netAmountAfterTax, 67_236.4, accuracy: 0.01)
+    }
+
+    // FIX-2: netAmountAfterPenalty = netAmountAfterTax - penaltyAmount
+    func test_netAmountAfterPenalty() throws {
+        let (hakedis, contract) = try makeHakedis(retentionRate: 0)
+        hakedis.withholdingTaxRate = 3.0
+        hakedis.stampTaxRate = 0.948
+        contract.dailyPenaltyRate = 0.1
+        contract.completionDeadline = Calendar.current.date(byAdding: .day, value: -10, to: Date())
+        let wi = WorkItem(code: "01", name: "Kazı", unit: "m³", unitPrice: 1_000, contractedQuantity: 100)
+        wi.contract = contract
+        contract.workItems.append(wi)
+        context.insert(wi)
+        let item = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // penalty = totalContractAmount(100_000) * 0.1% * 10 = 1_000
+        XCTAssertEqual(hakedis.penaltyAmount, 1_000, accuracy: 0.01)
+        let expectedNetAfterPenalty = hakedis.netAmountAfterTax - 1_000
+        XCTAssertEqual(hakedis.netAmountAfterPenalty, expectedNetAfterPenalty, accuracy: 0.01)
+    }
+
+    // FIX-2: remainingAmount gecikme cezasını düşmeli
+    func test_remainingAmount_includesPenalty() throws {
+        let (hakedis, contract) = try makeHakedis(retentionRate: 0)
+        contract.dailyPenaltyRate = 0.1
+        contract.completionDeadline = Calendar.current.date(byAdding: .day, value: -10, to: Date())
+        let wi = WorkItem(code: "01", name: "Kazı", unit: "m³", unitPrice: 1_000, contractedQuantity: 100)
+        wi.contract = contract
+        contract.workItems.append(wi)
+        context.insert(wi)
+        let item = HakedisItem(workItemName: "Kazı", workItemCode: "01",
+                               unit: "m³", unitPrice: 1_000, previousQuantity: 0, currentQuantity: 100)
+        insertItems([item], into: hakedis)
+        // totalWithKDV = 100_000, penalty = 1_000, totalPaid = 0
+        // remainingAmount = 100_000 - 1_000 - 0 = 99_000
+        XCTAssertEqual(hakedis.totalWithKDV, 100_000, accuracy: 0.01)
+        XCTAssertEqual(hakedis.penaltyAmount, 1_000, accuracy: 0.01)
+        XCTAssertEqual(hakedis.remainingAmount, 99_000, accuracy: 0.01)
     }
 
     func testNetAmountZeroGross() throws {

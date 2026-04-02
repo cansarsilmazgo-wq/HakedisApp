@@ -81,8 +81,12 @@ struct RejectionCaptureSheet: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("İtiraz Süresi")
                                 .font(.caption).foregroundColor(.secondary)
-                            let deadline = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
-                            Text("30 gün — \(deadline.shortFormatted)'e kadar")
+                            // FIX-17: Dinamik itiraz süresi — contract.objectionPeriodDays
+                            let periodDays = hakedis.contract?.objectionPeriodDays
+                                ?? hakedis.contract?.contractSector.defaultObjectionDays
+                                ?? 30
+                            let deadline = Calendar.current.date(byAdding: .day, value: periodDays, to: Date())!
+                            Text("\(periodDays) gün — \(deadline.shortFormatted)'e kadar")
                                 .font(.subheadline.bold())
                                 .foregroundColor(.hakedisDanger)
                         }
