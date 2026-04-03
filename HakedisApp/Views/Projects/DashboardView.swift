@@ -14,6 +14,9 @@ struct DashboardView: View {
     @Query private var equipmentLogs: [EquipmentLog]
     @Query private var subHakedisler: [SubcontractorHakedis]
     @Query private var allWorkers: [Worker]
+    @Query private var allEquipment: [EquipmentItem]
+    @Query private var allMaterialOrders: [MaterialOrder]
+    @Query private var allMaterialRequests: [MaterialRequest]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -205,6 +208,41 @@ struct DashboardView: View {
                             todayTotalCost: todayCost,
                             professionCounts: professionGroups.mapValues { $0.count }
                         )
+                    }
+
+                    // Ekipman Özeti
+                    let openFailureCount = allEquipment.filter { $0.hasOpenFailure }.count
+                    let maintenanceDueCount = allEquipment.filter { $0.isMaintenanceDue }.count
+                    let thisMonthEquipCost = allEquipment.reduce(0.0) { $0 + $1.monthlyCost }
+                    if !allEquipment.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            SectionHeader("Ekipman Durumu")
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                                StatCard(title: "Toplam Ekipman", value: "\(allEquipment.count)", color: .hakedisInfo, icon: "gearshape.2")
+                                StatCard(title: "Bakım Bekliyor", value: "\(maintenanceDueCount)", color: maintenanceDueCount > 0 ? .hakedisWarning : .hakedisSuccess, icon: "wrench.and.screwdriver")
+                                StatCard(title: "Açık Arıza", value: "\(openFailureCount)", color: openFailureCount > 0 ? .hakedisDanger : .hakedisSuccess, icon: "exclamationmark.circle")
+                                StatCard(title: "Bu Ay Maliyet", value: thisMonthEquipCost.currencyFormatted, color: .hakedisOrange, icon: "turkishlirasign.circle")
+                            }
+                        }
+                    }
+
+                    // Malzeme & Sipariş Özeti
+                    let delayedOrderCount = allMaterialOrders.filter { $0.isDelayed }.count
+                    let pendingRequestCount = allMaterialRequests.filter { $0.status == .submitted }.count
+                    let totalStockValue = materials.reduce(0.0) { $0 + $1.stockValue }
+                    if delayedOrderCount > 0 || pendingRequestCount > 0 {
+                        VStack(alignment: .leading, spacing: 8) {
+                            SectionHeader("Malzeme & Sipariş")
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                                if delayedOrderCount > 0 {
+                                    StatCard(title: "Gecikmiş Sipariş", value: "\(delayedOrderCount)", color: .hakedisDanger, icon: "clock.badge.exclamationmark")
+                                }
+                                if pendingRequestCount > 0 {
+                                    StatCard(title: "Bekleyen Talep", value: "\(pendingRequestCount)", color: .hakedisWarning, icon: "list.clipboard")
+                                }
+                                StatCard(title: "Toplam Stok Değeri", value: totalStockValue.currencyFormatted, color: .hakedisSuccess, icon: "shippingbox")
+                            }
+                        }
                     }
 
                     // Kritik Stok Uyarısı

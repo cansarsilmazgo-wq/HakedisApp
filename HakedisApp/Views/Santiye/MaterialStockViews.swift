@@ -2,6 +2,53 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 
+// MARK: - MaterialStockSubTabView
+struct MaterialStockSubTabView: View {
+    @State private var selectedTab = 0
+    private let tabs = ["Stok", "Siparişler", "Talepler", "Tedarikçiler", "Testler"]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(tabs.indices, id: \.self) { i in
+                        Button {
+                            selectedTab = i
+                        } label: {
+                            Text(tabs[i])
+                                .font(.subheadline.weight(selectedTab == i ? .semibold : .regular))
+                                .foregroundColor(selectedTab == i ? .hakedisOrange : .secondary)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 9)
+                                .overlay(
+                                    Rectangle().frame(height: 2)
+                                        .foregroundColor(selectedTab == i ? .hakedisOrange : .clear),
+                                    alignment: .bottom
+                                )
+                        }
+                        .accessibilityLabel(tabs[i])
+                        .accessibilityAddTraits(selectedTab == i ? .isSelected : [])
+                    }
+                }
+            }
+            .background(Color.hakedisCard)
+            Divider()
+            ZStack {
+                switch selectedTab {
+                case 0: MaterialListView()
+                case 1: MaterialOrderListView()
+                case 2: MaterialRequestListView()
+                case 3: SupplierListView()
+                case 4: MaterialTestResultListView()
+                default: EmptyView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color.hakedisBackground)
+    }
+}
+
 // MARK: - MaterialListView
 struct MaterialListView: View {
     @Query(sort: \Material.name) private var materials: [Material]
@@ -16,26 +63,46 @@ struct MaterialListView: View {
         }
     }
 
-    private var lowStockCount: Int {
-        materials.filter { $0.isLowStock }.count
-    }
+    private var lowStockCount: Int { materials.filter { $0.isLowStock }.count }
+    private var totalStockValue: Double { materials.reduce(0) { $0 + $1.stockValue } }
+    private var pendingOrderCount: Int { materials.reduce(0) { $0 + $1.pendingOrderCount } }
+    private var nonConformingCount: Int { materials.filter { $0.hasNonConformingTest }.count }
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
-                if lowStockCount > 0 {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.hakedisDanger)
-                        Text("\(lowStockCount) malzeme kritik stok seviyesinde")
-                            .font(.caption.bold())
-                            .foregroundColor(.hakedisDanger)
+                if lowStockCount > 0 || pendingOrderCount > 0 || nonConformingCount > 0 {
+                    HStack(spacing: 12) {
+                        if lowStockCount > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.hakedisDanger)
+                                Text("\(lowStockCount) kritik").font(.caption.bold()).foregroundColor(.hakedisDanger)
+                            }
+                        }
+                        if pendingOrderCount > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "shippingbox").foregroundColor(.hakedisWarning)
+                                Text("\(pendingOrderCount) sipariş").font(.caption.bold()).foregroundColor(.hakedisWarning)
+                            }
+                        }
+                        if nonConformingCount > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "xmark.seal.fill").foregroundColor(.hakedisDanger)
+                                Text("\(nonConformingCount) uygunsuz test").font(.caption.bold()).foregroundColor(.hakedisDanger)
+                            }
+                        }
                         Spacer()
                     }
                     .padding(.horizontal, Spacing.card)
                     .padding(.vertical, 8)
-                    .background(Color.hakedisDanger.opacity(0.1))
+                    .background(Color.hakedisDanger.opacity(0.08))
                 }
+                HStack {
+                    Text("Toplam Stok Değeri:").font(.caption).foregroundColor(.secondary)
+                    Spacer()
+                    Text(totalStockValue.currencyFormatted).font(.caption.bold()).foregroundColor(.hakedisOrange)
+                }
+                .padding(.horizontal, Spacing.card).padding(.vertical, 6)
 
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundColor(.secondary)
@@ -120,9 +187,18 @@ private struct MaterialRow: View {
                     .font(.caption.bold())
                     .foregroundColor(.hakedisOrange)
             }
-            if let lastEntry = material.entries.max(by: { $0.date < $1.date }) {
-                Text("Son hareket: \(lastEntry.date.shortFormatted)")
-                    .font(.caption2).foregroundColor(.secondary)
+            HStack(spacing: 8) {
+                if let lastEntry = material.entries.max(by: { $0.date < $1.date }) {
+                    Text("Son hareket: \(lastEntry.date.shortFormatted)")
+                        .font(.caption2).foregroundColor(.secondary)
+                }
+                if material.pendingOrderCount > 0 {
+                    Text("\(material.pendingOrderCount) sipariş")
+                        .font(.caption2).foregroundColor(.hakedisWarning)
+                }
+                if material.hasNonConformingTest {
+                    Image(systemName: "xmark.seal.fill").font(.caption2).foregroundColor(.hakedisDanger)
+                }
             }
         }
         .padding(.vertical, 2)
@@ -171,6 +247,50 @@ struct MaterialDetailView: View {
                 }
             }
 
+            if let wastage = material.actualWastage {
+                Section("Fire Analizi") {
+                    LabeledContent("Teorik Sarf", value: String(format: "%.2f \(material.unit)", material.theoreticalConsumption ?? 0))
+                    let totalOut = material.entries.filter { $0.entryType == .outgoing }.reduce(0.0) { $0 + $1.quantity }
+                    LabeledContent("Gerçek Sarf", value: String(format: "%.2f \(material.unit)", totalOut))
+                    HStack {
+                        Text("Fire Oranı")
+                        Spacer()
+                        Text(String(format: "%+.1f%%", wastage))
+                            .font(.subheadline.bold())
+                            .foregroundColor(wastage > 5 ? .hakedisDanger : wastage > 0 ? .hakedisWarning : .hakedisSuccess)
+                    }
+                }
+            }
+            Section("Siparişler (\(material.orders.count))") {
+                if material.orders.isEmpty {
+                    Text("Sipariş yok").font(.caption).foregroundColor(.secondary)
+                } else {
+                    ForEach(material.orders.prefix(5), id: \.id) { order in
+                        HStack {
+                            Image(systemName: order.status.icon).foregroundColor(.hakedisOrange)
+                            Text(order.orderNo).font(.subheadline)
+                            Spacer()
+                            StatusBadge(text: order.status.rawValue,
+                                        color: order.isDelayed ? .hakedisDanger : .hakedisSuccess)
+                        }
+                    }
+                }
+            }
+            Section("Test Sonuçları (\(material.testResults.count))") {
+                if material.testResults.isEmpty {
+                    Text("Test sonucu yok").font(.caption).foregroundColor(.secondary)
+                } else {
+                    ForEach(material.testResults.prefix(5), id: \.id) { tr in
+                        HStack {
+                            Image(systemName: tr.isConforming ? "checkmark.seal.fill" : "xmark.seal.fill")
+                                .foregroundColor(tr.isConforming ? .hakedisSuccess : .hakedisDanger)
+                            Text(tr.testType.rawValue).font(.subheadline)
+                            Spacer()
+                            Text(tr.testDate.shortFormatted).font(.caption2).foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
             Section("Stok Hareketleri") {
                 if sortedEntries.isEmpty {
                     Text("Henüz hareket yok")
@@ -183,7 +303,6 @@ struct MaterialDetailView: View {
                     .onDelete { offsets in
                         let toDelete = offsets.map { sortedEntries[$0] }
                         for e in toDelete {
-                            // Reverse the stock change
                             if e.entryType == .incoming {
                                 material.currentStock -= e.quantity
                             } else {

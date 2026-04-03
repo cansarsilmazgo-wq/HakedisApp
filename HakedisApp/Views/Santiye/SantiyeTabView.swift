@@ -48,9 +48,9 @@ struct SantiyeTabView: View {
                 case 3:
                     WorkerListView()
                 case 4:
-                    MaterialListView()
+                    MaterialStockSubTabView()
                 case 5:
-                    EquipmentManagementListView()
+                    EquipmentSubTabView()
                 case 6:
                     SafetyListView()
                 case 7:

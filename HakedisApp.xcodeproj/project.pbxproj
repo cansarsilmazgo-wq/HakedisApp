@@ -110,8 +110,17 @@
 		NB022 /* ContractManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N022 /* ContractManagementView.swift */; };
 		NB023 /* SiteDiaryPhotoStamper.swift in Sources */ = {isa = PBXBuildFile; fileRef = N023 /* SiteDiaryPhotoStamper.swift */; };
 		NB024 /* WorkerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N024 /* WorkerViews.swift */; };
+		NB025 /* SupplierViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N025 /* SupplierViews.swift */; };
+		NB026 /* MaterialOrderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N026 /* MaterialOrderViews.swift */; };
+		NB027 /* MaterialRequestViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N027 /* MaterialRequestViews.swift */; };
+		NB028 /* MaterialTestResultViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N028 /* MaterialTestResultViews.swift */; };
+		NB029 /* EquipmentFailureViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N029 /* EquipmentFailureViews.swift */; };
+		NB030 /* MaintenancePlanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N030 /* MaintenancePlanViews.swift */; };
+		NB031 /* RentalContractViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N031 /* RentalContractViews.swift */; };
+		NB032 /* EquipmentCostAnalysisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N032 /* EquipmentCostAnalysisViews.swift */; };
 		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
 		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
+		TB019 /* Faz6A3A4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T014 /* Faz6A3A4Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -215,8 +224,17 @@
 		N022 /* ContractManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractManagementView.swift; path = HakedisApp/Views/Contracts/ContractManagementView.swift; sourceTree = "<group>"; };
 		N023 /* SiteDiaryPhotoStamper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteDiaryPhotoStamper.swift; path = HakedisApp/Views/Santiye/SiteDiaryPhotoStamper.swift; sourceTree = "<group>"; };
 		N024 /* WorkerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkerViews.swift; path = HakedisApp/Views/Santiye/WorkerViews.swift; sourceTree = "<group>"; };
+		N025 /* SupplierViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SupplierViews.swift; path = HakedisApp/Views/Santiye/SupplierViews.swift; sourceTree = "<group>"; };
+		N026 /* MaterialOrderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialOrderViews.swift; path = HakedisApp/Views/Santiye/MaterialOrderViews.swift; sourceTree = "<group>"; };
+		N027 /* MaterialRequestViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialRequestViews.swift; path = HakedisApp/Views/Santiye/MaterialRequestViews.swift; sourceTree = "<group>"; };
+		N028 /* MaterialTestResultViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialTestResultViews.swift; path = HakedisApp/Views/Santiye/MaterialTestResultViews.swift; sourceTree = "<group>"; };
+		N029 /* EquipmentFailureViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentFailureViews.swift; path = HakedisApp/Views/Santiye/EquipmentFailureViews.swift; sourceTree = "<group>"; };
+		N030 /* MaintenancePlanViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaintenancePlanViews.swift; path = HakedisApp/Views/Santiye/MaintenancePlanViews.swift; sourceTree = "<group>"; };
+		N031 /* RentalContractViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RentalContractViews.swift; path = HakedisApp/Views/Santiye/RentalContractViews.swift; sourceTree = "<group>"; };
+		N032 /* EquipmentCostAnalysisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentCostAnalysisViews.swift; path = HakedisApp/Views/Santiye/EquipmentCostAnalysisViews.swift; sourceTree = "<group>"; };
 		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
 		T013 /* Faz6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6Tests.swift; sourceTree = "<group>"; };
+		T014 /* Faz6A3A4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A3A4Tests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -316,6 +334,14 @@
 				N022 /* ContractManagementView.swift */,
 				N023 /* SiteDiaryPhotoStamper.swift */,
 				N024 /* WorkerViews.swift */,
+				N025 /* SupplierViews.swift */,
+				N026 /* MaterialOrderViews.swift */,
+				N027 /* MaterialRequestViews.swift */,
+				N028 /* MaterialTestResultViews.swift */,
+				N029 /* EquipmentFailureViews.swift */,
+				N030 /* MaintenancePlanViews.swift */,
+				N031 /* RentalContractViews.swift */,
+				N032 /* EquipmentCostAnalysisViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -345,6 +371,7 @@
 				T011 /* PDFGeneratorTests.swift */,
 				T012 /* Faz3Tests.swift */,
 				T013 /* Faz6Tests.swift */,
+				T014 /* Faz6A3A4Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -586,6 +613,14 @@
 				NB022 /* ContractManagementView.swift in Sources */,
 				NB023 /* SiteDiaryPhotoStamper.swift in Sources */,
 				NB024 /* WorkerViews.swift in Sources */,
+				NB025 /* SupplierViews.swift in Sources */,
+				NB026 /* MaterialOrderViews.swift in Sources */,
+				NB027 /* MaterialRequestViews.swift in Sources */,
+				NB028 /* MaterialTestResultViews.swift in Sources */,
+				NB029 /* EquipmentFailureViews.swift in Sources */,
+				NB030 /* MaintenancePlanViews.swift in Sources */,
+				NB031 /* RentalContractViews.swift in Sources */,
+				NB032 /* EquipmentCostAnalysisViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -611,6 +646,7 @@
 				TB016 /* DesignSystem.swift in TestSources */,
 				TB017 /* Faz3Tests.swift in Sources */,
 				TB018 /* Faz6Tests.swift in Sources */,
+				TB019 /* Faz6A3A4Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
