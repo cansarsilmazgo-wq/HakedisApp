@@ -3,7 +3,7 @@ import SwiftData
 
 struct SantiyeTabView: View {
     @State private var selectedSegment = 0
-    private let segments = ["Saha", "Günlük", "Puantaj", "Malzeme", "Ekipman", "İSG", "Taşeronlar"]
+    private let segments = ["Saha", "Günlük", "Puantaj", "İşçiler", "Malzeme", "Ekipman", "İSG", "Taşeronlar"]
 
     var body: some View {
         NavigationStack {
@@ -46,12 +46,14 @@ struct SantiyeTabView: View {
                 case 2:
                     AttendanceListView()
                 case 3:
-                    MaterialListView()
+                    WorkerListView()
                 case 4:
-                    EquipmentManagementListView()
+                    MaterialListView()
                 case 5:
-                    SafetyListView()
+                    EquipmentManagementListView()
                 case 6:
+                    SafetyListView()
+                case 7:
                     TaseronSegmentView()
                 default:
                     EmptyView()

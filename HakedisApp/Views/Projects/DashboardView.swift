@@ -13,6 +13,7 @@ struct DashboardView: View {
     @Query private var stockEntries: [StockEntry]
     @Query private var equipmentLogs: [EquipmentLog]
     @Query private var subHakedisler: [SubcontractorHakedis]
+    @Query private var allWorkers: [Worker]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -192,11 +193,17 @@ struct DashboardView: View {
 
                     // Bugün Şantiye Özeti
                     if !attendanceRecords.isEmpty || latestDiary != nil {
+                        let expiringSoonCount = allWorkers.reduce(0) { $0 + $1.expiringSoonCertificates().count }
+                        let todayCost = todayAttendance.reduce(0.0) { $0 + $1.totalDailyCost }
+                        let professionGroups = Dictionary(grouping: todayAttendance.compactMap { $0.worker?.profession }) { $0 }
                         DashboardSantiyeCard(
                             workerCount: todayAttendance.count,
                             lastDiary: latestDiary,
                             lowStockCount: lowStockMaterials.count,
-                            openIncidentCount: openSafetyIncidents.count
+                            openIncidentCount: openSafetyIncidents.count,
+                            expiringSoonCertCount: expiringSoonCount,
+                            todayTotalCost: todayCost,
+                            professionCounts: professionGroups.mapValues { $0.count }
                         )
                     }
 
@@ -482,11 +489,14 @@ struct DashboardSantiyeCard: View {
     let lastDiary: SiteDiary?
     let lowStockCount: Int
     let openIncidentCount: Int
+    let expiringSoonCertCount: Int
+    let todayTotalCost: Double
+    let professionCounts: [WorkerProfession: Int]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionHeader("Bugün Şantiye")
-            HStack(spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 StatCard(
                     title: "Bugün İşçi",
                     value: "\(workerCount)",
@@ -494,53 +504,72 @@ struct DashboardSantiyeCard: View {
                     color: .hakedisSuccess,
                     icon: "person.3"
                 )
-
-                VStack(spacing: 8) {
-                    if let diary = lastDiary {
-                        HStack(spacing: 8) {
-                            Image(systemName: diary.weatherCondition.icon)
-                                .font(.title3)
+                StatCard(
+                    title: "İşçilik Maliyeti",
+                    value: todayTotalCost > 0 ? todayTotalCost.currencyFormatted : "—",
+                    subtitle: "Bugün",
+                    color: .hakedisOrange,
+                    icon: "turkishlirasign.circle"
+                )
+            }
+            if !professionCounts.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(Array(professionCounts.keys), id: \.rawValue) { prof in
+                            HStack(spacing: 4) {
+                                Image(systemName: prof.icon).font(.caption2)
+                                Text("\(professionCounts[prof] ?? 0) \(prof.rawValue)")
+                                    .font(.caption2)
+                            }
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Color.hakedisCard)
+                            .clipShape(Capsule())
+                        }
+                    }
+                    .padding(.horizontal, 2)
+                }
+            }
+            VStack(spacing: 6) {
+                if let diary = lastDiary {
+                    HStack(spacing: 8) {
+                        Image(systemName: diary.weatherCondition.icon)
+                            .font(.subheadline)
+                            .foregroundColor(.hakedisWarning)
+                        Text(diary.weatherCondition.rawValue).font(.caption.bold())
+                        if let temp = diary.temperature {
+                            Text("\(Int(temp))°C").font(.caption).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text(diary.date.shortFormatted).font(.caption2).foregroundColor(.secondary)
+                    }
+                    .padding(Spacing.cardSmall)
+                    .background(Color.hakedisCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Hava: \(diary.weatherCondition.rawValue)")
+                }
+                HStack(spacing: 12) {
+                    if expiringSoonCertCount > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
                                 .foregroundColor(.hakedisWarning)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(diary.weatherCondition.rawValue)
-                                    .font(.subheadline.bold())
-                                if let temp = diary.temperature {
-                                    Text("\(Int(temp))°C")
-                                        .font(.caption).foregroundColor(.secondary)
-                                }
-                                Text(diary.date.shortFormatted)
-                                    .font(.caption2).foregroundColor(.secondary)
-                            }
-                            Spacer()
-                        }
-                        .padding(Spacing.cardSmall)
-                        .background(Color.hakedisCard)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("Hava: \(diary.weatherCondition.rawValue)")
-                    }
-
-                    if lowStockCount > 0 || openIncidentCount > 0 {
-                        HStack(spacing: 8) {
-                            if lowStockCount > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "shippingbox")
-                                        .foregroundColor(.hakedisDanger)
-                                    Text("\(lowStockCount) kritik stok")
-                                        .font(.caption).foregroundColor(.hakedisDanger)
-                                }
-                            }
-                            if openIncidentCount > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "exclamationmark.shield")
-                                        .foregroundColor(.hakedisWarning)
-                                    Text("\(openIncidentCount) açık olay")
-                                        .font(.caption).foregroundColor(.hakedisWarning)
-                                }
-                            }
-                            Spacer()
+                            Text("\(expiringSoonCertCount) sertifika uyarısı")
+                                .font(.caption).foregroundColor(.hakedisWarning)
                         }
                     }
+                    if lowStockCount > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "shippingbox").foregroundColor(.hakedisDanger)
+                            Text("\(lowStockCount) kritik stok").font(.caption).foregroundColor(.hakedisDanger)
+                        }
+                    }
+                    if openIncidentCount > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.shield").foregroundColor(.hakedisWarning)
+                            Text("\(openIncidentCount) açık olay").font(.caption).foregroundColor(.hakedisWarning)
+                        }
+                    }
+                    Spacer()
                 }
             }
         }

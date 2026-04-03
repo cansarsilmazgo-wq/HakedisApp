@@ -11,6 +11,10 @@ struct MoreTabView: View {
                         Label("Genel Raporlar", systemImage: "chart.bar.doc.horizontal")
                             .accessibilityLabel("Genel Raporlar")
                     }
+                    NavigationLink(destination: SGKReportView()) {
+                        Label("SGK Hazırlık Raporu", systemImage: "shield.checkered")
+                            .accessibilityLabel("SGK Hazırlık Raporu")
+                    }
                     NavigationLink(destination: CashFlowView(hakedisler: hakedisler)) {
                         Label("Nakit Akış Analizi", systemImage: "arrow.left.arrow.right.circle")
                             .accessibilityLabel("Nakit Akış Analizi")

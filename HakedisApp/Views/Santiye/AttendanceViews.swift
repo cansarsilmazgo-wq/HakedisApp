@@ -21,7 +21,7 @@ struct AttendanceListView: View {
     }
 
     private var summary: (workers: Int, manDays: Double, sgkDays: Int, overtime: Double) {
-        let workers = Set(filtered.map { $0.workerName }).count
+        let workers = Set(filtered.map { $0.effectiveName }).count
         let manDays = filtered.filter { $0.isPresent }.reduce(0.0) { $0 + $1.totalHours / 8.0 }
         let sgkDays = filtered.filter { $0.isSGKDay }.count
         let overtime = filtered.reduce(0.0) { $0 + $1.overtimeHours }
@@ -119,10 +119,14 @@ private struct AttendanceRow: View {
                 .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(attendance.workerName)
-                    .font(.subheadline.bold())
+                HStack {
+                    if let prof = attendance.worker?.profession {
+                        Image(systemName: prof.icon).font(.caption).foregroundColor(.hakedisOrange)
+                    }
+                    Text(attendance.effectiveName).font(.subheadline.bold())
+                }
                 HStack(spacing: 8) {
-                    if let role = attendance.workerRole {
+                    if let role = attendance.workerRole ?? attendance.worker?.profession.rawValue {
                         Text(role).font(.caption).foregroundColor(.secondary)
                     }
                     if let contractor = attendance.contractor {
@@ -130,15 +134,20 @@ private struct AttendanceRow: View {
                     }
                 }
                 HStack(spacing: 12) {
-                    Text(attendance.date.shortFormatted)
-                        .font(.caption2).foregroundColor(.secondary)
+                    Text(attendance.date.shortFormatted).font(.caption2).foregroundColor(.secondary)
                     if attendance.isPresent {
                         Text("\(String(format: "%.0f", attendance.normalHours))s normal")
                             .font(.caption2).foregroundColor(.secondary)
                         if attendance.overtimeHours > 0 {
-                            Text("+ \(String(format: "%.0f", attendance.overtimeHours))s fazla")
+                            Text("+ \(String(format: "%.0f", attendance.overtimeHours))s FM")
                                 .font(.caption2).foregroundColor(.hakedisWarning)
                         }
+                    }
+                    // Onay durumu
+                    let approval = attendance.approvalStatus
+                    if approval != .draft {
+                        Text(approval.rawValue).font(.caption2.bold())
+                            .foregroundColor(approval == .approved ? .hakedisSuccess : .hakedisWarning)
                     }
                 }
             }
@@ -146,15 +155,13 @@ private struct AttendanceRow: View {
             Spacer()
 
             if attendance.isSGKDay {
-                Image(systemName: "shield.checkered")
-                    .font(.caption)
-                    .foregroundColor(.hakedisSuccess)
-                    .accessibilityLabel("SGK günü")
+                Image(systemName: "shield.checkered").font(.caption)
+                    .foregroundColor(.hakedisSuccess).accessibilityLabel("SGK günü")
             }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(attendance.workerName), \(attendance.isPresent ? "Mevcut" : "Gelmedi"), \(attendance.date.shortFormatted)")
+        .accessibilityLabel("\(attendance.effectiveName), \(attendance.isPresent ? "Mevcut" : "Gelmedi"), \(attendance.date.shortFormatted)")
     }
 }
 
@@ -164,6 +171,7 @@ struct AddAttendanceView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var projects: [Project]
     @Query private var contractors: [Contractor]
+    @Query(sort: \Worker.fullName) private var workers: [Worker]
 
     @State private var date = Date()
     @State private var selectedProject: Project? = nil
@@ -253,9 +261,24 @@ struct AddAttendanceView: View {
                         .accessibilityLabel("İptal")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Kaydet") { save() }
-                        .accessibilityLabel("Kaydet")
+                    Button("Kaydet") { save() }.accessibilityLabel("Kaydet")
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Herkesi Ekle") { addAllActiveWorkers() }
+                        .font(.caption).accessibilityLabel("Tüm aktif işçileri ekle")
+                }
+            }
+        }
+    }
+
+    private func addAllActiveWorkers() {
+        let activeWorkers = workers.filter { $0.isActive }
+        for w in activeWorkers {
+            if !workerEntries.contains(where: { $0.name == w.fullName }) {
+                var entry = WorkerEntry()
+                entry.name = w.fullName
+                entry.role = w.profession.rawValue
+                workerEntries.append(entry)
             }
         }
     }
@@ -271,6 +294,10 @@ struct AddAttendanceView: View {
             attendance.overtimeHours = entry.overtimeHours
             attendance.contractor = selectedContractor
             attendance.project = selectedProject
+            // Worker ilişkisi kur
+            if let matchedWorker = workers.first(where: { $0.fullName == entry.name }) {
+                attendance.worker = matchedWorker
+            }
             modelContext.insert(attendance)
         }
         do { try modelContext.save() } catch { print("Kayıt hatası: \(error)") }

@@ -218,6 +218,52 @@ class NotificationManager: ObservableObject {
         let ids = [30, 7, 1].map { "guarantee_\(guaranteeID.uuidString)_d\($0)" }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
+
+    // MARK: - Sertifika Geçerlilik Bildirimleri
+
+    var certificateAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "certificateAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "certificateAlertsEnabled") }
+    }
+
+    /// İşçi sertifikası son kullanım tarihinden 30, 15 ve 7 gün önce sabah 09:00'da bildirim zamanlar.
+    func scheduleCertificateExpiryAlerts(worker: Worker) {
+        guard isAuthorized, certificateAlertsEnabled else { return }
+        let daysBefore = [30, 15, 7]
+        for cert in worker.certificates {
+            guard let expiryDate = cert.expiryDate else { continue }
+            for days in daysBefore {
+                guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: expiryDate),
+                      triggerDate > Date() else { continue }
+                let content = UNMutableNotificationContent()
+                content.sound = .default
+                switch days {
+                case 7:
+                    content.title = "Sertifika Süresi Doluyor!"
+                    content.body = "\(worker.fullName) — \(cert.certificateType.rawValue): 7 gün içinde süresi doluyor."
+                case 15:
+                    content.title = "Sertifika Uyarısı"
+                    content.body = "\(worker.fullName) — \(cert.certificateType.rawValue): 15 gün içinde süresi doluyor."
+                default:
+                    content.title = "Sertifika Hatırlatma"
+                    content.body = "\(worker.fullName) — \(cert.certificateType.rawValue): 30 gün içinde süresi dolacak."
+                }
+                var components = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
+                components.hour = 9; components.minute = 0
+                let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+                let request = UNNotificationRequest(
+                    identifier: "cert_\(cert.id.uuidString)_d\(days)",
+                    content: content, trigger: trigger
+                )
+                UNUserNotificationCenter.current().add(request)
+            }
+        }
+    }
+
+    func cancelCertificateAlerts(certID: UUID) {
+        let ids = [30, 15, 7].map { "cert_\(certID.uuidString)_d\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
 }
 
 struct NotificationSettingsView: View {
@@ -228,6 +274,7 @@ struct NotificationSettingsView: View {
     @AppStorage("budgetAlertsEnabled") private var budgetAlertsEnabled = false
     // FIX-22: Teminat bildirimleri için ayrı AppStorage
     @AppStorage("guaranteeAlertsEnabled") private var guaranteeAlertsEnabled = false
+    @AppStorage("certificateAlertsEnabled") private var certificateAlertsEnabled = false
 
     var body: some View {
         Form {
@@ -296,6 +343,17 @@ struct NotificationSettingsView: View {
                             }
                         }
                     }
+                Toggle("Sertifika Geçerlilik Uyarıları", isOn: $certificateAlertsEnabled)
+                    .tint(.hakedisOrange)
+                    .onChange(of: certificateAlertsEnabled) { _, val in
+                        manager.certificateAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { $0.identifier.hasPrefix("cert_") }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
             }
 
             Section("Bilgi") {
@@ -309,6 +367,8 @@ struct NotificationSettingsView: View {
                 Text("Bütçe aşımı uyarıları, sözleşme bütçesi %80 veya üzeri kullanıldığında tetiklenir.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Teminat uyarıları; son kullanım tarihinden 30, 7 ve 1 gün önce 09:00'da zamanlanır.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Sertifika uyarıları; son kullanım tarihinden 30, 15 ve 7 gün önce 09:00'da zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
             }
         }

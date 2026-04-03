@@ -345,4 +345,124 @@ struct AttendancePDFGenerator {
         let ps = (pt as NSString).size(withAttributes: attr)
         pt.draw(at: CGPoint(x: pageWidth - margin - ps.width, y: pageHeight - 22), withAttributes: attr)
     }
+
+    // MARK: - Gelişmiş PDF (Meslek + FM + Maliyet + Taşeron alt toplam + İmza)
+
+    static func generateMonthlyEnhanced(
+        records: [Attendance],
+        month: Date,
+        projectName: String? = nil,
+        chiefName: String? = nil,
+        contractorRepName: String? = nil
+    ) -> Data {
+        let cal = Calendar.current
+        let comps = cal.dateComponents([.year, .month], from: month)
+        let firstDay = cal.date(from: comps)!
+        let daysInMonth = cal.range(of: .day, in: .month, for: firstDay)!.count
+        let monthRecords = records.filter {
+            let c = cal.dateComponents([.year, .month], from: $0.date)
+            return c.year == comps.year && c.month == comps.month
+        }
+
+        let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
+        return renderer.pdfData { ctx in
+            ctx.beginPage()
+            orange.setFill()
+            UIBezierPath(rect: CGRect(x: 0, y: 0, width: pageWidth, height: 50)).fill()
+            let titleAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 13), .foregroundColor: UIColor.white]
+            "AYLIK PUANTAJ — GELİŞMİŞ RAPOR".draw(at: CGPoint(x: margin, y: 10), withAttributes: titleAttr)
+            let sub: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 9), .foregroundColor: UIColor.white.withAlphaComponent(0.9)]
+            let df = DateFormatter(); df.locale = Locale(identifier: "tr_TR"); df.dateFormat = "MMMM yyyy"
+            df.string(from: firstDay).draw(at: CGPoint(x: margin, y: 32), withAttributes: sub)
+            (projectName ?? "Tüm Projeler").draw(at: CGPoint(x: pageWidth / 2, y: 32), withAttributes: sub)
+            var y: CGFloat = 60
+
+            // Header row
+            let cols: [(title: String, w: CGFloat)] = [
+                ("İŞÇİ / MESLEK", 130), ("SGK", 38), ("FM SA", 40), ("MALİYET", 70)
+            ]
+            let nameColW: CGFloat = 130; let sgkColW: CGFloat = 38; let fmColW: CGFloat = 40; let costColW: CGFloat = 70
+            let remW = pageWidth - margin * 2 - nameColW - sgkColW - fmColW - costColW
+            let dayW = remW / CGFloat(daysInMonth)
+            let rowH: CGFloat = 18
+            let hAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 7), .foregroundColor: UIColor.darkGray]
+            orange.withAlphaComponent(0.12).setFill()
+            UIBezierPath(rect: CGRect(x: margin, y: y, width: pageWidth - margin*2, height: 20)).fill()
+            for (i, col) in cols.enumerated() {
+                var xOff: CGFloat = 0
+                for c in cols[..<i] { xOff += c.w }
+                col.title.draw(at: CGPoint(x: margin + xOff + 2, y: y + 6), withAttributes: hAttr)
+            }
+            var dx = margin + nameColW + sgkColW + fmColW + costColW
+            for d in 1...daysInMonth {
+                "\(d)".draw(at: CGPoint(x: dx + dayW/2 - 4, y: y + 6), withAttributes: hAttr)
+                dx += dayW
+            }
+            y += 22
+
+            // Worker rows
+            let workerNames = Array(Set(monthRecords.map { $0.effectiveName })).sorted()
+            let bodyAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 7), .foregroundColor: UIColor.black]
+            let smallAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 6), .foregroundColor: UIColor.gray]
+            var grandSGK = 0; var grandFM: Double = 0; var grandCost: Double = 0
+
+            for (i, wn) in workerNames.enumerated() {
+                if y + rowH > pageHeight - 80 {
+                    ctx.beginPage(); y = 10
+                }
+                let wr = monthRecords.filter { $0.effectiveName == wn }
+                let prof = wr.first?.worker?.profession.rawValue ?? wr.first?.workerRole ?? ""
+                let sgk = wr.filter { $0.isSGKDay }.count
+                let fm = wr.reduce(0.0) { $0 + $1.overtimeHours }
+                let cost = wr.reduce(0.0) { $0 + $1.totalDailyCost }
+                grandSGK += sgk; grandFM += fm; grandCost += cost
+
+                if i % 2 == 0 { UIColor(white: 0.97, alpha: 1).setFill(); UIBezierPath(rect: CGRect(x: margin, y: y, width: pageWidth - margin*2, height: rowH)).fill() }
+                wn.draw(at: CGPoint(x: margin + 2, y: y + 5), withAttributes: bodyAttr)
+                prof.draw(at: CGPoint(x: margin + 2, y: y + rowH - 8), withAttributes: smallAttr)
+                "\(sgk)".draw(at: CGPoint(x: margin + nameColW + 4, y: y + 5), withAttributes: bodyAttr)
+                String(format: "%.0f", fm).draw(at: CGPoint(x: margin + nameColW + sgkColW + 4, y: y + 5), withAttributes: bodyAttr)
+                String(format: "%.0f₺", cost).draw(at: CGPoint(x: margin + nameColW + sgkColW + fmColW + 2, y: y + 5), withAttributes: bodyAttr)
+
+                var dayX = margin + nameColW + sgkColW + fmColW + costColW
+                var dayMap: [Int: Attendance] = [:]
+                for r in wr { dayMap[cal.component(.day, from: r.date)] = r }
+                for d in 1...daysInMonth {
+                    let cell: String
+                    if let att = dayMap[d] {
+                        cell = att.isPresent ? (att.overtimeHours > 0 ? "M+" : "M") : "G"
+                    } else { cell = "" }
+                    let cAttr: [NSAttributedString.Key: Any] = [
+                        .font: UIFont.boldSystemFont(ofSize: 6),
+                        .foregroundColor: cell == "G" ? UIColor(red: 0.8, green: 0.1, blue: 0.1, alpha: 1) : cell.isEmpty ? UIColor.lightGray : UIColor(red: 0.1, green: 0.6, blue: 0.1, alpha: 1)
+                    ]
+                    cell.draw(at: CGPoint(x: dayX + 1, y: y + 5), withAttributes: cAttr)
+                    dayX += dayW
+                }
+                y += rowH
+            }
+
+            // Totals
+            y += 4
+            orange.withAlphaComponent(0.15).setFill()
+            UIBezierPath(rect: CGRect(x: margin, y: y, width: pageWidth - margin*2, height: rowH)).fill()
+            let totAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 8), .foregroundColor: UIColor.darkGray]
+            "TOPLAM (\(workerNames.count) işçi)".draw(at: CGPoint(x: margin + 2, y: y + 5), withAttributes: totAttr)
+            "\(grandSGK) gün".draw(at: CGPoint(x: margin + nameColW + 2, y: y + 5), withAttributes: totAttr)
+            String(format: "%.0f sa", grandFM).draw(at: CGPoint(x: margin + nameColW + sgkColW + 2, y: y + 5), withAttributes: totAttr)
+            String(format: "%.0f₺", grandCost).draw(at: CGPoint(x: margin + nameColW + sgkColW + fmColW + 2, y: y + 5), withAttributes: totAttr)
+            y += rowH + 20
+
+            // İmza alanı
+            if y < pageHeight - 100 {
+                UIColor.lightGray.setStroke()
+                let sig = UIBezierPath(); sig.move(to: CGPoint(x: margin, y: pageHeight - 70)); sig.addLine(to: CGPoint(x: pageWidth - margin, y: pageHeight - 70)); sig.stroke()
+                let sigAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 8), .foregroundColor: UIColor.darkGray]
+                "Taşeron Yetkilisi: \(contractorRepName ?? "........................")".draw(at: CGPoint(x: margin, y: pageHeight - 60), withAttributes: sigAttr)
+                "İmza: _______________".draw(at: CGPoint(x: margin, y: pageHeight - 48), withAttributes: sigAttr)
+                "Şantiye Şefi: \(chiefName ?? "........................")".draw(at: CGPoint(x: pageWidth / 2, y: pageHeight - 60), withAttributes: sigAttr)
+                "İmza: _______________".draw(at: CGPoint(x: pageWidth / 2, y: pageHeight - 48), withAttributes: sigAttr)
+            }
+        }
+    }
 }
