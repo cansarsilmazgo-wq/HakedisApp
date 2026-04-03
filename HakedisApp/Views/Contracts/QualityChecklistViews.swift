@@ -122,6 +122,8 @@ private struct QualityChecklistRow: View {
 struct QualityChecklistDetailView: View {
     @Bindable var checklist: QualityChecklist
     @State private var items: [QualityCheckItem] = []
+    @State private var showingAddNCR = false
+    @State private var ncrPrefillItem: String? = nil
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
@@ -130,54 +132,80 @@ struct QualityChecklistDetailView: View {
                 LabeledContent("Tür", value: checklist.checklistType.rawValue)
                 LabeledContent("Tarih", value: checklist.date.formatted(date: .abbreviated, time: .omitted))
                 LabeledContent("Kontrol Eden", value: checklist.checkedBy)
-                if let wname = checklist.workItem?.name {
-                    LabeledContent("İş Kalemi", value: wname)
-                }
+                if let loc = checklist.location { LabeledContent("Mahal", value: loc) }
+                if let wname = checklist.workItem?.name { LabeledContent("İş Kalemi", value: wname) }
             }
 
-            Section("Genel Sonuç") {
-                Picker("Sonuç", selection: $checklist.overallResultRaw) {
-                    ForEach(CheckResult.allCases, id: \.rawValue) { r in
-                        Text(r.rawValue).tag(r.rawValue)
+            Section {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Genel Uygunluk Skoru").font(.caption).foregroundColor(.secondary)
+                        Text(String(format: "%.0f%%", checklist.overallScore)).font(.title2.bold())
+                            .foregroundColor(checklist.overallScore >= 80 ? .hakedisSuccess : checklist.overallScore >= 60 ? .hakedisWarning : .hakedisDanger)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("\(checklist.passedCount)/\(checklist.applicableCount) uygun").font(.caption).foregroundColor(.secondary)
+                        if checklist.failedCount > 0 {
+                            Text("\(checklist.failedCount) uygunsuz").font(.caption.bold()).foregroundColor(.hakedisDanger)
+                        }
                     }
                 }
-                .onChange(of: checklist.overallResultRaw) { _, _ in
-                    try? modelContext.save()
-                }
-            }
+                ProgressBarView(progress: checklist.overallScore,
+                    color: checklist.overallScore >= 80 ? .hakedisSuccess : checklist.overallScore >= 60 ? .hakedisWarning : .hakedisDanger)
+            } header: { Text("Skor") }
 
             Section("Kontrol Maddeleri (\(checklist.passedCount)/\(checklist.totalCount))") {
                 ForEach(items.indices, id: \.self) { i in
-                    HStack {
-                        Image(systemName: items[i].isChecked ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(items[i].isChecked ? .hakedisSuccess : .secondary)
-                            .font(.title3)
-                            .onTapGesture {
-                                items[i].isChecked.toggle()
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(items[i].title).font(.subheadline)
+                        Picker("", selection: Binding(
+                            get: { items[i].effectiveResult },
+                            set: { newVal in
+                                items[i].result = newVal
+                                items[i].isChecked = (newVal == .pass)
                                 checklist.checkItems = items
                                 try? modelContext.save()
                             }
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(items[i].title).font(.subheadline)
-                            if !items[i].note.isEmpty {
-                                Text(items[i].note).font(.caption).foregroundColor(.secondary)
+                        )) {
+                            ForEach(ItemResult.allCases, id: \.self) { r in
+                                Text(r.rawValue).tag(r)
                             }
                         }
+                        .pickerStyle(.segmented)
+                        if items[i].effectiveResult == .fail {
+                            if items[i].note.isEmpty {
+                                Text("Not ekleyin (zorunlu)").font(.caption2).foregroundColor(.hakedisDanger)
+                            } else {
+                                Text(items[i].note).font(.caption2).foregroundColor(.secondary)
+                            }
+                            Button {
+                                ncrPrefillItem = items[i].title
+                                showingAddNCR = true
+                            } label: {
+                                Label("NCR Oluştur", systemImage: "exclamationmark.circle")
+                                    .font(.caption).foregroundColor(.hakedisDanger)
+                            }
+                        }
+                        if !items[i].note.isEmpty && items[i].effectiveResult != .fail {
+                            Text(items[i].note).font(.caption).foregroundColor(.secondary)
+                        }
                     }
-                    .padding(.vertical, 2)
+                    .padding(.vertical, 4)
                 }
             }
 
             if let notes = checklist.notes, !notes.isEmpty {
-                Section("Notlar") {
-                    Text(notes).font(.body)
-                }
+                Section("Notlar") { Text(notes).font(.body) }
             }
         }
         .listStyle(.insetGrouped)
         .navigationTitle("Kontrol Listesi")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { items = checklist.checkItems }
+        .sheet(isPresented: $showingAddNCR) {
+            AddNCRView(checklist: checklist, prefillItem: ncrPrefillItem)
+        }
     }
 }
 
@@ -245,6 +273,8 @@ struct AddQualityChecklistView: View {
         let cl = QualityChecklist(checklistType: selectedType, date: date, checkedBy: checkedBy)
         cl.workItem = selectedWorkItem
         cl.notes = notes.isEmpty ? nil : notes
+        let templateItems = QualityChecklistTemplateProvider.items(for: selectedType)
+        if !templateItems.isEmpty { cl.checkItems = templateItems }
         modelContext.insert(cl)
         do { try modelContext.save() } catch { print(error) }
         dismiss()
