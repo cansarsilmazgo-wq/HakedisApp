@@ -15,6 +15,20 @@ struct MoreTabView: View {
                         Label("Nakit Akış Analizi", systemImage: "arrow.left.arrow.right.circle")
                             .accessibilityLabel("Nakit Akış Analizi")
                     }
+                    NavigationLink(destination: CashFlowProjectionView()) {
+                        Label("Nakit Akış Projeksiyonu", systemImage: "chart.line.uptrend.xyaxis")
+                            .accessibilityLabel("Nakit Akış Projeksiyonu")
+                    }
+                    NavigationLink(destination: ProgressReportListView()) {
+                        Label("İlerleme Raporları", systemImage: "camera.viewfinder")
+                            .accessibilityLabel("İlerleme Raporları")
+                    }
+                }
+                Section("Mevzuat Referans") {
+                    NavigationLink(destination: LegalReferenceView()) {
+                        Label("4734 / 4735 Kanun Referansı", systemImage: "book.closed")
+                            .accessibilityLabel("Mevzuat referansı")
+                    }
                 }
 
                 Section("Kütüphane") {

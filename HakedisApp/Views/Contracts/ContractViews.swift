@@ -602,6 +602,18 @@ struct ContractDetailView: View {
             Section {
                 GuaranteeSection(contract: contract)
             }
+
+            // Sözleşme Yönetimi (Süre Uzatımı + İş Artışı)
+            Section("Sözleşme Yönetimi") {
+                NavigationLink(destination: ContractManagementView(contract: contract)) {
+                    Label("Süre Uzatımı / İş Artışı", systemImage: "doc.badge.gearshape")
+                        .accessibilityLabel("Sözleşme yönetimi")
+                }
+                NavigationLink(destination: QualityChecklistListView()) {
+                    Label("Kalite Kontrol Listeleri", systemImage: "checkmark.seal")
+                        .accessibilityLabel("Kalite kontrol listeleri")
+                }
+            }
         }
         .navigationTitle(contract.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -1146,6 +1158,27 @@ struct WorkItemDetailView: View {
                     }
                 }
                 .padding(.vertical, 4)
+            }
+
+            Section("Ataşman / Yeşil Defter") {
+                NavigationLink(destination: AttachmentListView(workItem: workItem)) {
+                    HStack {
+                        Image(systemName: "book.pages")
+                            .foregroundColor(.hakedisSuccess)
+                        Text("Metraj Ataşmanları")
+                        Spacer()
+                        if !workItem.attachments.isEmpty {
+                            Text("\(workItem.attachments.count) kayıt")
+                                .font(.caption.bold())
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.hakedisSuccess.opacity(0.15))
+                                .foregroundColor(.hakedisSuccess)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+                .accessibilityLabel("Ataşman listesi, \(workItem.attachments.count) kayıt")
             }
 
             Section("Birim Fiyat Analizi") {

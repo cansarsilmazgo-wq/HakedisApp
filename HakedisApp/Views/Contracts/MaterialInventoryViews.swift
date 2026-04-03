@@ -783,15 +783,3 @@ private struct MaterialTransactionRow: View {
     }
 }
 
-// MARK: - Double extension helper
-
-private extension Double {
-    var shortFormatted: String {
-        if self >= 1_000_000 {
-            return String(format: "%.1fM", self / 1_000_000)
-        } else if self >= 1_000 {
-            return String(format: "%.1fB", self / 1_000)
-        }
-        return String(format: "%.0f", self)
-    }
-}

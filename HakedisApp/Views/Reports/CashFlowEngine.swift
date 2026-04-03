@@ -152,3 +152,165 @@ struct CashFlowEngine {
         projeksiyonlar.contains { $0.kumulatifNakit < 0 }
     }
 }
+
+// MARK: - Genişletilmiş Nakit Akış (Bölüm 3)
+
+struct AylikDetayliProje: Identifiable {
+    let id = UUID()
+    let ay: String
+    let date: Date
+    // Gelirler
+    var hakedisGeliri: Double        // planlanan hakedişlerden
+    var fiyatFarkiGeliri: Double     // fiyat farkı hesaplarından
+    var diger: Double                // diğer
+    // Giderler
+    var malzemeGideri: Double        // stok girişleri
+    var iscilikGideri: Double        // attendance adam-gün × maliyet
+    var ekipmanGideri: Double        // equipment log fuel + rental
+    var taseronGideri: Double        // taşeron ödemeleri (netAmount)
+
+    var toplamGelir:  Double { hakedisGeliri + fiyatFarkiGeliri + diger }
+    var toplamGider:  Double { malzemeGideri + iscilikGideri + ekipmanGideri + taseronGideri }
+    var fark:         Double { toplamGelir - toplamGider }
+    var kumulatif:    Double = 0
+}
+
+struct GenisletilmisCashFlowEngine {
+
+    /// Ay-yıl anahtarı oluştur
+    static func ayKey(_ date: Date) -> String {
+        let c = Calendar.current.dateComponents([.year, .month], from: date)
+        return "\(c.year ?? 0)-\(String(format: "%02d", c.month ?? 0))"
+    }
+
+    static func ayLabel(_ date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.locale = Locale(identifier: "tr_TR")
+        fmt.dateFormat = "MMM yyyy"
+        return fmt.string(from: date)
+    }
+
+    /// n aylık (3/6/12) detaylı projeksiyon
+    static func projeksiyon(
+        hakedisler: [Hakedis],
+        priceDiffCalcs: [PriceDifferenceCalc],
+        stockEntries: [StockEntry],
+        attendanceRecords: [Attendance],
+        equipmentLogs: [EquipmentLog],
+        subHakedisler: [SubcontractorHakedis],
+        ayCount: Int,
+        referenceDate: Date = Date(),
+        laborDailyRate: Double = 800   // varsayılan işçilik birim maliyeti (TL/adam-gün)
+    ) -> [AylikDetayliProje] {
+        let cal = Calendar.current
+
+        // Ay aralığı
+        var months: [Date] = []
+        for i in 1...ayCount {
+            guard let d = cal.date(byAdding: .month, value: i, to: referenceDate) else { continue }
+            let c = cal.dateComponents([.year, .month], from: d)
+            if let md = cal.date(from: c) { months.append(md) }
+        }
+
+        // Geçmiş verilere dayalı aylık ortalamalar (referans ay bazında)
+        let avgHakedis = CashFlowEngine.ortalamaAylikHakedis(hakedisler: hakedisler, referenceDate: referenceDate)
+        let avgDelay   = max(CashFlowEngine.ortalamGecikmeGun(hakedisler: hakedisler), 30)
+
+        // Stok gider map (ay → toplam giriş tutarı)
+        var stockMap: [String: Double] = [:]
+        for e in stockEntries where e.entryType == .incoming {
+            let k = ayKey(e.date)
+            stockMap[k, default: 0] += e.quantity * (e.material?.unitPrice ?? 0)
+        }
+
+        // İşçilik gider map (ay → adam-gün × birimMaliyet)
+        var laborMap: [String: Double] = [:]
+        for a in attendanceRecords where a.isPresent {
+            let k = ayKey(a.date)
+            laborMap[k, default: 0] += (a.totalHours / 8.0) * laborDailyRate
+        }
+
+        // Ekipman gider map (ay → yakıt + kira)
+        var equipMap: [String: Double] = [:]
+        for log in equipmentLogs {
+            let k = ayKey(log.date)
+            equipMap[k, default: 0] += (log.fuelCost ?? 0)
+                + (log.equipment?.ownershipType == .rented ? (log.equipment?.dailyRentalCost ?? 0) : 0)
+        }
+
+        // Taşeron ödeme map (ay → netAmount)
+        var taseronMap: [String: Double] = [:]
+        for sh in subHakedisler {
+            let k = ayKey(sh.periodEnd)
+            taseronMap[k, default: 0] += sh.netAmount
+        }
+
+        // Fiyat farkı ortalama
+        let avgPriceDiff = priceDiffCalcs.isEmpty ? 0 :
+            priceDiffCalcs.reduce(0) { $0 + $1.priceDifferenceAmount } / Double(priceDiffCalcs.count)
+
+        // Aylık projeksiyon listesi
+        var result: [AylikDetayliProje] = []
+        var cumulative: Double = 0
+
+        for m in months {
+            let k = ayKey(m)
+            let delayOffset = Int(avgDelay / 30.0)
+            let tahsilatOrani: Double = delayOffset == 0 ? 1.0 : 0.6
+
+            var proje = AylikDetayliProje(
+                ay: ayLabel(m), date: m,
+                hakedisGeliri: avgHakedis * tahsilatOrani,
+                fiyatFarkiGeliri: avgPriceDiff > 0 ? avgPriceDiff : 0,
+                diger: 0,
+                malzemeGideri: stockMap[k] ?? 0,
+                iscilikGideri: laborMap[k] ?? 0,
+                ekipmanGideri: equipMap[k] ?? 0,
+                taseronGideri: taseronMap[k] ?? 0
+            )
+            cumulative += proje.fark
+            proje.kumulatif = cumulative
+            result.append(proje)
+        }
+        return result
+    }
+
+    /// Bu ayki net nakit akış
+    static func buAyNetAkis(
+        hakedisler: [Hakedis],
+        priceDiffCalcs: [PriceDifferenceCalc],
+        stockEntries: [StockEntry],
+        attendanceRecords: [Attendance],
+        equipmentLogs: [EquipmentLog],
+        subHakedisler: [SubcontractorHakedis]
+    ) -> Double {
+        let cal = Calendar.current
+        let now = Date()
+        let comps = cal.dateComponents([.year, .month], from: now)
+        let thisMonth = cal.date(from: comps) ?? now
+        let key = ayKey(thisMonth)
+
+        let avgH = CashFlowEngine.ortalamaAylikHakedis(hakedisler: hakedisler)
+        let avgPD = priceDiffCalcs.isEmpty ? 0 :
+            priceDiffCalcs.reduce(0) { $0 + $1.priceDifferenceAmount } / Double(priceDiffCalcs.count)
+
+        var stockGider: Double = 0
+        for e in stockEntries where e.entryType == .incoming && ayKey(e.date) == key {
+            stockGider += e.quantity * (e.material?.unitPrice ?? 0)
+        }
+        var laborGider: Double = 0
+        for a in attendanceRecords where a.isPresent && ayKey(a.date) == key {
+            laborGider += (a.totalHours / 8.0) * 800
+        }
+        var equipGider: Double = 0
+        for log in equipmentLogs where ayKey(log.date) == key {
+            equipGider += (log.fuelCost ?? 0)
+        }
+        let taseronGider = subHakedisler.filter { ayKey($0.periodEnd) == key }
+            .reduce(0) { $0 + $1.netAmount }
+
+        let gelir = avgH + max(avgPD, 0)
+        let gider = stockGider + laborGider + equipGider + taseronGider
+        return gelir - gider
+    }
+}

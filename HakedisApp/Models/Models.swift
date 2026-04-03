@@ -323,6 +323,7 @@ final class WorkItem {
     @Relationship(deleteRule: .cascade) var dailyEntries: [DailyEntry]
     @Relationship(deleteRule: .cascade) var unitPriceAnalyses: [UnitPriceAnalysis]
     @Relationship(deleteRule: .cascade) var measurementEntries: [MeasurementEntry]
+    @Relationship(deleteRule: .cascade) var attachments: [AttachmentRecord]
 
     init(code: String, name: String, unit: String, unitPrice: Double, contractedQuantity: Double, location: String = "") {
         self.id = UUID()
@@ -336,6 +337,7 @@ final class WorkItem {
         self.dailyEntries = []
         self.unitPriceAnalyses = []
         self.measurementEntries = []
+        self.attachments = []
     }
 
     var totalAmount: Double { contractedQuantity * unitPrice }
@@ -2286,4 +2288,312 @@ struct ChecklistItem: Codable, Identifiable {
     var title: String
     var isChecked: Bool = false
     var note: String = ""
+}
+
+// MARK: - Ataşman / Yeşil Defter
+
+@Model
+final class AttachmentRecord {
+    var id: UUID
+    var attachmentNo: Int
+    var location: String
+    var length: Double?
+    var width: Double?
+    var height: Double?
+    var quantity: Double?
+    var notes: String?
+    var sketchPhotoData: Data?
+    var formula: String?
+    @Relationship var workItem: WorkItem?
+    @Relationship var hakedis: Hakedis?
+    var createdAt: Date
+
+    init(attachmentNo: Int, location: String) {
+        self.id = UUID()
+        self.attachmentNo = attachmentNo
+        self.location = location
+        self.createdAt = Date()
+    }
+
+    /// L×W×H, L×W veya direkt miktar
+    var calculatedQuantity: Double {
+        if let l = length, let w = width, let h = height {
+            return l * w * h
+        } else if let l = length, let w = width {
+            return l * w
+        } else {
+            return quantity ?? 0
+        }
+    }
+
+    /// Hesaplama formülü açıklaması
+    var formulaDescription: String {
+        if let l = length, let w = width, let h = height {
+            return String(format: "%.3g × %.3g × %.3g = %.4g", l, w, h, calculatedQuantity)
+        } else if let l = length, let w = width {
+            return String(format: "%.3g × %.3g = %.4g", l, w, calculatedQuantity)
+        } else if let q = quantity {
+            return String(format: "%.4g", q)
+        }
+        return "0"
+    }
+}
+
+// MARK: - Fiyat Farkı Hesaplama (4735 Md.8)
+
+@Model
+final class PriceDifferenceCalc {
+    var id: UUID
+    var baseMonth: String          // Baz ayı: "2025-01"
+    var applicationMonth: String   // Uygulama ayı: "2026-03"
+    var a1: Double                 // İşçilik ağırlık katsayısı
+    var a2: Double                 // Malzeme
+    var a3: Double                 // Enerji
+    var a4: Double                 // Makine amortismanı
+    var a5: Double                 // Genel giderler + kâr (sabit 0.12)
+    var index1Base: Double
+    var index1Current: Double
+    var index2Base: Double
+    var index2Current: Double
+    var index3Base: Double
+    var index3Current: Double
+    var index4Base: Double
+    var index4Current: Double
+    var hakedisAmount: Double
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(baseMonth: String, applicationMonth: String) {
+        self.id = UUID()
+        self.baseMonth = baseMonth
+        self.applicationMonth = applicationMonth
+        self.a1 = 0.25; self.a2 = 0.30; self.a3 = 0.15; self.a4 = 0.28; self.a5 = 0.12
+        self.index1Base = 100; self.index1Current = 100
+        self.index2Base = 100; self.index2Current = 100
+        self.index3Base = 100; self.index3Current = 100
+        self.index4Base = 100; self.index4Current = 100
+        self.hakedisAmount = 0
+        self.createdAt = Date()
+    }
+
+    /// Pn = a1×(İ1n/İ1₀) + a2×(İ2n/İ2₀) + a3×(İ3n/İ3₀) + a4×(İ4n/İ4₀) + a5
+    var pnValue: Double {
+        guard index1Base > 0, index2Base > 0, index3Base > 0, index4Base > 0 else { return 1.0 }
+        return a1 * (index1Current / index1Base)
+             + a2 * (index2Current / index2Base)
+             + a3 * (index3Current / index3Base)
+             + a4 * (index4Current / index4Base)
+             + a5
+    }
+
+    /// F = An × (Pn - 1)
+    var priceDifferenceAmount: Double { hakedisAmount * (pnValue - 1) }
+}
+
+// MARK: - Taşeron Hakediş
+
+@Model
+final class SubcontractorHakedis {
+    var id: UUID
+    var periodName: String
+    var periodStart: Date
+    var periodEnd: Date
+    var grossAmount: Double
+    var retentionAmount: Double
+    var netAmount: Double
+    var statusRaw: String
+    @Relationship var contractor: Contractor?
+    @Relationship var contract: Contract?
+    var notes: String?
+    var createdAt: Date
+
+    init(periodName: String, periodStart: Date, periodEnd: Date) {
+        self.id = UUID()
+        self.periodName = periodName
+        self.periodStart = periodStart
+        self.periodEnd = periodEnd
+        self.grossAmount = 0
+        self.retentionAmount = 0
+        self.netAmount = 0
+        self.statusRaw = HakedisStatus.draft.rawValue
+        self.createdAt = Date()
+    }
+
+    var status: HakedisStatus {
+        get { HakedisStatus(rawValue: statusRaw) ?? .draft }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    var profitMargin: Double {
+        guard grossAmount > 0 else { return 0 }
+        return (grossAmount - netAmount) / grossAmount * 100
+    }
+}
+
+// MARK: - Kalite Kontrol Listesi
+
+enum QualityChecklistType: String, Codable, CaseIterable {
+    case concretePour    = "Beton Döküm"
+    case reinforcement   = "Demir Donatı"
+    case waterproofing   = "Su Yalıtım"
+    case plastering      = "Sıva"
+    case painting        = "Boya"
+    case general         = "Genel Kontrol"
+
+    var defaultItems: [String] {
+        switch self {
+        case .concretePour:   return ["Kalıp kontrolü", "Donatı kontrolü", "Slump testi", "Küp numune alındı", "Beton sınıfı doğrulandı", "Dökme izni alındı"]
+        case .reinforcement:  return ["Çap ve aralıklar uygun", "Bindirme boyu yeterli", "Pas payı standartlara uygun", "Filiz konumları kontrol edildi"]
+        case .waterproofing:  return ["Yüzey temiz ve kuru", "Membran katman kalınlığı", "Birleşim yerleri kaplı", "Test suyu uygulandı"]
+        case .plastering:     return ["Yüzey düzlüğü kontrol edildi", "Köşe profilleri takıldı", "Kalınlık uygun", "Çatlak kontrolü"]
+        case .painting:       return ["Yüzey astarlandı", "Kat sayısı doğrulandı", "Renk uygunluğu", "Yüzey pürüzsüz"]
+        case .general:        return ["KKD kontrolü", "Çalışma alanı güvenli", "Malzeme kalitesi uygun", "İş yöntemi onaylı"]
+        }
+    }
+}
+
+enum CheckResult: String, Codable, CaseIterable {
+    case pass        = "Uygun"
+    case fail        = "Uygunsuz"
+    case conditional = "Şartlı Uygun"
+
+    var color: String {
+        switch self {
+        case .pass:        return "hakedisSuccess"
+        case .fail:        return "hakedisDanger"
+        case .conditional: return "hakedisWarning"
+        }
+    }
+}
+
+struct QualityCheckItem: Codable, Identifiable {
+    var id: UUID = UUID()
+    var title: String
+    var isChecked: Bool = false
+    var note: String = ""
+}
+
+@Model
+final class QualityChecklist {
+    var id: UUID
+    var checklistTypeRaw: String
+    var date: Date
+    var checkedBy: String
+    var itemsJSON: String
+    var overallResultRaw: String
+    var photoData: [Data]
+    var notes: String?
+    @Relationship var workItem: WorkItem?
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(checklistType: QualityChecklistType, date: Date = Date(), checkedBy: String) {
+        self.id = UUID()
+        self.checklistTypeRaw = checklistType.rawValue
+        self.date = date
+        self.checkedBy = checkedBy
+        self.overallResultRaw = CheckResult.pass.rawValue
+        self.photoData = []
+        self.createdAt = Date()
+        // Varsayılan maddeler
+        let items = checklistType.defaultItems.map { QualityCheckItem(title: $0) }
+        self.itemsJSON = (try? String(data: JSONEncoder().encode(items), encoding: .utf8)) ?? "[]"
+    }
+
+    var checklistType: QualityChecklistType {
+        get { QualityChecklistType(rawValue: checklistTypeRaw) ?? .general }
+        set { checklistTypeRaw = newValue.rawValue }
+    }
+    var overallResult: CheckResult {
+        get { CheckResult(rawValue: overallResultRaw) ?? .pass }
+        set { overallResultRaw = newValue.rawValue }
+    }
+    var checkItems: [QualityCheckItem] {
+        get { (try? JSONDecoder().decode([QualityCheckItem].self, from: Data(itemsJSON.utf8))) ?? [] }
+        set { itemsJSON = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
+    }
+    var passedCount: Int { checkItems.filter { $0.isChecked }.count }
+    var totalCount: Int { checkItems.count }
+}
+
+// MARK: - Süre Uzatımı Talebi
+
+@Model
+final class TimeExtensionRequest {
+    var id: UUID
+    var requestDate: Date
+    var extensionDays: Int
+    var reasonCode: String      // "Mücbir Sebep", "İdare Kaynaklı", "Hava Şartları" vs
+    var reasonDetails: String
+    var statusRaw: String       // "Bekliyor", "Onaylandı", "Reddedildi"
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(extensionDays: Int, reasonCode: String, reasonDetails: String) {
+        self.id = UUID()
+        self.requestDate = Date()
+        self.extensionDays = extensionDays
+        self.reasonCode = reasonCode
+        self.reasonDetails = reasonDetails
+        self.statusRaw = "Bekliyor"
+        self.createdAt = Date()
+    }
+
+    var status: String { statusRaw }
+    var isApproved: Bool { statusRaw == "Onaylandı" }
+}
+
+// MARK: - İlerleme Raporu
+
+@Model
+final class ProgressReport {
+    var id: UUID
+    var reportPeriod: String
+    var beforePhotoData: [Data]
+    var afterPhotoData: [Data]
+    var completionPercentage: Double
+    var summaryText: String
+    @Relationship var project: Project?
+    var createdAt: Date
+
+    init(reportPeriod: String, completionPercentage: Double = 0, summaryText: String = "") {
+        self.id = UUID()
+        self.reportPeriod = reportPeriod
+        self.completionPercentage = completionPercentage
+        self.summaryText = summaryText
+        self.beforePhotoData = []
+        self.afterPhotoData = []
+        self.createdAt = Date()
+    }
+}
+
+// MARK: - İş Artışı / Eksilişi Emri
+
+@Model
+final class WorkChangeOrder {
+    var id: UUID
+    var orderDate: Date
+    var orderNo: String
+    var changeType: String      // "Artış", "Eksilişi", "Keşif Revizyonu"
+    var changePercent: Double   // % olarak
+    var changeAmount: Double    // TL olarak
+    var changeDescription: String
+    var statusRaw: String       // "Taslak", "Onaylandı", "Reddedildi"
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(orderNo: String, changeType: String, changePercent: Double, changeAmount: Double, description: String) {
+        self.id = UUID()
+        self.orderDate = Date()
+        self.orderNo = orderNo
+        self.changeType = changeType
+        self.changePercent = changePercent
+        self.changeAmount = changeAmount
+        self.changeDescription = description
+        self.statusRaw = "Taslak"
+        self.createdAt = Date()
+    }
+
+    var isApproved: Bool { statusRaw == "Onaylandı" }
+    var exceedsLimit: Bool { abs(changePercent) > 20 }  // 4735 Md.15: %20 sınırı
 }

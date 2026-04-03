@@ -179,6 +179,10 @@ struct HakedisItemCumulativeRow: View {
         return item.cumulativeQuantity / c * 100
     }
 
+    private var attachmentCount: Int {
+        contract?.workItems.first { $0.code == item.workItemCode }?.attachments.count ?? 0
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Mevcut satır bilgisi
@@ -187,6 +191,21 @@ struct HakedisItemCumulativeRow: View {
                     .font(.caption.monospaced()).foregroundColor(.secondary)
                 Text(item.workItemName)
                     .font(.subheadline.bold()).lineLimit(1)
+                Spacer()
+                if attachmentCount > 0 {
+                    HStack(spacing: 3) {
+                        Image(systemName: "book.pages")
+                            .font(.caption2)
+                        Text("\(attachmentCount)")
+                            .font(.caption2.bold())
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.hakedisSuccess.opacity(0.15))
+                    .foregroundColor(.hakedisSuccess)
+                    .clipShape(Capsule())
+                    .accessibilityLabel("\(attachmentCount) ataşman")
+                }
             }
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {

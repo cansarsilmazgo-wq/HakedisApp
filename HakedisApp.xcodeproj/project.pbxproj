@@ -99,6 +99,16 @@
 		TB014 /* SiteDiaryPDFGenerator.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N012 /* SiteDiaryPDFGenerator.swift */; };
 		TB015 /* AttendancePDFGenerator.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N013 /* AttendancePDFGenerator.swift */; };
 		TB016 /* DesignSystem.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A004 /* DesignSystem.swift */; };
+		NB014 /* AttachmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N014 /* AttachmentViews.swift */; };
+		NB015 /* AttachmentPDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N015 /* AttachmentPDFGenerator.swift */; };
+		NB016 /* PriceDifferenceCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N016 /* PriceDifferenceCalcView.swift */; };
+		NB017 /* CashFlowProjectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N017 /* CashFlowProjectionView.swift */; };
+		NB018 /* SubcontractorHakedisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N018 /* SubcontractorHakedisViews.swift */; };
+		NB019 /* ProgressReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N019 /* ProgressReportViews.swift */; };
+		NB020 /* LegalReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N020 /* LegalReferenceView.swift */; };
+		NB021 /* QualityChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N021 /* QualityChecklistViews.swift */; };
+		NB022 /* ContractManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N022 /* ContractManagementView.swift */; };
+		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -191,6 +201,16 @@
 		N012 /* SiteDiaryPDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteDiaryPDFGenerator.swift; path = HakedisApp/Views/Santiye/SiteDiaryPDFGenerator.swift; sourceTree = "<group>"; };
 		N013 /* AttendancePDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttendancePDFGenerator.swift; path = HakedisApp/Views/Santiye/AttendancePDFGenerator.swift; sourceTree = "<group>"; };
 		T011 /* PDFGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGeneratorTests.swift; sourceTree = "<group>"; };
+		N014 /* AttachmentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttachmentViews.swift; path = HakedisApp/Views/Contracts/AttachmentViews.swift; sourceTree = "<group>"; };
+		N015 /* AttachmentPDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttachmentPDFGenerator.swift; path = HakedisApp/Views/Contracts/AttachmentPDFGenerator.swift; sourceTree = "<group>"; };
+		N016 /* PriceDifferenceCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PriceDifferenceCalcView.swift; path = HakedisApp/Views/Finans/PriceDifferenceCalcView.swift; sourceTree = "<group>"; };
+		N017 /* CashFlowProjectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CashFlowProjectionView.swift; path = HakedisApp/Views/Reports/CashFlowProjectionView.swift; sourceTree = "<group>"; };
+		N018 /* SubcontractorHakedisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubcontractorHakedisViews.swift; path = HakedisApp/Views/Contracts/SubcontractorHakedisViews.swift; sourceTree = "<group>"; };
+		N019 /* ProgressReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProgressReportViews.swift; path = HakedisApp/Views/Reports/ProgressReportViews.swift; sourceTree = "<group>"; };
+		N020 /* LegalReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LegalReferenceView.swift; path = HakedisApp/Views/Shared/LegalReferenceView.swift; sourceTree = "<group>"; };
+		N021 /* QualityChecklistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QualityChecklistViews.swift; path = HakedisApp/Views/Contracts/QualityChecklistViews.swift; sourceTree = "<group>"; };
+		N022 /* ContractManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractManagementView.swift; path = HakedisApp/Views/Contracts/ContractManagementView.swift; sourceTree = "<group>"; };
+		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -279,6 +299,15 @@
 				N011 /* AllGuaranteeListView.swift */,
 				N012 /* SiteDiaryPDFGenerator.swift */,
 				N013 /* AttendancePDFGenerator.swift */,
+				N014 /* AttachmentViews.swift */,
+				N015 /* AttachmentPDFGenerator.swift */,
+				N016 /* PriceDifferenceCalcView.swift */,
+				N017 /* CashFlowProjectionView.swift */,
+				N018 /* SubcontractorHakedisViews.swift */,
+				N019 /* ProgressReportViews.swift */,
+				N020 /* LegalReferenceView.swift */,
+				N021 /* QualityChecklistViews.swift */,
+				N022 /* ContractManagementView.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -306,6 +335,7 @@
 				T009 /* NewFeaturesTests.swift */,
 			T010 /* SantiyeModuleTests.swift */,
 				T011 /* PDFGeneratorTests.swift */,
+				T012 /* Faz3Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -536,6 +566,15 @@
 				NB011 /* AllGuaranteeListView.swift in Sources */,
 				NB012 /* SiteDiaryPDFGenerator.swift in Sources */,
 				NB013 /* AttendancePDFGenerator.swift in Sources */,
+				NB014 /* AttachmentViews.swift in Sources */,
+				NB015 /* AttachmentPDFGenerator.swift in Sources */,
+				NB016 /* PriceDifferenceCalcView.swift in Sources */,
+				NB017 /* CashFlowProjectionView.swift in Sources */,
+				NB018 /* SubcontractorHakedisViews.swift in Sources */,
+				NB019 /* ProgressReportViews.swift in Sources */,
+				NB020 /* LegalReferenceView.swift in Sources */,
+				NB021 /* QualityChecklistViews.swift in Sources */,
+				NB022 /* ContractManagementView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -559,6 +598,7 @@
 				TB014 /* SiteDiaryPDFGenerator.swift in TestSources */,
 				TB015 /* AttendancePDFGenerator.swift in TestSources */,
 				TB016 /* DesignSystem.swift in TestSources */,
+				TB017 /* Faz3Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

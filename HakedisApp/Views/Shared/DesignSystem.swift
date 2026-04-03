@@ -122,6 +122,8 @@ extension Double {
     }
     var percentFormatted: String { String(format: "%.1f%%", self) }
     var quantityFormatted: String { self == floor(self) ? String(format: "%.0f", self) : String(format: "%.2f", self) }
+    /// Compact currency for table display — same as compactCurrency
+    var shortFormatted: String { compactCurrency }
     /// Compact currency — e.g. ₺1,2M or ₺850B
     var compactCurrency: String {
         let abs = Swift.abs(self)

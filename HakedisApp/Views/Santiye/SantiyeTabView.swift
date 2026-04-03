@@ -52,7 +52,7 @@ struct SantiyeTabView: View {
                 case 5:
                     SafetyListView()
                 case 6:
-                    ContractorListView()
+                    TaseronSegmentView()
                 default:
                     EmptyView()
                 }
@@ -63,5 +63,29 @@ struct SantiyeTabView: View {
         .navigationTitle("Şantiye")
         .navigationBarTitleDisplayMode(.inline)
         }
+    }
+}
+
+// MARK: - TaseronSegmentView
+
+struct TaseronSegmentView: View {
+    var body: some View {
+        List {
+            Section("Taşeron Yönetimi") {
+                NavigationLink(destination: ContractorListView()) {
+                    Label("Taşeron Listesi", systemImage: "person.crop.circle")
+                        .accessibilityLabel("Taşeron Listesi")
+                }
+                NavigationLink(destination: SubcontractorHakedisListView()) {
+                    Label("Taşeron Hakedişleri", systemImage: "building.2")
+                        .accessibilityLabel("Taşeron Hakedişleri")
+                }
+                NavigationLink(destination: ProfitAnalysisView()) {
+                    Label("Kâr Analizi", systemImage: "chart.bar.xaxis")
+                        .accessibilityLabel("Kâr Analizi")
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
     }
 }

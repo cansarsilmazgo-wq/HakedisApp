@@ -1012,16 +1012,3 @@ private extension Calendar {
     }
 }
 
-// MARK: - Double shortFormatted (local extension guard)
-
-private extension Double {
-    var shortFormatted: String {
-        if self >= 1_000_000 {
-            return String(format: "%.1fM ₺", self / 1_000_000)
-        } else if self >= 1_000 {
-            return String(format: "%.1fK ₺", self / 1_000)
-        } else {
-            return currencyFormatted
-        }
-    }
-}

@@ -45,12 +45,7 @@ struct FinansTabView: View {
                     case 2:
                         CashFlowView(hakedisler: hakedisler)
                     case 3:
-                        EmptyStateView(
-                            icon: "arrow.up.arrow.down.circle",
-                            title: "Fiyat Farkı",
-                            subtitle: "Yakında — Faz 3'te eklenecek"
-                        )
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        PriceDifferenceListView()
                     case 4:
                         AllGuaranteeListView()
                     default:

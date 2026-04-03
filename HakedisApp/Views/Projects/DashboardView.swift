@@ -9,6 +9,10 @@ struct DashboardView: View {
     @Query private var materials: [Material]
     @Query private var safetyIncidents: [SafetyIncident]
     @Query(sort: \SiteDiary.date, order: .reverse) private var siteDiaries: [SiteDiary]
+    @Query private var priceDiffCalcs: [PriceDifferenceCalc]
+    @Query private var stockEntries: [StockEntry]
+    @Query private var equipmentLogs: [EquipmentLog]
+    @Query private var subHakedisler: [SubcontractorHakedis]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -150,6 +154,41 @@ struct DashboardView: View {
                             totalPending: totalPending
                         )
                     }
+
+                    // Bu Ay Nakit Akış Özeti
+                    let buAyNet = GenisletilmisCashFlowEngine.buAyNetAkis(
+                        hakedisler: hakedisler,
+                        priceDiffCalcs: priceDiffCalcs,
+                        stockEntries: stockEntries,
+                        attendanceRecords: attendanceRecords,
+                        equipmentLogs: equipmentLogs,
+                        subHakedisler: subHakedisler
+                    )
+                    NavigationLink(destination: CashFlowProjectionView()) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                                .font(.title2)
+                                .foregroundColor(buAyNet >= 0 ? .hakedisSuccess : .hakedisDanger)
+                                .frame(width: 44)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Bu Ay Net Nakit Akış")
+                                    .font(.caption).foregroundColor(.secondary)
+                                Text((buAyNet >= 0 ? "+" : "") + buAyNet.currencyFormatted)
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(buAyNet >= 0 ? .hakedisSuccess : .hakedisDanger)
+                                Text("Gelir – Gider tahmini")
+                                    .font(.caption2).foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption).foregroundColor(.secondary)
+                        }
+                        .padding(Spacing.card)
+                        .background(Color.hakedisCard)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal, Spacing.card)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Nakit akış projeksiyonu, bu ay net \((buAyNet >= 0 ? "+" : "") + buAyNet.currencyFormatted)")
 
                     // Bugün Şantiye Özeti
                     if !attendanceRecords.isEmpty || latestDiary != nil {
