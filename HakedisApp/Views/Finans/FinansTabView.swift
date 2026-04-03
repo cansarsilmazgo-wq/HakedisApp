@@ -7,6 +7,7 @@ struct FinansTabView: View {
     private let segments = ["Hakediş", "Ödemeler", "Nakit Akış", "Fiyat Farkı", "Teminat"]
 
     var body: some View {
+        NavigationStack {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 0) {
@@ -61,5 +62,6 @@ struct FinansTabView: View {
         .background(Color.hakedisBackground)
         .navigationTitle("Finans")
         .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }

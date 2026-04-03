@@ -6,8 +6,9 @@ struct SantiyeTabView: View {
     private let segments = ["Saha", "Günlük", "Puantaj", "Malzeme", "Ekipman", "İSG", "Taşeronlar"]
 
     var body: some View {
+        NavigationStack {
         VStack(spacing: 0) {
-            // Segment picker — kendi NavigationStack'inden bağımsız
+            // Segment picker
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(segments.indices, id: \.self) { i in
@@ -59,8 +60,8 @@ struct SantiyeTabView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(Color.hakedisBackground)
-        // Tab bar item label'ı yönetir navigation title'ı
         .navigationTitle("Şantiye")
         .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }
