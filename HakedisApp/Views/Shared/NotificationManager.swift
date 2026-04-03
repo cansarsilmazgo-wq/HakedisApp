@@ -264,6 +264,49 @@ class NotificationManager: ObservableObject {
         let ids = [30, 15, 7].map { "cert_\(certID.uuidString)_d\($0)" }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
+
+    // MARK: - Ekipman Sigorta / Muayene Bildirimleri
+
+    var equipmentAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "equipmentAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "equipmentAlertsEnabled") }
+    }
+
+    /// Sigorta veya muayene bitiş tarihinden 30, 15, 7 gün önce bildirim zamanlar.
+    func scheduleEquipmentInsuranceAlerts(equipment: EquipmentItem) {
+        guard isAuthorized, equipmentAlertsEnabled else { return }
+        let daysBefore = [30, 15, 7]
+        let checks: [(label: String, date: Date?, prefix: String)] = [
+            ("sigorta", equipment.insuranceExpiryDate, "ins"),
+            ("muayene", equipment.inspectionExpiryDate, "insp")
+        ]
+        for check in checks {
+            guard let expiryDate = check.date else { continue }
+            for days in daysBefore {
+                guard let triggerDate = Calendar.current.date(byAdding: .day, value: -days, to: expiryDate),
+                      triggerDate > Date() else { continue }
+                let content = UNMutableNotificationContent()
+                content.sound = .default
+                content.title = days == 7 ? "\(equipment.name) \(check.label) bitiyor!" : "\(equipment.name) \(check.label) uyarısı"
+                content.body = "\(equipment.name) \(check.label) \(days) gün içinde sona eriyor."
+                var components = Calendar.current.dateComponents([.year, .month, .day], from: triggerDate)
+                components.hour = 9; components.minute = 0
+                let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+                let request = UNNotificationRequest(
+                    identifier: "\(check.prefix)_\(equipment.id.uuidString)_d\(days)",
+                    content: content, trigger: trigger
+                )
+                UNUserNotificationCenter.current().add(request)
+            }
+        }
+    }
+
+    func cancelEquipmentAlerts(equipmentID: UUID) {
+        let ids = [30, 15, 7].flatMap { d in
+            ["ins_\(equipmentID.uuidString)_d\(d)", "insp_\(equipmentID.uuidString)_d\(d)"]
+        }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
 }
 
 struct NotificationSettingsView: View {
