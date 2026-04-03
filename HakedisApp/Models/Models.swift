@@ -2728,6 +2728,316 @@ enum ChecklistType: String, Codable, CaseIterable {
     case excavation = "Kazı Güvenliği"
 }
 
+// MARK: - İSG Derinleştirme Modelleri
+
+enum RiskLevel: String, Codable, CaseIterable {
+    case veryLow  = "Çok Düşük"
+    case low      = "Düşük"
+    case medium   = "Orta"
+    case high     = "Yüksek"
+    case veryHigh = "Çok Yüksek"
+
+    static func from(score: Int) -> RiskLevel {
+        switch score {
+        case 1...4:   return .veryLow
+        case 5...8:   return .low
+        case 9...12:  return .medium
+        case 13...19: return .high
+        default:      return .veryHigh
+        }
+    }
+
+    var colorName: String {
+        switch self {
+        case .veryLow:  return "hakedisSuccess"
+        case .low:      return "hakedisInfo"
+        case .medium:   return "hakedisWarning"
+        case .high:     return "hakedisDanger"
+        case .veryHigh: return "hakedisDanger"
+        }
+    }
+}
+
+@Model
+final class RiskAssessment {
+    var id: UUID
+    var assessmentDate: Date
+    var location: String
+    var activity: String
+    var hazard: String
+    var likelihood: Int
+    var severity: Int
+    var existingControls: String?
+    var additionalControls: String?
+    var responsiblePerson: String?
+    var targetDate: Date?
+    var isControlled: Bool
+    var reassessmentDate: Date?
+    var createdAt: Date
+    @Relationship var project: Project?
+
+    init(location: String, activity: String, hazard: String, likelihood: Int = 3, severity: Int = 3) {
+        self.id = UUID()
+        self.assessmentDate = Date()
+        self.location = location
+        self.activity = activity
+        self.hazard = hazard
+        self.likelihood = min(5, max(1, likelihood))
+        self.severity = min(5, max(1, severity))
+        self.isControlled = false
+        self.createdAt = Date()
+    }
+
+    var riskScore: Int { likelihood * severity }
+    var riskLevel: RiskLevel { RiskLevel.from(score: riskScore) }
+}
+
+@Model
+final class RootCauseAnalysis {
+    var id: UUID
+    var why1: String
+    var why2: String?
+    var why3: String?
+    var why4: String?
+    var why5: String?
+    var rootCause: String
+    var createdAt: Date
+    @Relationship var incident: SafetyIncident?
+
+    init(why1: String, rootCause: String) {
+        self.id = UUID()
+        self.why1 = why1
+        self.rootCause = rootCause
+        self.createdAt = Date()
+    }
+}
+
+enum CorrectiveActionStatus: String, Codable, CaseIterable {
+    case open       = "Açık"
+    case inProgress = "Devam Ediyor"
+    case completed  = "Tamamlandı"
+    case overdue    = "Gecikmiş"
+    case verified   = "Doğrulandı"
+
+    var icon: String {
+        switch self {
+        case .open:       return "circle"
+        case .inProgress: return "circle.lefthalf.filled"
+        case .completed:  return "checkmark.circle"
+        case .overdue:    return "exclamationmark.circle"
+        case .verified:   return "checkmark.seal.fill"
+        }
+    }
+}
+
+@Model
+final class CorrectiveAction {
+    var id: UUID
+    var actionChangeDescription: String
+    var responsiblePerson: String
+    var assignedDate: Date
+    var dueDate: Date
+    var completionDate: Date?
+    var statusRaw: String
+    var verifiedBy: String?
+    var verificationDate: Date?
+    var verificationNotes: String?
+    var photoData: [Data]
+    var createdAt: Date
+    @Relationship var incident: SafetyIncident?
+    @Relationship var project: Project?
+
+    init(actionChangeDescription: String, responsiblePerson: String, dueDate: Date) {
+        self.id = UUID()
+        self.actionChangeDescription = actionChangeDescription
+        self.responsiblePerson = responsiblePerson
+        self.assignedDate = Date()
+        self.dueDate = dueDate
+        self.statusRaw = CorrectiveActionStatus.open.rawValue
+        self.photoData = []
+        self.createdAt = Date()
+    }
+
+    var status: CorrectiveActionStatus {
+        get { CorrectiveActionStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    var isOverdue: Bool { status != .completed && status != .verified && dueDate < Date() }
+}
+
+enum SafetyTrainingType: String, Codable, CaseIterable {
+    case orientation    = "İşe Giriş Oryantasyonu"
+    case basicOSH       = "Temel İSG Eğitimi"
+    case heightWork     = "Yüksekte Çalışma"
+    case confinedSpace  = "Kapalı Alan"
+    case scaffolding    = "İskele Güvenliği"
+    case excavation     = "Kazı Güvenliği"
+    case electrical     = "Elektrik Güvenliği"
+    case fireEvacuation = "Yangın ve Tahliye"
+    case firstAid       = "İlk Yardım"
+    case ppe            = "KKD Kullanımı"
+    case toolbox        = "Toolbox Eğitimi"
+    case emergency      = "Acil Durum Tatbikatı"
+    case other          = "Diğer"
+}
+
+@Model
+final class SafetyTraining {
+    var id: UUID
+    var trainingDate: Date
+    var trainingTypeRaw: String
+    var durationHours: Double
+    var trainer: String
+    var trainerTitle: String?
+    var attendeesJSON: String
+    var topicsCovered: String
+    var notes: String?
+    var photoData: Data?
+    var createdAt: Date
+    @Relationship var project: Project?
+
+    init(trainingType: SafetyTrainingType, trainingDate: Date = Date(), trainer: String, durationHours: Double) {
+        self.id = UUID()
+        self.trainingTypeRaw = trainingType.rawValue
+        self.trainingDate = trainingDate
+        self.trainer = trainer
+        self.durationHours = durationHours
+        self.attendeesJSON = "[]"
+        self.topicsCovered = ""
+        self.createdAt = Date()
+    }
+
+    var trainingType: SafetyTrainingType {
+        get { SafetyTrainingType(rawValue: trainingTypeRaw) ?? .other }
+        set { trainingTypeRaw = newValue.rawValue }
+    }
+
+    var attendees: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: Data(attendeesJSON.utf8))) ?? [] }
+        set { attendeesJSON = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
+    }
+}
+
+enum PPEType: String, Codable, CaseIterable {
+    case hardHat       = "Baret"
+    case safetyVest    = "Reflektif Yelek"
+    case safetyGlasses = "Koruyucu Gözlük"
+    case gloves        = "Eldiven"
+    case harness       = "Emniyet Kemeri"
+    case safetyBoots   = "Çelik Burunlu Bot"
+    case earProtection = "Kulak Koruyucu"
+    case dustMask      = "Toz Maskesi"
+    case faceShield    = "Yüz Siperi"
+    case other         = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .hardHat:       return "person.crop.circle.fill"
+        case .safetyVest:    return "person.text.rectangle"
+        case .safetyGlasses: return "eyeglasses"
+        case .gloves:        return "hand.raised.fill"
+        case .harness:       return "figure.climbing"
+        case .safetyBoots:   return "figure.walk"
+        case .earProtection: return "ear.fill"
+        case .dustMask:      return "facemask.fill"
+        case .faceShield:    return "theatermasks.fill"
+        case .other:         return "questionmark.circle"
+        }
+    }
+}
+
+enum PPECondition: String, Codable, CaseIterable {
+    case newPPE  = "Yeni"
+    case good    = "İyi"
+    case worn    = "Yıpranmış"
+    case damaged = "Hasarlı"
+    case returned = "İade Edildi"
+}
+
+@Model
+final class PPEAssignment {
+    var id: UUID
+    var ppeTypeRaw: String
+    var assignedDate: Date
+    var returnDate: Date?
+    var conditionRaw: String
+    var serialNo: String?
+    var createdAt: Date
+    @Relationship var worker: Worker?
+    @Relationship var project: Project?
+
+    init(ppeType: PPEType, assignedDate: Date = Date()) {
+        self.id = UUID()
+        self.ppeTypeRaw = ppeType.rawValue
+        self.conditionRaw = PPECondition.newPPE.rawValue
+        self.assignedDate = assignedDate
+        self.createdAt = Date()
+    }
+
+    var ppeType: PPEType {
+        get { PPEType(rawValue: ppeTypeRaw) ?? .other }
+        set { ppeTypeRaw = newValue.rawValue }
+    }
+
+    var condition: PPECondition {
+        get { PPECondition(rawValue: conditionRaw) ?? .good }
+        set { conditionRaw = newValue.rawValue }
+    }
+}
+
+enum EmergencyPlanType: String, Codable, CaseIterable {
+    case fire        = "Yangın"
+    case earthquake  = "Deprem"
+    case workAccident = "İş Kazası"
+    case chemicalSpill = "Kimyasal Dökülme"
+    case collapse    = "Göçük"
+    case other       = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .fire:          return "flame.fill"
+        case .earthquake:    return "waveform.path.ecg"
+        case .workAccident:  return "cross.circle.fill"
+        case .chemicalSpill: return "drop.triangle.fill"
+        case .collapse:      return "building.2"
+        case .other:         return "exclamationmark.triangle.fill"
+        }
+    }
+}
+
+@Model
+final class EmergencyPlan {
+    var id: UUID
+    var planTypeRaw: String
+    var procedures: String
+    var assemblyPoint: String
+    var emergencyContacts: String  // JSON encoded
+    var lastDrillDate: Date?
+    var nextDrillDate: Date?
+    var createdAt: Date
+    @Relationship var project: Project?
+
+    init(planType: EmergencyPlanType, procedures: String, assemblyPoint: String) {
+        self.id = UUID()
+        self.planTypeRaw = planType.rawValue
+        self.procedures = procedures
+        self.assemblyPoint = assemblyPoint
+        self.emergencyContacts = "[]"
+        self.createdAt = Date()
+    }
+
+    var planType: EmergencyPlanType {
+        get { EmergencyPlanType(rawValue: planTypeRaw) ?? .other }
+        set { planTypeRaw = newValue.rawValue }
+    }
+
+    var isDrillOverdue: Bool {
+        guard let next = nextDrillDate else { return false }
+        return next < Date()
+    }
+}
+
 @Model
 final class SafetyIncident {
     var id: UUID
@@ -2740,8 +3050,13 @@ final class SafetyIncident {
     var preventiveMeasures: String?
     var photoData: [Data]
     var isResolved: Bool
+    var lostWorkDays: Int?
+    var reportedToSGK: Bool
+    var reportedToMinistry: Bool
     var project: Project?
     var createdAt: Date
+    @Relationship(deleteRule: .cascade) var rootCauseAnalysis: RootCauseAnalysis?
+    @Relationship(deleteRule: .cascade) var correctiveActions: [CorrectiveAction]
 
     init(date: Date = Date(), incidentType: IncidentType, incidentDescription: String) {
         self.id = UUID()
@@ -2750,7 +3065,39 @@ final class SafetyIncident {
         self.incidentDescription = incidentDescription
         self.photoData = []
         self.isResolved = false
+        self.reportedToSGK = false
+        self.reportedToMinistry = false
+        self.correctiveActions = []
         self.createdAt = Date()
+    }
+
+    var sgkReportDeadline: Date {
+        var days = 0
+        var current = date
+        while days < 3 {
+            current = Calendar.current.date(byAdding: .day, value: 1, to: current)!
+            let weekday = Calendar.current.component(.weekday, from: current)
+            if weekday != 1 && weekday != 7 { days += 1 }
+        }
+        return current
+    }
+
+    var ministryReportDeadline: Date {
+        var days = 0
+        var current = date
+        while days < 2 {
+            current = Calendar.current.date(byAdding: .day, value: 1, to: current)!
+            let weekday = Calendar.current.component(.weekday, from: current)
+            if weekday != 1 && weekday != 7 { days += 1 }
+        }
+        return current
+    }
+
+    var isSGKDeadlineApproaching: Bool {
+        !reportedToSGK && Date() <= sgkReportDeadline
+    }
+    var isSGKDeadlineOverdue: Bool {
+        !reportedToSGK && Date() > sgkReportDeadline
     }
 }
 

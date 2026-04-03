@@ -28,6 +28,8 @@ struct HakedisApp: App {
             EquipmentItem.self, EquipmentLog.self,
             EquipmentFailure.self, MaintenancePlan.self, RentalContract.self,
             SafetyIncident.self, SafetyChecklist.self,
+            RiskAssessment.self, RootCauseAnalysis.self, CorrectiveAction.self,
+            SafetyTraining.self, PPEAssignment.self, EmergencyPlan.self,
             AttachmentRecord.self,
             PriceDifferenceCalc.self,
             SubcontractorHakedis.self,

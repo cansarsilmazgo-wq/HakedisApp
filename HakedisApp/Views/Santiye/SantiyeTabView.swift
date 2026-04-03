@@ -52,7 +52,7 @@ struct SantiyeTabView: View {
                 case 5:
                     EquipmentSubTabView()
                 case 6:
-                    SafetyListView()
+                    SafetySubTabView()
                 case 7:
                     TaseronSegmentView()
                 default:

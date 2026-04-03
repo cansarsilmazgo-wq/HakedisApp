@@ -118,9 +118,17 @@
 		NB030 /* MaintenancePlanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N030 /* MaintenancePlanViews.swift */; };
 		NB031 /* RentalContractViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N031 /* RentalContractViews.swift */; };
 		NB032 /* EquipmentCostAnalysisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N032 /* EquipmentCostAnalysisViews.swift */; };
+		NB033 /* RiskAssessmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N033 /* RiskAssessmentViews.swift */; };
+		NB034 /* CorrectiveActionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N034 /* CorrectiveActionViews.swift */; };
+		NB035 /* SafetyTrainingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N035 /* SafetyTrainingViews.swift */; };
+		NB036 /* PPEAssignmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N036 /* PPEAssignmentViews.swift */; };
+		NB037 /* EmergencyPlanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N037 /* EmergencyPlanViews.swift */; };
+		NB038 /* SafetyStatisticsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N038 /* SafetyStatisticsViews.swift */; };
+		NB039 /* SafetyPDFReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N039 /* SafetyPDFReportGenerator.swift */; };
 		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
 		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
 		TB019 /* Faz6A3A4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T014 /* Faz6A3A4Tests.swift */; };
+		TB020 /* Faz6A5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T015 /* Faz6A5Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -232,9 +240,17 @@
 		N030 /* MaintenancePlanViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaintenancePlanViews.swift; path = HakedisApp/Views/Santiye/MaintenancePlanViews.swift; sourceTree = "<group>"; };
 		N031 /* RentalContractViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RentalContractViews.swift; path = HakedisApp/Views/Santiye/RentalContractViews.swift; sourceTree = "<group>"; };
 		N032 /* EquipmentCostAnalysisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentCostAnalysisViews.swift; path = HakedisApp/Views/Santiye/EquipmentCostAnalysisViews.swift; sourceTree = "<group>"; };
+		N033 /* RiskAssessmentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RiskAssessmentViews.swift; path = HakedisApp/Views/Santiye/RiskAssessmentViews.swift; sourceTree = "<group>"; };
+		N034 /* CorrectiveActionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CorrectiveActionViews.swift; path = HakedisApp/Views/Santiye/CorrectiveActionViews.swift; sourceTree = "<group>"; };
+		N035 /* SafetyTrainingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyTrainingViews.swift; path = HakedisApp/Views/Santiye/SafetyTrainingViews.swift; sourceTree = "<group>"; };
+		N036 /* PPEAssignmentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PPEAssignmentViews.swift; path = HakedisApp/Views/Santiye/PPEAssignmentViews.swift; sourceTree = "<group>"; };
+		N037 /* EmergencyPlanViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EmergencyPlanViews.swift; path = HakedisApp/Views/Santiye/EmergencyPlanViews.swift; sourceTree = "<group>"; };
+		N038 /* SafetyStatisticsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyStatisticsViews.swift; path = HakedisApp/Views/Santiye/SafetyStatisticsViews.swift; sourceTree = "<group>"; };
+		N039 /* SafetyPDFReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyPDFReportGenerator.swift; path = HakedisApp/Views/Santiye/SafetyPDFReportGenerator.swift; sourceTree = "<group>"; };
 		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
 		T013 /* Faz6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6Tests.swift; sourceTree = "<group>"; };
 		T014 /* Faz6A3A4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A3A4Tests.swift; sourceTree = "<group>"; };
+		T015 /* Faz6A5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A5Tests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -342,6 +358,13 @@
 				N030 /* MaintenancePlanViews.swift */,
 				N031 /* RentalContractViews.swift */,
 				N032 /* EquipmentCostAnalysisViews.swift */,
+				N033 /* RiskAssessmentViews.swift */,
+				N034 /* CorrectiveActionViews.swift */,
+				N035 /* SafetyTrainingViews.swift */,
+				N036 /* PPEAssignmentViews.swift */,
+				N037 /* EmergencyPlanViews.swift */,
+				N038 /* SafetyStatisticsViews.swift */,
+				N039 /* SafetyPDFReportGenerator.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -372,6 +395,7 @@
 				T012 /* Faz3Tests.swift */,
 				T013 /* Faz6Tests.swift */,
 				T014 /* Faz6A3A4Tests.swift */,
+				T015 /* Faz6A5Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -621,6 +645,13 @@
 				NB030 /* MaintenancePlanViews.swift in Sources */,
 				NB031 /* RentalContractViews.swift in Sources */,
 				NB032 /* EquipmentCostAnalysisViews.swift in Sources */,
+				NB033 /* RiskAssessmentViews.swift in Sources */,
+				NB034 /* CorrectiveActionViews.swift in Sources */,
+				NB035 /* SafetyTrainingViews.swift in Sources */,
+				NB036 /* PPEAssignmentViews.swift in Sources */,
+				NB037 /* EmergencyPlanViews.swift in Sources */,
+				NB038 /* SafetyStatisticsViews.swift in Sources */,
+				NB039 /* SafetyPDFReportGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -647,6 +678,7 @@
 				TB017 /* Faz3Tests.swift in Sources */,
 				TB018 /* Faz6Tests.swift in Sources */,
 				TB019 /* Faz6A3A4Tests.swift in Sources */,
+				TB020 /* Faz6A5Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

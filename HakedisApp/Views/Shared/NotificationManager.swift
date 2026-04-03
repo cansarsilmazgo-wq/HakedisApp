@@ -307,6 +307,59 @@ class NotificationManager: ObservableObject {
         }
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
     }
+
+    // MARK: - İş Kazası SGK Bildirim Uyarıları
+
+    var sgkAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "sgkAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "sgkAlertsEnabled") }
+    }
+
+    /// İş kazası için SGK 3 iş günü ve Bakanlık 2 iş günü geri sayım bildirimi zamanlar.
+    func scheduleWorkAccidentSGKAlert(incident: SafetyIncident) {
+        guard isAuthorized, sgkAlertsEnabled else { return }
+
+        let sgkDeadline = incident.sgkReportDeadline
+        let ministryDeadline = incident.ministryReportDeadline
+
+        // SGK bildirimi: 3 iş günü
+        if sgkDeadline > Date() {
+            let content = UNMutableNotificationContent()
+            content.title = "İş Kazası SGK Bildirimi"
+            content.body = "\(incident.date.shortFormatted) tarihli iş kazası SGK'ya 3 iş günü içinde bildirilmeli. Son gün: \(sgkDeadline.shortFormatted)"
+            content.sound = .default
+            var sgkComponents = Calendar.current.dateComponents([.year, .month, .day], from: sgkDeadline)
+            sgkComponents.hour = 8; sgkComponents.minute = 0
+            let trigger = UNCalendarNotificationTrigger(dateMatching: sgkComponents, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: "sgk_\(incident.id.uuidString)",
+                content: content, trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request)
+        }
+
+        // Bakanlık bildirimi: 2 iş günü
+        if ministryDeadline > Date() {
+            let content2 = UNMutableNotificationContent()
+            content2.title = "İş Kazası Bakanlık Bildirimi"
+            content2.body = "\(incident.date.shortFormatted) tarihli iş kazası Çalışma Bakanlığı'na 2 iş günü içinde bildirilmeli. Son gün: \(ministryDeadline.shortFormatted)"
+            content2.sound = .default
+            var minComponents = Calendar.current.dateComponents([.year, .month, .day], from: ministryDeadline)
+            minComponents.hour = 8; minComponents.minute = 0
+            let trigger2 = UNCalendarNotificationTrigger(dateMatching: minComponents, repeats: false)
+            let request2 = UNNotificationRequest(
+                identifier: "ministry_\(incident.id.uuidString)",
+                content: content2, trigger: trigger2
+            )
+            UNUserNotificationCenter.current().add(request2)
+        }
+    }
+
+    func cancelWorkAccidentAlerts(incidentID: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [
+            "sgk_\(incidentID.uuidString)", "ministry_\(incidentID.uuidString)"
+        ])
+    }
 }
 
 struct NotificationSettingsView: View {

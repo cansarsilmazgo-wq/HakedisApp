@@ -2,6 +2,59 @@ import SwiftUI
 import SwiftData
 import PhotosUI
 
+// MARK: - SafetySubTabView
+
+struct SafetySubTabView: View {
+    @State private var selectedTab = 0
+    private let tabs = ["Olaylar", "Risk Matrisi", "Düzeltici", "Eğitimler", "KKD", "Acil Durum", "İstatistik"]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(tabs.indices, id: \.self) { i in
+                        Button {
+                            selectedTab = i
+                        } label: {
+                            Text(tabs[i])
+                                .font(.subheadline.weight(selectedTab == i ? .semibold : .regular))
+                                .foregroundColor(selectedTab == i ? .hakedisOrange : .secondary)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .overlay(
+                                    Rectangle()
+                                        .frame(height: 2)
+                                        .foregroundColor(selectedTab == i ? .hakedisOrange : .clear),
+                                    alignment: .bottom
+                                )
+                        }
+                        .accessibilityLabel(tabs[i])
+                        .accessibilityAddTraits(selectedTab == i ? .isSelected : [])
+                    }
+                }
+            }
+            .background(Color.hakedisCard)
+
+            Divider()
+
+            ZStack {
+                switch selectedTab {
+                case 0: SafetyListView()
+                case 1: RiskAssessmentListView()
+                case 2: CorrectiveActionListView()
+                case 3: SafetyTrainingListView()
+                case 4: PPEAssignmentListView()
+                case 5: EmergencyPlanListView()
+                case 6: SafetyStatisticsView()
+                default: EmptyView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(Color.hakedisBackground)
+    }
+}
+
 // MARK: - IncidentType color extension
 extension IncidentType {
     var uiColor: Color {
@@ -256,6 +309,7 @@ struct SafetyIncidentDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var showingEdit = false
+    @State private var showingAddAction = false
 
     var body: some View {
         List {
@@ -274,6 +328,9 @@ struct SafetyIncidentDetailView: View {
                 if let worker = incident.involvedWorker {
                     LabeledContent("İlgili İşçi", value: worker)
                 }
+                if let days = incident.lostWorkDays {
+                    LabeledContent("Kayıp İş Günü", value: "\(days) gün")
+                }
                 HStack {
                     Text("Durum")
                     Spacer()
@@ -281,6 +338,54 @@ struct SafetyIncidentDetailView: View {
                         text: incident.isResolved ? "Kapatıldı" : "Açık",
                         color: incident.isResolved ? .hakedisSuccess : .hakedisDanger
                     )
+                }
+            }
+
+            // SGK / Bakanlık Bildirim
+            if incident.incidentType == .majorInjury || incident.incidentType == .minorInjury {
+                Section("SGK & Bakanlık Bildirimi") {
+                    HStack {
+                        Image(systemName: incident.reportedToSGK ? "checkmark.circle.fill" : "xmark.circle")
+                            .foregroundColor(incident.reportedToSGK ? .hakedisSuccess : .hakedisDanger)
+                        Text("SGK Bildirimi")
+                        Spacer()
+                        Text(incident.reportedToSGK ? "Bildirildi" : "Bildirilmedi")
+                            .font(.caption).foregroundColor(incident.reportedToSGK ? .hakedisSuccess : .hakedisDanger)
+                    }
+                    if !incident.reportedToSGK {
+                        let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: incident.sgkReportDeadline).day ?? 0
+                        HStack {
+                            Image(systemName: daysRemaining >= 0 ? "clock.fill" : "exclamationmark.circle.fill")
+                                .foregroundColor(daysRemaining >= 0 ? .hakedisWarning : .hakedisDanger)
+                            Text(daysRemaining >= 0
+                                ? "3 iş günü içinde bildirilmeli. Kalan: \(daysRemaining) gün"
+                                : "SGK bildirim süresi geçti!")
+                                .font(.caption)
+                                .foregroundColor(daysRemaining >= 0 ? .hakedisWarning : .hakedisDanger)
+                        }
+                        Button("SGK'ya Bildirildi Olarak İşaretle") {
+                            incident.reportedToSGK = true
+                            try? modelContext.save()
+                        }
+                        .foregroundColor(.hakedisOrange)
+                        .accessibilityLabel("SGK bildirimi yapıldı")
+                    }
+                    HStack {
+                        Image(systemName: incident.reportedToMinistry ? "checkmark.circle.fill" : "xmark.circle")
+                            .foregroundColor(incident.reportedToMinistry ? .hakedisSuccess : .secondary)
+                        Text("Bakanlık Bildirimi")
+                        Spacer()
+                        Text(incident.reportedToMinistry ? "Bildirildi" : "Bildirilmedi")
+                            .font(.caption).foregroundColor(incident.reportedToMinistry ? .hakedisSuccess : .secondary)
+                    }
+                    if !incident.reportedToMinistry {
+                        Button("Bakanlığa Bildirildi Olarak İşaretle") {
+                            incident.reportedToMinistry = true
+                            try? modelContext.save()
+                        }
+                        .foregroundColor(.hakedisOrange)
+                        .accessibilityLabel("Bakanlık bildirimi yapıldı")
+                    }
                 }
             }
 
@@ -299,6 +404,48 @@ struct SafetyIncidentDetailView: View {
                 Section("Önleyici Tedbirler") {
                     Text(measures).font(.body)
                 }
+            }
+
+            // Kök Neden Analizi
+            Section("Kök Neden Analizi") {
+                if incident.rootCauseAnalysis != nil {
+                    NavigationLink(destination: RootCauseAnalysisView(incident: incident)) {
+                        HStack {
+                            Image(systemName: "arrow.triangle.2.circlepath").foregroundColor(.hakedisOrange)
+                            Text("5 Neden Analizi görüntüle")
+                        }
+                    }
+                    .accessibilityLabel("Kök neden analizini görüntüle")
+                } else {
+                    NavigationLink(destination: RootCauseAnalysisView(incident: incident)) {
+                        HStack {
+                            Image(systemName: "plus.circle").foregroundColor(.hakedisOrange)
+                            Text("5 Neden Analizi Başlat")
+                        }
+                    }
+                    .accessibilityLabel("Kök neden analizi başlat")
+                }
+            }
+
+            // Düzeltici Faaliyetler
+            Section("Düzeltici Faaliyetler (\(incident.correctiveActions.count))") {
+                ForEach(incident.correctiveActions, id: \.id) { action in
+                    NavigationLink(destination: CorrectiveActionDetailView(action: action)) {
+                        HStack {
+                            Image(systemName: action.status.icon)
+                                .foregroundColor(action.isOverdue ? .hakedisDanger : .hakedisOrange)
+                            Text(action.actionChangeDescription).lineLimit(1)
+                        }
+                    }
+                    .accessibilityLabel(action.actionChangeDescription)
+                }
+                Button {
+                    showingAddAction = true
+                } label: {
+                    Label("Düzeltici Faaliyet Ekle", systemImage: "plus.circle")
+                }
+                .foregroundColor(.hakedisOrange)
+                .accessibilityLabel("Düzeltici faaliyet ekle")
             }
 
             if !incident.photoData.isEmpty {
@@ -335,6 +482,9 @@ struct SafetyIncidentDetailView: View {
         }
         .sheet(isPresented: $showingEdit) {
             SafetyIncidentForm(editingIncident: incident)
+        }
+        .sheet(isPresented: $showingAddAction) {
+            CorrectiveActionForm(incident: incident)
         }
     }
 }

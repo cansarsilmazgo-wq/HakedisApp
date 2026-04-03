@@ -17,6 +17,8 @@ struct DashboardView: View {
     @Query private var allEquipment: [EquipmentItem]
     @Query private var allMaterialOrders: [MaterialOrder]
     @Query private var allMaterialRequests: [MaterialRequest]
+    @Query private var allRiskAssessments: [RiskAssessment]
+    @Query private var allCorrectiveActions: [CorrectiveAction]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -270,10 +272,47 @@ struct DashboardView: View {
                         }
                     }
 
-                    // Açık ISG Olayları
-                    if !openSafetyIncidents.isEmpty {
-                        VStack(alignment: .leading, spacing: 12) {
-                            SectionHeader("Açık İSG Olayları (\(openSafetyIncidents.count))")
+                    // İSG Dashboard Kartı
+                    let highUncontrolledRisks = allRiskAssessments.filter { ($0.riskLevel == .high || $0.riskLevel == .veryHigh) && !$0.isControlled }
+                    let overdueActions = allCorrectiveActions.filter { $0.isOverdue }
+                    let sgkPendingIncidents = safetyIncidents.filter { $0.incidentType == .majorInjury && !$0.reportedToSGK && $0.isSGKDeadlineApproaching }
+                    let sgkOverdueIncidents = safetyIncidents.filter { $0.incidentType == .majorInjury && $0.isSGKDeadlineOverdue }
+
+                    if !openSafetyIncidents.isEmpty || !highUncontrolledRisks.isEmpty || !overdueActions.isEmpty || !sgkPendingIncidents.isEmpty || !sgkOverdueIncidents.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            SectionHeader("İSG Özeti")
+
+                            // SGK Deadline Uyarısı
+                            if !sgkOverdueIncidents.isEmpty {
+                                ISGDashboardAlertRow(
+                                    icon: "exclamationmark.circle.fill",
+                                    color: .hakedisDanger,
+                                    text: "\(sgkOverdueIncidents.count) iş kazası SGK bildirim süresi geçti!"
+                                )
+                            }
+                            if !sgkPendingIncidents.isEmpty {
+                                ISGDashboardAlertRow(
+                                    icon: "clock.badge.exclamationmark.fill",
+                                    color: .hakedisWarning,
+                                    text: "\(sgkPendingIncidents.count) iş kazası SGK bildirimi bekliyor"
+                                )
+                            }
+                            if !highUncontrolledRisks.isEmpty {
+                                ISGDashboardAlertRow(
+                                    icon: "exclamationmark.triangle.fill",
+                                    color: .hakedisWarning,
+                                    text: "\(highUncontrolledRisks.count) kontrolsüz yüksek/çok yüksek risk"
+                                )
+                            }
+                            if !overdueActions.isEmpty {
+                                ISGDashboardAlertRow(
+                                    icon: "clock.fill",
+                                    color: .hakedisOrange,
+                                    text: "\(overdueActions.count) gecikmiş düzeltici faaliyet"
+                                )
+                            }
+
+                            // Açık olaylar
                             ForEach(openSafetyIncidents.prefix(3), id: \.id) { incident in
                                 HStack(spacing: 10) {
                                     Image(systemName: incident.incidentType.icon)
@@ -948,5 +987,26 @@ struct DashboardFinancialSummary: View {
                 .font(.caption2).foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - ISGDashboardAlertRow
+
+private struct ISGDashboardAlertRow: View {
+    let icon: String
+    let color: Color
+    let text: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon).foregroundColor(color)
+            Text(text).font(.caption.bold()).foregroundColor(color)
+            Spacer()
+        }
+        .padding(Spacing.cardSmall)
+        .background(color.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(text)
     }
 }
