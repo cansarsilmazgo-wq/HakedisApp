@@ -108,7 +108,10 @@
 		NB020 /* LegalReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N020 /* LegalReferenceView.swift */; };
 		NB021 /* QualityChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N021 /* QualityChecklistViews.swift */; };
 		NB022 /* ContractManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N022 /* ContractManagementView.swift */; };
+		NB023 /* SiteDiaryPhotoStamper.swift in Sources */ = {isa = PBXBuildFile; fileRef = N023 /* SiteDiaryPhotoStamper.swift */; };
+		NB024 /* WorkerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N024 /* WorkerViews.swift */; };
 		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
+		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -210,7 +213,10 @@
 		N020 /* LegalReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LegalReferenceView.swift; path = HakedisApp/Views/Shared/LegalReferenceView.swift; sourceTree = "<group>"; };
 		N021 /* QualityChecklistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QualityChecklistViews.swift; path = HakedisApp/Views/Contracts/QualityChecklistViews.swift; sourceTree = "<group>"; };
 		N022 /* ContractManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractManagementView.swift; path = HakedisApp/Views/Contracts/ContractManagementView.swift; sourceTree = "<group>"; };
+		N023 /* SiteDiaryPhotoStamper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteDiaryPhotoStamper.swift; path = HakedisApp/Views/Santiye/SiteDiaryPhotoStamper.swift; sourceTree = "<group>"; };
+		N024 /* WorkerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkerViews.swift; path = HakedisApp/Views/Santiye/WorkerViews.swift; sourceTree = "<group>"; };
 		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
+		T013 /* Faz6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6Tests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -308,6 +314,8 @@
 				N020 /* LegalReferenceView.swift */,
 				N021 /* QualityChecklistViews.swift */,
 				N022 /* ContractManagementView.swift */,
+				N023 /* SiteDiaryPhotoStamper.swift */,
+				N024 /* WorkerViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -336,6 +344,7 @@
 			T010 /* SantiyeModuleTests.swift */,
 				T011 /* PDFGeneratorTests.swift */,
 				T012 /* Faz3Tests.swift */,
+				T013 /* Faz6Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -575,6 +584,8 @@
 				NB020 /* LegalReferenceView.swift in Sources */,
 				NB021 /* QualityChecklistViews.swift in Sources */,
 				NB022 /* ContractManagementView.swift in Sources */,
+				NB023 /* SiteDiaryPhotoStamper.swift in Sources */,
+				NB024 /* WorkerViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -599,6 +610,7 @@
 				TB015 /* AttendancePDFGenerator.swift in TestSources */,
 				TB016 /* DesignSystem.swift in TestSources */,
 				TB017 /* Faz3Tests.swift in Sources */,
+				TB018 /* Faz6Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

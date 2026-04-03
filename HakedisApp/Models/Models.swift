@@ -2001,6 +2001,31 @@ final class WarrantyClaim {
 
 // MARK: - Şantiye Günlüğü (SiteDiary)
 
+enum ShiftType: String, Codable, CaseIterable {
+    case dayShift   = "Gündüz"
+    case nightShift = "Gece"
+    var icon: String { self == .dayShift ? "sun.max" : "moon.stars" }
+}
+
+enum DelayReason: String, Codable, CaseIterable {
+    case rain             = "Yağmur"
+    case materialShortage = "Malzeme Yetersiz"
+    case laborShortage    = "İşçi Yetersiz"
+    case adminWaiting     = "İdare Talimatı Bekleniyor"
+    case equipmentFailure = "Ekipman Arızası"
+    case other            = "Diğer"
+    var icon: String {
+        switch self {
+        case .rain:             return "cloud.rain"
+        case .materialShortage: return "shippingbox"
+        case .laborShortage:    return "person.slash"
+        case .adminWaiting:     return "clock.badge.questionmark"
+        case .equipmentFailure: return "wrench.slash"
+        case .other:            return "ellipsis.circle"
+        }
+    }
+}
+
 enum WeatherCondition: String, Codable, CaseIterable {
     case sunny = "Güneşli"
     case cloudy = "Bulutlu"
@@ -2033,6 +2058,14 @@ final class SiteDiary {
     var photoData: [Data]
     var project: Project?
     var createdAt: Date
+    // Faz 6 — yeni alanlar
+    var shiftTypeRaw: String
+    var delayReasonRaw: String?
+    var delayHours: Double?
+    var signedByChief: String?
+    var signedByController: String?
+    var windSpeed: String?
+    var humidity: Double?
 
     init(date: Date = Date(), weatherCondition: WeatherCondition = .sunny, workDescription: String = "") {
         self.id = UUID()
@@ -2041,10 +2074,39 @@ final class SiteDiary {
         self.workDescription = workDescription
         self.photoData = []
         self.createdAt = Date()
+        self.shiftTypeRaw = ShiftType.dayShift.rawValue
     }
+
+    var shiftType: ShiftType {
+        get { ShiftType(rawValue: shiftTypeRaw) ?? .dayShift }
+        set { shiftTypeRaw = newValue.rawValue }
+    }
+    var delayReason: DelayReason? {
+        get { delayReasonRaw.flatMap { DelayReason(rawValue: $0) } }
+        set { delayReasonRaw = newValue?.rawValue }
+    }
+    var hasDelay: Bool { delayHours != nil && (delayHours ?? 0) > 0 }
 }
 
 // MARK: - Puantaj (Attendance)
+
+enum OvertimeType: String, Codable, CaseIterable {
+    case normal  = "Normal Fazla Mesai %50"
+    case weekend = "Hafta Sonu %100"
+    case holiday = "Resmi Tatil %100"
+    var multiplier: Double {
+        switch self { case .normal: return 1.5; case .weekend, .holiday: return 2.0 }
+    }
+}
+
+enum PuantajApproval: String, Codable, CaseIterable {
+    case draft     = "Taslak"
+    case submitted = "Gönderildi"
+    case approved  = "Onaylandı"
+    var color: String {
+        switch self { case .draft: return "secondary"; case .submitted: return "hakedisWarning"; case .approved: return "hakedisSuccess" }
+    }
+}
 
 @Model
 final class Attendance {
@@ -2052,11 +2114,14 @@ final class Attendance {
     var date: Date
     var workerName: String
     var workerRole: String?
-    var contractor: Contractor?
-    var project: Project?
+    @Relationship var worker: Worker?
+    @Relationship var contractor: Contractor?
+    @Relationship var project: Project?
     var isPresent: Bool
     var normalHours: Double
     var overtimeHours: Double
+    var overtimeTypeRaw: String?
+    var approvalStatusRaw: String
     var notes: String?
     var createdAt: Date
 
@@ -2068,11 +2133,30 @@ final class Attendance {
         self.isPresent = true
         self.normalHours = 8.0
         self.overtimeHours = 0.0
+        self.approvalStatusRaw = PuantajApproval.draft.rawValue
         self.createdAt = Date()
     }
 
     var totalHours: Double { normalHours + overtimeHours }
     var isSGKDay: Bool { isPresent && totalHours >= 4 }
+    var overtimeType: OvertimeType? {
+        get { overtimeTypeRaw.flatMap { OvertimeType(rawValue: $0) } }
+        set { overtimeTypeRaw = newValue?.rawValue }
+    }
+    var approvalStatus: PuantajApproval {
+        get { PuantajApproval(rawValue: approvalStatusRaw) ?? .draft }
+        set { approvalStatusRaw = newValue.rawValue }
+    }
+    var effectiveName: String { worker?.fullName ?? workerName }
+
+    // 4857 Md.41 maliyet hesabı
+    var hourlyCost: Double { worker?.hourlyCost ?? 0 }
+    var normalCost: Double { normalHours * hourlyCost }
+    var overtimeCost: Double {
+        guard let ot = overtimeType else { return overtimeHours * hourlyCost }
+        return overtimeHours * hourlyCost * ot.multiplier
+    }
+    var totalDailyCost: Double { normalCost + overtimeCost }
 }
 
 // MARK: - Malzeme / Stok Takibi
@@ -2596,4 +2680,189 @@ final class WorkChangeOrder {
 
     var isApproved: Bool { statusRaw == "Onaylandı" }
     var exceedsLimit: Bool { abs(changePercent) > 20 }  // 4735 Md.15: %20 sınırı
+}
+
+// MARK: - İşçi Veritabanı (Worker)
+
+enum WorkerProfession: String, Codable, CaseIterable {
+    case carpenter    = "Kalıpçı"
+    case ironworker   = "Demirci"
+    case laborer      = "Düz İşçi"
+    case painter      = "Boyacı"
+    case plumber      = "Tesisatçı"
+    case electrician  = "Elektrikçi"
+    case operator_    = "Operatör"
+    case foreman      = "Usta"
+    case technician   = "Tekniker"
+    case engineer     = "Mühendis"
+    case welder       = "Kaynakçı"
+    case insulator    = "Yalıtımcı"
+    case tiler        = "Fayansçı"
+    case other        = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .carpenter:   return "hammer"
+        case .ironworker:  return "wrench"
+        case .laborer:     return "figure.walk"
+        case .painter:     return "paintbrush"
+        case .plumber:     return "drop"
+        case .electrician: return "bolt"
+        case .operator_:   return "gearshape"
+        case .foreman:     return "star"
+        case .technician:  return "wrench.adjustable"
+        case .engineer:    return "graduationcap"
+        case .welder:      return "flame"
+        case .insulator:   return "thermometer.snowflake"
+        case .tiler:       return "square.grid.2x2"
+        case .other:       return "person"
+        }
+    }
+}
+
+enum BloodType: String, Codable, CaseIterable {
+    case aPlus  = "A Rh+"
+    case aMinus = "A Rh-"
+    case bPlus  = "B Rh+"
+    case bMinus = "B Rh-"
+    case abPlus  = "AB Rh+"
+    case abMinus = "AB Rh-"
+    case oPlus  = "0 Rh+"
+    case oMinus = "0 Rh-"
+}
+
+enum CertificateType: String, Codable, CaseIterable {
+    case scaffolding    = "İskele Kurulum"
+    case craneOperator  = "Vinç Operatörü"
+    case forklift       = "Forklift Operatörü"
+    case osgTraining    = "İSG Eğitimi"
+    case welding        = "Kaynak Belgesi"
+    case heightWork     = "Yüksekte Çalışma"
+    case firstAid       = "İlk Yardım"
+    case driverLicense  = "Ehliyet"
+    case other          = "Diğer"
+
+    var requiredRenewalMonths: Int? {
+        switch self {
+        case .osgTraining: return 12
+        case .firstAid:    return 36
+        case .heightWork:  return 12
+        default:           return nil
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .scaffolding:   return "building.columns"
+        case .craneOperator: return "arrow.up.and.down"
+        case .forklift:      return "fork.knife"
+        case .osgTraining:   return "heart.circle"
+        case .welding:       return "flame"
+        case .heightWork:    return "figure.climbing"
+        case .firstAid:      return "cross.case"
+        case .driverLicense: return "car"
+        case .other:         return "doc.badge.checkmark"
+        }
+    }
+}
+
+@Model
+final class Worker {
+    var id: UUID
+    var fullName: String
+    var tcKimlikNo: String?
+    var birthDate: Date?
+    var bloodTypeRaw: String?
+    var professionRaw: String
+    var emergencyContactName: String?
+    var emergencyContactPhone: String?
+    var sgkSicilNo: String?
+    var dailyCost: Double
+    var hourlyCost: Double
+    @Relationship var contractor: Contractor?
+    @Relationship(deleteRule: .cascade) var certificates: [WorkerCertificate]
+    @Relationship(deleteRule: .cascade) var attendances: [Attendance]
+    var isActive: Bool
+    var createdAt: Date
+
+    init(fullName: String, profession: WorkerProfession = .laborer, dailyCost: Double = 0, hourlyCost: Double = 0) {
+        self.id = UUID()
+        self.fullName = fullName
+        self.professionRaw = profession.rawValue
+        self.dailyCost = dailyCost
+        self.hourlyCost = hourlyCost
+        self.isActive = true
+        self.certificates = []
+        self.attendances = []
+        self.createdAt = Date()
+    }
+
+    var profession: WorkerProfession {
+        get { WorkerProfession(rawValue: professionRaw) ?? .other }
+        set { professionRaw = newValue.rawValue }
+    }
+    var bloodType: BloodType? {
+        get { bloodTypeRaw.flatMap { BloodType(rawValue: $0) } }
+        set { bloodTypeRaw = newValue?.rawValue }
+    }
+
+    // 4857 Md.53 yıllık izin hakkı
+    func annualLeaveDays(since startDate: Date) -> Int {
+        let years = Calendar.current.dateComponents([.year], from: startDate, to: Date()).year ?? 0
+        switch years {
+        case 0..<1:   return 0
+        case 1..<5:   return 14
+        case 5..<15:  return 20
+        default:      return 26
+        }
+    }
+
+    // Süresi dolan veya yakında dolacak sertifikalar
+    func expiringSoonCertificates(within days: Int = 30) -> [WorkerCertificate] {
+        let threshold = Calendar.current.date(byAdding: .day, value: days, to: Date()) ?? Date()
+        return certificates.filter { cert in
+            guard let expiry = cert.expiryDate else { return false }
+            return expiry <= threshold
+        }
+    }
+}
+
+@Model
+final class WorkerCertificate {
+    var id: UUID
+    var certificateTypeRaw: String
+    var issueDate: Date
+    var expiryDate: Date?
+    var issuingAuthority: String?
+    var certificateNo: String?
+    @Relationship var worker: Worker?
+    var createdAt: Date
+
+    init(certificateType: CertificateType, issueDate: Date = Date()) {
+        self.id = UUID()
+        self.certificateTypeRaw = certificateType.rawValue
+        self.issueDate = issueDate
+        self.createdAt = Date()
+    }
+
+    var certificateType: CertificateType {
+        get { CertificateType(rawValue: certificateTypeRaw) ?? .other }
+        set { certificateTypeRaw = newValue.rawValue }
+    }
+
+    var isExpired: Bool {
+        guard let exp = expiryDate else { return false }
+        return exp < Date()
+    }
+
+    var isExpiringSoon: Bool {
+        guard let exp = expiryDate else { return false }
+        let threshold = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
+        return !isExpired && exp <= threshold
+    }
+
+    var daysUntilExpiry: Int? {
+        guard let exp = expiryDate else { return nil }
+        return Calendar.current.dateComponents([.day], from: Date(), to: exp).day
+    }
 }

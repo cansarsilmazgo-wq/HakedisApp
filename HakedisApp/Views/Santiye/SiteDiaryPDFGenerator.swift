@@ -12,20 +12,152 @@ struct SiteDiaryPDFGenerator {
 
     // MARK: - Public API
 
-    /// Tek günlük için A4 PDF üretir
-    static func generateDaily(diary: SiteDiary) -> Data {
+    /// Ek-6 formatında tek günlük A4 PDF üretir
+    static func generateDaily(diary: SiteDiary, workerCount: Int = 0, equipmentCount: Int = 0, materialMovement: Int = 0) -> Data {
         let renderer = UIGraphicsPDFRenderer(
             bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
         )
         return renderer.pdfData { ctx in
             ctx.beginPage()
-            var y = drawPageHeader(
-                title: "ŞANTİYE GÜNLÜĞEsı",
-                subtitle: diary.date.shortFormatted
-            )
-            _ = drawDiaryBlock(diary: diary, ctx: ctx, y: &y, page: 1)
-            drawPageFooter(page: 1)
+            var y = drawEk6Header(diary: diary)
+            y = drawEk6Body(diary: diary, y: y, workerCount: workerCount, equipmentCount: equipmentCount, materialMovement: materialMovement)
+            drawEk6Footer(diary: diary)
         }
+    }
+
+    // MARK: - Ek-6 Format
+
+    private static func drawEk6Header(diary: SiteDiary) -> CGFloat {
+        // Title bar
+        orange.setFill()
+        UIBezierPath(rect: CGRect(x: 0, y: 0, width: pageWidth, height: 50)).fill()
+        let titleAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 14), .foregroundColor: UIColor.white
+        ]
+        "ŞANTİYE GÜNLÜĞEsı — EK 6 FORMAT".draw(at: CGPoint(x: margin, y: 16), withAttributes: titleAttr)
+
+        let df = DateFormatter(); df.locale = Locale(identifier: "tr_TR"); df.dateFormat = "dd MMMM yyyy, EEEE"
+        df.string(from: diary.date).draw(at: CGPoint(x: pageWidth - 200, y: 16), withAttributes: titleAttr)
+
+        var y: CGFloat = 60
+        // Proje bilgileri satırı
+        let infoAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 9), .foregroundColor: UIColor.gray]
+        let boldAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 9), .foregroundColor: UIColor.black]
+        let pname = diary.project?.name ?? "—"
+        "Proje:".draw(at: CGPoint(x: margin, y: y), withAttributes: infoAttr)
+        pname.draw(at: CGPoint(x: margin + 40, y: y), withAttributes: boldAttr)
+        let shiftStr = "Vardiya: \(diary.shiftType.rawValue)"
+        shiftStr.draw(at: CGPoint(x: pageWidth/2, y: y), withAttributes: boldAttr)
+        y += 14
+
+        // Hava satırı
+        let weatherStr = "Hava: \(diary.weatherCondition.rawValue)" +
+            (diary.temperature.map { "  \(Int($0))°C" } ?? "") +
+            (diary.windSpeed.map { "  Rüzgar: \($0)" } ?? "") +
+            (diary.humidity.map { "  Nem: %\(Int($0))" } ?? "")
+        weatherStr.draw(at: CGPoint(x: margin, y: y), withAttributes: infoAttr)
+        y += 18
+
+        // Separator
+        UIColor.lightGray.setStroke()
+        let path = UIBezierPath(); path.move(to: CGPoint(x: margin, y: y)); path.addLine(to: CGPoint(x: pageWidth - margin, y: y)); path.stroke()
+        return y + 8
+    }
+
+    private static func drawEk6Body(diary: SiteDiary, y startY: CGFloat, workerCount: Int, equipmentCount: Int, materialMovement: Int) -> CGFloat {
+        var y = startY
+        let labelAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 10), .foregroundColor: UIColor.darkGray]
+        let bodyAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 10), .foregroundColor: UIColor.black]
+
+        // Otomatik Özet kutusu
+        orange.withAlphaComponent(0.08).setFill()
+        let summaryHeight: CGFloat = 52
+        UIBezierPath(roundedRect: CGRect(x: margin, y: y, width: contentWidth, height: summaryHeight), cornerRadius: 4).fill()
+        orange.withAlphaComponent(0.3).setStroke()
+        UIBezierPath(roundedRect: CGRect(x: margin, y: y, width: contentWidth, height: summaryHeight), cornerRadius: 4).stroke()
+        "GÜNLÜK ÖZET".draw(at: CGPoint(x: margin + 8, y: y + 4), withAttributes: labelAttr)
+        let col = contentWidth / 4
+        let summaryItems = ["İşçi: \(workerCount) kişi", "Ekipman: \(equipmentCount) adet", "Malzeme: \(materialMovement) hareket", "İmalat: kayıtlı"]
+        for (i, item) in summaryItems.enumerated() {
+            item.draw(at: CGPoint(x: margin + CGFloat(i) * col, y: y + 22), withAttributes: bodyAttr)
+        }
+        y += summaryHeight + 12
+
+        func drawField(title: String, content: String?, minH: CGFloat = 60) {
+            guard let c = content, !c.isEmpty else { return }
+            "[\(title)]".draw(at: CGPoint(x: margin, y: y), withAttributes: labelAttr)
+            y += 14
+            let box = CGRect(x: margin, y: y, width: contentWidth, height: minH)
+            UIColor(white: 0.97, alpha: 1).setFill()
+            UIBezierPath(roundedRect: box, cornerRadius: 4).fill()
+            UIColor.lightGray.setStroke()
+            UIBezierPath(roundedRect: box, cornerRadius: 4).stroke()
+            let textRect = box.insetBy(dx: 6, dy: 4)
+            (c as NSString).draw(in: textRect, withAttributes: bodyAttr)
+            y += minH + 8
+        }
+
+        drawField(title: "YAPILAN İŞLER", content: diary.workDescription, minH: 80)
+        drawField(title: "SORUNLAR / AKSLIKLAR", content: diary.problems)
+        drawField(title: "ZİYARETÇİLER", content: diary.visitors, minH: 30)
+        drawField(title: "NOTLAR", content: diary.notes)
+
+        // Gecikme kutusu
+        if diary.hasDelay, let reason = diary.delayReason, let hours = diary.delayHours {
+            UIColor(red: 1, green: 0.95, blue: 0.95, alpha: 1).setFill()
+            let delayBox = CGRect(x: margin, y: y, width: contentWidth, height: 36)
+            UIBezierPath(roundedRect: delayBox, cornerRadius: 4).fill()
+            UIColor(red: 0.9, green: 0.2, blue: 0.2, alpha: 0.4).setStroke()
+            UIBezierPath(roundedRect: delayBox, cornerRadius: 4).stroke()
+            let delayAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 10), .foregroundColor: UIColor(red: 0.8, green: 0.1, blue: 0.1, alpha: 1)]
+            "GECİKME: \(reason.rawValue) — \(String(format: "%.1f saat", hours))".draw(at: CGPoint(x: margin + 8, y: y + 10), withAttributes: delayAttr)
+            y += 44
+        }
+
+        // Fotoğraf grid (max 6, 2×3)
+        let photos = Array(diary.photoData.prefix(6))
+        if !photos.isEmpty {
+            "FOTOĞRAFLAR".draw(at: CGPoint(x: margin, y: y), withAttributes: labelAttr)
+            y += 14
+            let photoW: CGFloat = (contentWidth - 16) / 3
+            let photoH: CGFloat = photoW * 0.7
+            for (i, pdata) in photos.enumerated() {
+                if let img = UIImage(data: pdata) {
+                    let row = i / 3; let col = i % 3
+                    let px = margin + CGFloat(col) * (photoW + 8)
+                    let py = y + CGFloat(row) * (photoH + 8)
+                    img.draw(in: CGRect(x: px, y: py, width: photoW, height: photoH))
+                }
+            }
+            y += CGFloat((photos.count + 2) / 3) * (photoH + 8) + 8
+        }
+        return y
+    }
+
+    private static func drawEk6Footer(diary: SiteDiary) {
+        let footerY: CGFloat = pageHeight - 80
+        UIColor.lightGray.setStroke()
+        let line = UIBezierPath(); line.move(to: CGPoint(x: margin, y: footerY)); line.addLine(to: CGPoint(x: pageWidth - margin, y: footerY)); line.stroke()
+
+        let smallAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 9), .foregroundColor: UIColor.darkGray]
+        let boldAttr: [NSAttributedString.Key: Any] = [.font: UIFont.boldSystemFont(ofSize: 9), .foregroundColor: UIColor.black]
+
+        // Sol: Şantiye Şefi
+        let chiefLabel = "Şantiye Şefi:"
+        chiefLabel.draw(at: CGPoint(x: margin, y: footerY + 8), withAttributes: smallAttr)
+        (diary.signedByChief ?? "........................").draw(at: CGPoint(x: margin, y: footerY + 22), withAttributes: boldAttr)
+        "İmza: _______________".draw(at: CGPoint(x: margin, y: footerY + 36), withAttributes: smallAttr)
+
+        // Sağ: Kontrol Mühendisi
+        let rightX: CGFloat = pageWidth / 2 + 20
+        "Kontrol Mühendisi:".draw(at: CGPoint(x: rightX, y: footerY + 8), withAttributes: smallAttr)
+        (diary.signedByController ?? "........................").draw(at: CGPoint(x: rightX, y: footerY + 22), withAttributes: boldAttr)
+        "İmza: _______________".draw(at: CGPoint(x: rightX, y: footerY + 36), withAttributes: smallAttr)
+
+        // Tarih
+        let df = DateFormatter(); df.dateFormat = "dd.MM.yyyy HH:mm"
+        let ts = "Oluşturulma: \(df.string(from: Date()))"
+        ts.draw(at: CGPoint(x: margin, y: pageHeight - 20), withAttributes: smallAttr)
     }
 
     /// Haftalık şantiye raporu PDF'i üretir (weekStart dahil 7 gün)
