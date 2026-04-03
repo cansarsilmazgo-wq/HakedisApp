@@ -7,9 +7,8 @@ struct FinansTabView: View {
     private let segments = ["Hakediş", "Ödemeler", "Nakit Akış", "Fiyat Farkı", "Teminat"]
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                ScrollView(.horizontal, showsIndicators: false) {
+        VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 0) {
                         ForEach(segments.indices, id: \.self) { i in
                             Button {
@@ -58,10 +57,9 @@ struct FinansTabView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .navigationTitle("Finans")
-            .navigationBarTitleDisplayMode(.large)
-            .background(Color.hakedisBackground)
         }
+        .background(Color.hakedisBackground)
+        .navigationTitle("Finans")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
