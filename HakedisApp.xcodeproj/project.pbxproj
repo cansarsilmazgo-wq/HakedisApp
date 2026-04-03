@@ -125,6 +125,12 @@
 		NB037 /* EmergencyPlanViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N037 /* EmergencyPlanViews.swift */; };
 		NB038 /* SafetyStatisticsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N038 /* SafetyStatisticsViews.swift */; };
 		NB039 /* SafetyPDFReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N039 /* SafetyPDFReportGenerator.swift */; };
+		NB040 /* FinalAccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N040 /* FinalAccountViews.swift */; };
+		NB041 /* HakedisAuditTrailViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N041 /* HakedisAuditTrailViews.swift */; };
+		NB042 /* NonConformanceReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N042 /* NonConformanceReportViews.swift */; };
+		NB043 /* QualityDashboardViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N043 /* QualityDashboardViews.swift */; };
+		NB044 /* QualityPDFReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N044 /* QualityPDFReportGenerator.swift */; };
+		TB021 /* Faz6A7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T016 /* Faz6A7Tests.swift */; };
 		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
 		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
 		TB019 /* Faz6A3A4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T014 /* Faz6A3A4Tests.swift */; };
@@ -247,6 +253,12 @@
 		N037 /* EmergencyPlanViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EmergencyPlanViews.swift; path = HakedisApp/Views/Santiye/EmergencyPlanViews.swift; sourceTree = "<group>"; };
 		N038 /* SafetyStatisticsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyStatisticsViews.swift; path = HakedisApp/Views/Santiye/SafetyStatisticsViews.swift; sourceTree = "<group>"; };
 		N039 /* SafetyPDFReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyPDFReportGenerator.swift; path = HakedisApp/Views/Santiye/SafetyPDFReportGenerator.swift; sourceTree = "<group>"; };
+		N040 /* FinalAccountViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FinalAccountViews.swift; path = HakedisApp/Views/Hakedis/FinalAccountViews.swift; sourceTree = "<group>"; };
+		N041 /* HakedisAuditTrailViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisAuditTrailViews.swift; path = HakedisApp/Views/Hakedis/HakedisAuditTrailViews.swift; sourceTree = "<group>"; };
+		N042 /* NonConformanceReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NonConformanceReportViews.swift; path = HakedisApp/Views/Contracts/NonConformanceReportViews.swift; sourceTree = "<group>"; };
+		N043 /* QualityDashboardViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QualityDashboardViews.swift; path = HakedisApp/Views/Contracts/QualityDashboardViews.swift; sourceTree = "<group>"; };
+		N044 /* QualityPDFReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QualityPDFReportGenerator.swift; path = HakedisApp/Views/Contracts/QualityPDFReportGenerator.swift; sourceTree = "<group>"; };
+		T016 /* Faz6A7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A7Tests.swift; sourceTree = "<group>"; };
 		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
 		T013 /* Faz6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6Tests.swift; sourceTree = "<group>"; };
 		T014 /* Faz6A3A4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A3A4Tests.swift; sourceTree = "<group>"; };
@@ -365,6 +377,11 @@
 				N037 /* EmergencyPlanViews.swift */,
 				N038 /* SafetyStatisticsViews.swift */,
 				N039 /* SafetyPDFReportGenerator.swift */,
+				N040 /* FinalAccountViews.swift */,
+				N041 /* HakedisAuditTrailViews.swift */,
+				N042 /* NonConformanceReportViews.swift */,
+				N043 /* QualityDashboardViews.swift */,
+				N044 /* QualityPDFReportGenerator.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -396,6 +413,7 @@
 				T013 /* Faz6Tests.swift */,
 				T014 /* Faz6A3A4Tests.swift */,
 				T015 /* Faz6A5Tests.swift */,
+				T016 /* Faz6A7Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -652,6 +670,11 @@
 				NB037 /* EmergencyPlanViews.swift in Sources */,
 				NB038 /* SafetyStatisticsViews.swift in Sources */,
 				NB039 /* SafetyPDFReportGenerator.swift in Sources */,
+				NB040 /* FinalAccountViews.swift in Sources */,
+				NB041 /* HakedisAuditTrailViews.swift in Sources */,
+				NB042 /* NonConformanceReportViews.swift in Sources */,
+				NB043 /* QualityDashboardViews.swift in Sources */,
+				NB044 /* QualityPDFReportGenerator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -679,6 +702,7 @@
 				TB018 /* Faz6Tests.swift in Sources */,
 				TB019 /* Faz6A3A4Tests.swift in Sources */,
 				TB020 /* Faz6A5Tests.swift in Sources */,
+				TB021 /* Faz6A7Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

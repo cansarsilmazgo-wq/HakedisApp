@@ -613,6 +613,28 @@ struct ContractDetailView: View {
                     Label("Kalite Kontrol Listeleri", systemImage: "checkmark.seal")
                         .accessibilityLabel("Kalite kontrol listeleri")
                 }
+                NavigationLink(destination: NonConformanceReportListView(contract: contract)) {
+                    Label("Uygunsuzluk Raporları (NCR)", systemImage: "exclamationmark.magnifyingglass")
+                        .accessibilityLabel("NCR listesi")
+                }
+                NavigationLink(destination: QualityDashboardView()) {
+                    Label("Kalite Dashboard", systemImage: "chart.bar.doc.horizontal")
+                        .accessibilityLabel("Kalite dashboard")
+                }
+                NavigationLink(destination: HakedisPeriodicComparisonView(contract: contract)) {
+                    Label("Dönem Karşılaştırma", systemImage: "tablecells")
+                        .accessibilityLabel("Dönemler arası karşılaştırma")
+                }
+                NavigationLink(destination: FinalAccountView(contract: contract)) {
+                    HStack {
+                        Label("Kesin Hesap", systemImage: "doc.text.magnifyingglass")
+                        Spacer()
+                        if contract.project?.status == .completed {
+                            Text("Hazır").font(.caption).foregroundColor(.hakedisSuccess)
+                        }
+                    }
+                    .accessibilityLabel("Kesin hesap")
+                }
             }
         }
         .navigationTitle(contract.title)

@@ -231,6 +231,7 @@ struct AddHakedisView: View {
 
         contract.hakedisler.append(hakedis)
         modelContext.insert(hakedis)
+        AuditLogHelper.log(context: modelContext, hakedis: hakedis, action: .created, details: "Hakediş oluşturuldu: \(periodName)")
 
         if hasDueDate {
             NotificationManager.shared.scheduleHakedisDueDateAlerts(hakedis: hakedis)
@@ -666,6 +667,7 @@ struct HakedisStatusWorkflow: View {
                             showBlockedAlert = true
                         } else {
                             hakedis.status = .pendingApproval
+                            AuditLogHelper.log(context: modelContext, hakedis: hakedis, action: .submitted)
                         }
                     }
                     .buttonStyle(.borderedProminent).tint(.hakedisOrange)
@@ -691,6 +693,7 @@ struct HakedisStatusWorkflow: View {
                     if hakedis.remainingAmount <= 0 && hakedis.grossAmount > 0 {
                         Button("Ödendi Olarak İşaretle") {
                             hakedis.status = .paid
+                            AuditLogHelper.log(context: modelContext, hakedis: hakedis, action: .paid)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.hakedisPaid)
@@ -729,6 +732,9 @@ struct HakedisStatusWorkflow: View {
                 if let s = pendingStatus {
                     hakedis.status = s
                     hakedis.approvalNote = noteText.trimmingCharacters(in: .whitespaces)
+                    let action: AuditAction = s == .approved ? .approved : .rejected
+                    let note = noteText.trimmingCharacters(in: .whitespaces)
+                    AuditLogHelper.log(context: modelContext, hakedis: hakedis, action: action, details: note.isEmpty ? nil : note)
                 }
             }
         }

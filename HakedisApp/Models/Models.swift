@@ -3275,6 +3275,11 @@ enum QualityChecklistType: String, Codable, CaseIterable {
     case concretePour    = "Beton Döküm"
     case reinforcement   = "Demir Donatı"
     case waterproofing   = "Su Yalıtım"
+    case heatInsulation  = "Isı Yalıtım"
+    case mechanical      = "Mekanik Tesisat"
+    case electrical      = "Elektrik Tesisat"
+    case elevator        = "Asansör"
+    case steel           = "Çelik Konstrüksiyon"
     case plastering      = "Sıva"
     case painting        = "Boya"
     case general         = "Genel Kontrol"
@@ -3284,9 +3289,14 @@ enum QualityChecklistType: String, Codable, CaseIterable {
         case .concretePour:   return ["Kalıp kontrolü", "Donatı kontrolü", "Slump testi", "Küp numune alındı", "Beton sınıfı doğrulandı", "Dökme izni alındı"]
         case .reinforcement:  return ["Çap ve aralıklar uygun", "Bindirme boyu yeterli", "Pas payı standartlara uygun", "Filiz konumları kontrol edildi"]
         case .waterproofing:  return ["Yüzey temiz ve kuru", "Membran katman kalınlığı", "Birleşim yerleri kaplı", "Test suyu uygulandı"]
+        case .heatInsulation: return ["Malzeme tipi ve kalınlığı", "Uygulama yüzeyi temiz", "Derz mesafeleri", "Dış köşe profilleri", "Mantar dübel aralıkları", "Isı köprüsü kontrolü", "Fire kesim uygunluğu", "Alt kat bağlantısı", "Sıva takviye filesi", "Derz bantları", "Su uzaklaştırma", "Onay kontrolü"]
+        case .mechanical:     return ["Boru tipleri ve çapları", "Boru bağlantıları sızdırmaz", "Askı ve destek aralıkları", "Vana konumları", "Yalıtım kalınlıkları", "Basınç testi yapıldı", "Pis su eğimleri", "Temiz su hattı debi", "Kazan odası güvenliği", "Yangın söndürme sistemi", "Su sayacı konumu", "Onay belgesi"]
+        case .electrical:     return ["Kablo tipleri ve kesitleri", "Topraklama sistemi", "Panolar ve şalterler", "Aydınlatma devre kontrolü", "Priz devre kontrolü", "Güç devre kontrolü", "DUYLU test edildi", "Sigorta seçimi", "Kablo izolasyon testi", "Kaçak akım rölesi", "Faz dengeleme", "Onay belgesi"]
+        case .elevator:       return ["Kuyu boyutları uygun", "Makine dairesi erişim", "Emniyet donanımları", "Kablo ve zincir kontrolü", "Kabin seviyesi ayarı", "Kapı kilitleri", "Aşırı yük sensörü", "Hız sınırlayıcı", "Akustik ölçüm", "Bakım sözleşmesi"]
+        case .steel:          return ["Profil boyut ve kalitesi", "Kaynak kalitesi (gözle)", "Cıvata sıkma kontrolü", "Boyama ve kaplama", "Ankraj levhası bağlantısı", "Kolon-kiriş birleşimi", "Kiriş sehim kontrolü", "Eğik bağlantılar", "Yangın koruma kaplama", "TS 648 uygunluğu", "Proje uyumu", "Onay belgesi"]
         case .plastering:     return ["Yüzey düzlüğü kontrol edildi", "Köşe profilleri takıldı", "Kalınlık uygun", "Çatlak kontrolü"]
         case .painting:       return ["Yüzey astarlandı", "Kat sayısı doğrulandı", "Renk uygunluğu", "Yüzey pürüzsüz"]
-        case .general:        return ["KKD kontrolü", "Çalışma alanı güvenli", "Malzeme kalitesi uygun", "İş yöntemi onaylı"]
+        case .general:        return ["KKD kontrolü", "Çalışma alanı güvenli", "Malzeme kalitesi uygun", "İş yöntemi onaylı", "Proje uyumu", "Zorunlu belgeler", "Personel yeterliliği", "Ekipman uygunluğu"]
         }
     }
 }
@@ -3305,11 +3315,41 @@ enum CheckResult: String, Codable, CaseIterable {
     }
 }
 
+enum ItemResult: String, Codable, CaseIterable {
+    case pass          = "Uygun"
+    case fail          = "Uygunsuz"
+    case notApplicable = "Uygulanamaz"
+
+    var icon: String {
+        switch self {
+        case .pass:          return "checkmark.circle.fill"
+        case .fail:          return "xmark.circle.fill"
+        case .notApplicable: return "minus.circle"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .pass:          return "hakedisSuccess"
+        case .fail:          return "hakedisDanger"
+        case .notApplicable: return "secondary"
+        }
+    }
+}
+
 struct QualityCheckItem: Codable, Identifiable {
     var id: UUID = UUID()
     var title: String
-    var isChecked: Bool = false
-    var note: String = ""
+    var isChecked: Bool = false   // backward compat
+    var note: String = ""         // backward compat
+    var result: ItemResult? = nil // expanded field
+    var photoRequired: Bool = false
+    var hasPhoto: Bool = false
+
+    // Effective result: new field takes priority over legacy isChecked
+    var effectiveResult: ItemResult {
+        get { result ?? (isChecked ? .pass : .fail) }
+        set { result = newValue; isChecked = (newValue == .pass) }
+    }
 }
 
 @Model
@@ -3322,8 +3362,10 @@ final class QualityChecklist {
     var overallResultRaw: String
     var photoData: [Data]
     var notes: String?
+    var location: String?
     @Relationship var workItem: WorkItem?
     @Relationship var contract: Contract?
+    @Relationship var attachedIncident: SafetyIncident?
     var createdAt: Date
 
     init(checklistType: QualityChecklistType, date: Date = Date(), checkedBy: String) {
@@ -3351,8 +3393,15 @@ final class QualityChecklist {
         get { (try? JSONDecoder().decode([QualityCheckItem].self, from: Data(itemsJSON.utf8))) ?? [] }
         set { itemsJSON = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
     }
-    var passedCount: Int { checkItems.filter { $0.isChecked }.count }
+    var passedCount: Int { checkItems.filter { $0.effectiveResult == .pass }.count }
+    var failedCount: Int { checkItems.filter { $0.effectiveResult == .fail }.count }
+    var applicableCount: Int { checkItems.filter { $0.effectiveResult != .notApplicable }.count }
     var totalCount: Int { checkItems.count }
+    var overallScore: Double {
+        guard applicableCount > 0 else { return 0 }
+        return Double(passedCount) / Double(applicableCount) * 100
+    }
+    var hasFailures: Bool { failedCount > 0 }
 }
 
 // MARK: - Süre Uzatımı Talebi
@@ -3619,5 +3668,424 @@ final class WorkerCertificate {
     var daysUntilExpiry: Int? {
         guard let exp = expiryDate else { return nil }
         return Calendar.current.dateComponents([.day], from: Date(), to: exp).day
+    }
+}
+
+// MARK: - A6 Hakediş Son Dokunuşlar
+
+enum FinalAccountStatus: String, Codable, CaseIterable {
+    case draft     = "Taslak"
+    case submitted = "Gönderildi"
+    case approved  = "Onaylandı"
+
+    var icon: String {
+        switch self {
+        case .draft:     return "doc"
+        case .submitted: return "paperplane.fill"
+        case .approved:  return "checkmark.seal.fill"
+        }
+    }
+}
+
+@Model
+final class FinalAccount {
+    var id: UUID
+    var calculationDate: Date
+    var totalContractAmount: Double
+    var totalHakedisAmount: Double
+    var totalWorkIncrease: Double
+    var totalWorkDecrease: Double
+    var totalPriceDifference: Double
+    var totalRetentionAccrued: Double
+    var totalRetentionReleased: Double
+    var retentionBalance: Double
+    var totalPenalty: Double
+    var totalPayments: Double
+    var statusRaw: String
+    var notes: String?
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(contract: Contract? = nil) {
+        self.id = UUID()
+        self.calculationDate = Date()
+        self.createdAt = Date()
+        self.statusRaw = FinalAccountStatus.draft.rawValue
+
+        guard let c = contract else {
+            self.totalContractAmount = 0; self.totalHakedisAmount = 0
+            self.totalWorkIncrease = 0; self.totalWorkDecrease = 0
+            self.totalPriceDifference = 0; self.totalRetentionAccrued = 0
+            self.totalRetentionReleased = 0; self.retentionBalance = 0
+            self.totalPenalty = 0; self.totalPayments = 0
+            self.contract = nil
+            return
+        }
+
+        self.contract = c
+        self.totalContractAmount = c.totalContractAmount
+
+        let approvedHakedisler = c.hakedisler.filter { $0.status == .approved || $0.status == .paid }
+        self.totalHakedisAmount = approvedHakedisler.reduce(0) { $0 + $1.effectiveGrossAmount }
+        self.totalPayments = approvedHakedisler.reduce(0) { $0 + $1.totalPaid }
+        self.totalRetentionAccrued = c.totalRetentionAccrued
+        self.totalRetentionReleased = c.totalRetentionReleased
+        self.retentionBalance = c.retentionBalance
+        self.totalPenalty = c.delayPenalty()
+
+        // WorkChangeOrder artış/eksilişleri
+        let changeOrders = c.workItems.flatMap { _ in [Double]() } // placeholder
+        self.totalWorkIncrease = 0
+        self.totalWorkDecrease = 0
+        self.totalPriceDifference = 0
+    }
+
+    var status: FinalAccountStatus {
+        get { FinalAccountStatus(rawValue: statusRaw) ?? .draft }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    var finalBalance: Double {
+        totalHakedisAmount + totalWorkIncrease - totalWorkDecrease + totalPriceDifference - totalPenalty - totalPayments
+    }
+}
+
+enum AuditAction: String, Codable, CaseIterable {
+    case created       = "Oluşturuldu"
+    case edited        = "Düzenlendi"
+    case submitted     = "Onaya Gönderildi"
+    case approved      = "Onaylandı"
+    case rejected      = "Reddedildi"
+    case paid          = "Ödendi"
+    case copied        = "Kopyalandı"
+    case deleted       = "Silindi"
+    case paymentAdded  = "Ödeme Eklendi"
+    case paymentDeleted = "Ödeme Silindi"
+
+    var icon: String {
+        switch self {
+        case .created:       return "plus.circle.fill"
+        case .edited:        return "pencil.circle.fill"
+        case .submitted:     return "paperplane.fill"
+        case .approved:      return "checkmark.seal.fill"
+        case .rejected:      return "xmark.seal.fill"
+        case .paid:          return "banknote.fill"
+        case .copied:        return "doc.on.doc.fill"
+        case .deleted:       return "trash.fill"
+        case .paymentAdded:  return "plus.circle"
+        case .paymentDeleted: return "minus.circle"
+        }
+    }
+}
+
+@Model
+final class HakedisAuditLog {
+    var id: UUID
+    var timestamp: Date
+    var actionRaw: String
+    var performedBy: String
+    var details: String?
+    @Relationship var hakedis: Hakedis?
+    var createdAt: Date
+
+    init(action: AuditAction, performedBy: String, details: String? = nil) {
+        self.id = UUID()
+        self.timestamp = Date()
+        self.actionRaw = action.rawValue
+        self.performedBy = performedBy
+        self.details = details
+        self.createdAt = Date()
+    }
+
+    var action: AuditAction {
+        get { AuditAction(rawValue: actionRaw) ?? .edited }
+        set { actionRaw = newValue.rawValue }
+    }
+}
+
+@Model
+final class HakedisTemplate {
+    var id: UUID
+    var templateName: String
+    var headerText: String
+    var footerText: String
+    // JSON-encoded [String] of section keys: "workItems", "payments", "retentionSummary", "signatureBlock"
+    var sectionsJSON: String
+    var isDefault: Bool
+    var createdAt: Date
+
+    init(templateName: String) {
+        self.id = UUID()
+        self.templateName = templateName
+        self.headerText = ""
+        self.footerText = ""
+        self.isDefault = false
+        self.createdAt = Date()
+        let defaultSections = ["workItems", "payments", "retentionSummary", "approvalChain", "signatureBlock"]
+        self.sectionsJSON = (try? String(data: JSONEncoder().encode(defaultSections), encoding: .utf8)) ?? "[]"
+    }
+
+    var sections: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: Data(sectionsJSON.utf8))) ?? [] }
+        set { sectionsJSON = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
+    }
+
+    var sectionLabels: [String: String] {
+        [
+            "workItems": "İş Kalemleri Tablosu",
+            "payments": "Ödeme Özeti",
+            "retentionSummary": "Teminat Özeti",
+            "approvalChain": "Onay Zinciri",
+            "signatureBlock": "İmza Bloğu",
+            "penaltySummary": "Gecikme Cezası",
+            "advanceSummary": "Avans Özeti",
+            "priceDifference": "Fiyat Farkı"
+        ]
+    }
+}
+
+// MARK: - A7 Kalite Kontrol Derinleştirme
+
+enum NCRStatus: String, Codable, CaseIterable {
+    case open                = "Açık"
+    case correctionProposed  = "Düzeltme Önerildi"
+    case correctionInProgress = "Düzeltme Devam"
+    case correctionDone      = "Düzeltme Yapıldı"
+    case verified            = "Doğrulandı"
+    case closed              = "Kapatıldı"
+
+    var icon: String {
+        switch self {
+        case .open:               return "exclamationmark.circle.fill"
+        case .correctionProposed:  return "doc.fill"
+        case .correctionInProgress: return "gear.circle.fill"
+        case .correctionDone:     return "checkmark.circle"
+        case .verified:           return "checkmark.seal.fill"
+        case .closed:             return "lock.circle.fill"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .open:               return "hakedisDanger"
+        case .correctionProposed:  return "hakedisWarning"
+        case .correctionInProgress: return "hakedisWarning"
+        case .correctionDone:     return "hakedisInfo"
+        case .verified:           return "hakedisSuccess"
+        case .closed:             return "secondary"
+        }
+    }
+}
+
+@Model
+final class NonConformanceReport {
+    var id: UUID
+    var ncrNo: String
+    var detectionDate: Date
+    var location: String
+    var nonConformanceDescription: String
+    var affectedWorkItem: String?
+    var detectedBy: String
+    var rootCause: String?
+    var proposedCorrection: String?
+    var correctionDeadline: Date?
+    var correctionDate: Date?
+    var correctionChangeDescription: String?
+    var verifiedBy: String?
+    var verificationDate: Date?
+    var statusRaw: String
+    var photoData: [Data]
+    @Relationship var checklist: QualityChecklist?
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(ncrNo: String, location: String, nonConformanceDescription: String, detectedBy: String) {
+        self.id = UUID()
+        self.ncrNo = ncrNo
+        self.detectionDate = Date()
+        self.location = location
+        self.nonConformanceDescription = nonConformanceDescription
+        self.detectedBy = detectedBy
+        self.statusRaw = NCRStatus.open.rawValue
+        self.photoData = []
+        self.createdAt = Date()
+    }
+
+    var status: NCRStatus {
+        get { NCRStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+
+    var isOverdue: Bool {
+        guard let deadline = correctionDeadline,
+              status != .correctionDone, status != .verified, status != .closed
+        else { return false }
+        return deadline < Date()
+    }
+
+    static func generateNCRNo(existingCount: Int, year: Int? = nil) -> String {
+        let y = year ?? Calendar.current.component(.year, from: Date())
+        return String(format: "NCR-%d-%03d", y, existingCount + 1)
+    }
+}
+
+// MARK: - QualityChecklistTemplateProvider
+
+struct QualityChecklistTemplateProvider {
+
+    static func items(for type: QualityChecklistType) -> [QualityCheckItem] {
+        switch type {
+        case .concretePour:
+            return [
+                item("Kalıp temizliği ve yağlanması yapıldı mı"),
+                item("Kalıp ölçüleri projeye uygun mu"),
+                item("Donatı montajı kontrol edildi mi"),
+                item("Paspayı kontrol edildi mi (min 25mm)", photoRequired: true),
+                item("Bindirme boyları kontrol edildi mi"),
+                item("Elektrik/mekanik boru geçişleri tamamlandı mı"),
+                item("Beton sipariş fişi kontrol edildi mi (sınıf, slump, miktar)"),
+                item("Beton pompası ve hortum temiz mi"),
+                item("Vibratör hazır mı (yedek dahil)"),
+                item("Slump testi yapıldı mı", photoRequired: true),
+                item("Hava sıcaklığı beton dökümüne uygun mu (>5°C, <35°C)"),
+                item("Küp numune alındı mı (7 ve 28 günlük)", photoRequired: true),
+                item("Numune etiketleri yazıldı mı"),
+                item("Kür önlemleri planlandı mı"),
+                item("İSG önlemleri alındı mı (baret, çizme, gözlük)")
+            ]
+        case .reinforcement:
+            return [
+                item("Demir çap kontrolü (proje ile uyum)", photoRequired: true),
+                item("Demir sınıfı kontrolü (S420/S500)"),
+                item("Çekme testi sonucu uygun mu"),
+                item("Donatı yerleşim planı kontrol edildi mi"),
+                item("Bindirme boyları uygun mu (40Ø / 50Ø)"),
+                item("Etriye aralıkları kontrol edildi mi"),
+                item("Kancalar uygun mu (135°/90°)"),
+                item("Paspayı takozları yerleştirildi mi"),
+                item("Donatı temiz mi (pas, yağ, toprak yok mu)"),
+                item("Ek yerlerinin konumları doğru mu"),
+                item("Filiz boyları yeterli mi"),
+                item("Sehpa demiri yerleştirildi mi"),
+                item("Donatı bağlantıları sağlam mı"),
+                item("Proje mühendisi donatı kontrolünü onayladı mı")
+            ]
+        case .waterproofing:
+            return [
+                item("Yüzey temiz ve kuru mu"),
+                item("Köşe pahları yapıldı mı"),
+                item("Primer sürüldü mü (bekleme süresi uygun mu)"),
+                item("Membran tipi projeye uygun mu"),
+                item("Membran kalınlığı kontrol edildi mi"),
+                item("Bindirme genişliği uygun mu (min 10cm)"),
+                item("Detay noktaları işlendi mi (boru geçişi, derz)", photoRequired: true),
+                item("Su testi yapıldı mı (48 saat)"),
+                item("Koruma tabakası/betonu planlandı mı"),
+                item("Fotoğraflı kayıt alındı mı", photoRequired: true)
+            ]
+        case .heatInsulation:
+            return [
+                item("Malzeme tipi ve kalınlığı projeye uygun"),
+                item("Uygulama yüzeyi temiz ve düz"),
+                item("Derz mesafeleri uygun"),
+                item("Dış köşe profilleri yerleştirildi"),
+                item("Mantar dübel aralıkları standart"),
+                item("Isı köprüsü önlendi mi"),
+                item("Fire kesim uygunluğu"),
+                item("Alt kat bağlantısı güvenli"),
+                item("Sıva takviye filesi düzgün"),
+                item("Derz bantları yerleştirildi"),
+                item("Su uzaklaştırma sağlandı"),
+                item("Onay belgesi mevcut")
+            ]
+        case .mechanical:
+            return [
+                item("Boru tipleri ve çapları uygun"),
+                item("Boru bağlantıları sızdırmaz"),
+                item("Askı ve destek aralıkları standart"),
+                item("Vana konumları erişilebilir"),
+                item("Yalıtım kalınlıkları uygun"),
+                item("Basınç testi yapıldı mı", photoRequired: true),
+                item("Pis su eğimleri uygun (min %2)"),
+                item("Temiz su hattı debi yeterli"),
+                item("Kazan odası güvenliği sağlandı"),
+                item("Yangın söndürme sistemi kontrol edildi"),
+                item("Su sayacı konumu erişilebilir"),
+                item("Onay belgesi mevcut")
+            ]
+        case .electrical:
+            return [
+                item("Kablo tipleri ve kesitleri uygun"),
+                item("Topraklama sistemi kontrol edildi"),
+                item("Panolar ve şalterler takıldı"),
+                item("Aydınlatma devre kontrolü yapıldı"),
+                item("Priz devre kontrolü yapıldı"),
+                item("Güç devre kontrolü yapıldı"),
+                item("DUYLU test edildi"),
+                item("Sigorta seçimi doğru"),
+                item("Kablo izolasyon testi yapıldı"),
+                item("Kaçak akım rölesi kontrol edildi"),
+                item("Faz dengelemesi yapıldı"),
+                item("Onay belgesi mevcut")
+            ]
+        case .elevator:
+            return [
+                item("Kuyu boyutları projeye uygun"),
+                item("Makine dairesi erişimi uygun"),
+                item("Emniyet donanımları mevcut"),
+                item("Kablo ve zincir kontrolü yapıldı"),
+                item("Kabin seviyesi ayarı doğru"),
+                item("Kapı kilitleri çalışıyor"),
+                item("Aşırı yük sensörü test edildi"),
+                item("Hız sınırlayıcı kontrol edildi"),
+                item("Akustik ölçüm yapıldı"),
+                item("Bakım sözleşmesi imzalandı")
+            ]
+        case .steel:
+            return [
+                item("Profil boyut ve kalitesi uygun"),
+                item("Kaynak kalitesi gözle kontrolü", photoRequired: true),
+                item("Cıvata sıkma kontrolü yapıldı"),
+                item("Boyama ve kaplama uygun"),
+                item("Ankraj levhası bağlantısı güvenli"),
+                item("Kolon-kiriş birleşimi doğru"),
+                item("Kiriş sehim kontrolü"),
+                item("Eğik bağlantılar uygun"),
+                item("Yangın koruma kaplama tamamlandı"),
+                item("TS 648 uygunluğu sağlandı"),
+                item("Proje uyumu kontrol edildi"),
+                item("Onay belgesi mevcut")
+            ]
+        case .plastering:
+            return [
+                item("Yüzey düzlüğü kontrol edildi"),
+                item("Köşe profilleri takıldı"),
+                item("Kalınlık uygun"),
+                item("Çatlak kontrolü")
+            ]
+        case .painting:
+            return [
+                item("Yüzey astarlandı"),
+                item("Kat sayısı doğrulandı"),
+                item("Renk uygunluğu"),
+                item("Yüzey pürüzsüz")
+            ]
+        case .general:
+            return [
+                item("KKD kontrolü"),
+                item("Çalışma alanı güvenli"),
+                item("Malzeme kalitesi uygun"),
+                item("İş yöntemi onaylı"),
+                item("Proje uyumu sağlandı"),
+                item("Zorunlu belgeler mevcut"),
+                item("Personel yeterliliği"),
+                item("Ekipman uygunluğu")
+            ]
+        }
+    }
+
+    private static func item(_ title: String, photoRequired: Bool = false) -> QualityCheckItem {
+        var q = QualityCheckItem(title: title)
+        q.photoRequired = photoRequired
+        return q
     }
 }
