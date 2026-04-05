@@ -141,6 +141,21 @@ struct MoreTabView: View {
                     }
                 }
 
+                Section("Gizlilik & Güvenlik") {
+                    NavigationLink(destination: KVKKConsentView()) {
+                        Label("KVKK Aydınlatma", systemImage: "person.badge.shield.checkmark")
+                            .accessibilityLabel("KVKK Aydınlatma Metni")
+                    }
+                    NavigationLink(destination: PrivacyPolicyView()) {
+                        Label("Gizlilik Politikası", systemImage: "lock.doc")
+                            .accessibilityLabel("Gizlilik Politikası")
+                    }
+                    NavigationLink(destination: DataDeletionView()) {
+                        Label("Veri Silme", systemImage: "trash.circle")
+                            .accessibilityLabel("Veri Silme")
+                    }
+                }
+
                 Section("Sistem") {
                     NavigationLink(destination: SettingsView()) {
                         Label("Ayarlar", systemImage: "gear")
