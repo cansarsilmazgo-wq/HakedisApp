@@ -28,6 +28,13 @@ struct MoreTabView: View {
                             .accessibilityLabel("İlerleme Raporları")
                     }
                 }
+                Section("Maliyet Kontrol") {
+                    NavigationLink(destination: BudgetView()) {
+                        Label("Bütçe Yönetimi", systemImage: "dollarsign.circle")
+                            .accessibilityLabel("Bütçe Yönetimi")
+                    }
+                }
+
                 Section("İş Programı") {
                     NavigationLink(destination: ActivityListView()) {
                         Label("İş Programı", systemImage: "chart.bar.xaxis")

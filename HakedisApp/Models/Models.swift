@@ -4904,3 +4904,174 @@ struct ActivityDependency: Codable, Identifiable {
         }
     }
 }
+
+// MARK: - B5 Maliyet Kontrol EVM
+
+enum BudgetCategory: String, Codable, CaseIterable {
+    case labor = "İşçilik"
+    case material = "Malzeme"
+    case equipment = "Makine/Ekipman"
+    case subcontract = "Taşeron"
+    case overhead = "Genel Gider"
+    case contingency = "Risk Payı"
+    case other = "Diğer"
+    var icon: String {
+        switch self {
+        case .labor: return "person.2"
+        case .material: return "shippingbox"
+        case .equipment: return "wrench.and.screwdriver"
+        case .subcontract: return "building.2"
+        case .overhead: return "building"
+        case .contingency: return "shield"
+        case .other: return "square.grid.2x2"
+        }
+    }
+}
+
+@Model final class ProjectBudget {
+    var id: UUID
+    var budgetName: String
+    var projectName: String
+    var totalBudget: Double
+    var approvedDate: Date?
+    var notes: String
+    var lineItems: [BudgetLineItem]
+    var evmSnapshots: [EVMSnapshot]
+    var overheadExpenses: [OverheadExpense]
+    var createdAt: Date
+
+    init(budgetName: String, projectName: String, totalBudget: Double) {
+        self.id = UUID()
+        self.budgetName = budgetName
+        self.projectName = projectName
+        self.totalBudget = totalBudget
+        self.notes = ""
+        self.lineItems = []
+        self.evmSnapshots = []
+        self.overheadExpenses = []
+        self.createdAt = Date()
+    }
+
+    var budgetedCost: Double { lineItems.reduce(0.0) { $0 + $1.budgetedAmount } }
+    var actualCost: Double { lineItems.reduce(0.0) { $0 + $1.actualAmount } }
+    var costVariance: Double { budgetedCost - actualCost }
+    var totalOverheadCost: Double { overheadExpenses.reduce(0.0) { $0 + $1.amount } }
+    var totalCost: Double { actualCost + totalOverheadCost }
+}
+
+@Model final class BudgetLineItem {
+    var id: UUID
+    var categoryRaw: String
+    var itemName: String
+    var budgetedAmount: Double
+    var actualAmount: Double
+    var notes: String
+    var budget: ProjectBudget?
+
+    init(itemName: String, category: BudgetCategory, budgetedAmount: Double) {
+        self.id = UUID()
+        self.categoryRaw = category.rawValue
+        self.itemName = itemName
+        self.budgetedAmount = budgetedAmount
+        self.actualAmount = 0
+        self.notes = ""
+    }
+
+    var category: BudgetCategory {
+        get { BudgetCategory(rawValue: categoryRaw) ?? .other }
+        set { categoryRaw = newValue.rawValue }
+    }
+    var variance: Double { budgetedAmount - actualAmount }
+    var variancePercent: Double {
+        guard budgetedAmount > 0 else { return 0 }
+        return variance / budgetedAmount * 100
+    }
+}
+
+@Model final class EVMSnapshot {
+    var id: UUID
+    var snapshotDate: Date
+    var budgetAtCompletion: Double
+    var plannedValue: Double
+    var earnedValue: Double
+    var actualCost: Double
+    var notes: String
+    var budget: ProjectBudget?
+
+    init(snapshotDate: Date, budgetAtCompletion: Double, plannedValue: Double,
+         earnedValue: Double, actualCost: Double) {
+        self.id = UUID()
+        self.snapshotDate = snapshotDate
+        self.budgetAtCompletion = budgetAtCompletion
+        self.plannedValue = plannedValue
+        self.earnedValue = earnedValue
+        self.actualCost = actualCost
+        self.notes = ""
+    }
+
+    var scheduleVariance: Double { earnedValue - plannedValue }
+    var costVariance: Double { earnedValue - actualCost }
+    var spi: Double { plannedValue > 0 ? earnedValue / plannedValue : 0 }
+    var cpi: Double { actualCost > 0 ? earnedValue / actualCost : 0 }
+    var eac: Double { cpi > 0 ? budgetAtCompletion / cpi : budgetAtCompletion }
+    var etc: Double { eac - actualCost }
+    var vac: Double { budgetAtCompletion - eac }
+    var tcpi: Double {
+        let denominator = budgetAtCompletion - actualCost
+        guard denominator > 0 else { return 0 }
+        return (budgetAtCompletion - earnedValue) / denominator
+    }
+    var completionPercent: Double {
+        guard budgetAtCompletion > 0 else { return 0 }
+        return earnedValue / budgetAtCompletion * 100
+    }
+    var isOnSchedule: Bool { spi >= 0.95 }
+    var isOnBudget: Bool { cpi >= 0.95 }
+}
+
+enum ExpenseCategory: String, Codable, CaseIterable {
+    case officeRent = "Ofis Kirası"
+    case utilities = "Elektrik/Su/Gaz"
+    case vehicleFuel = "Araç Yakıtı"
+    case communication = "Haberleşme"
+    case insurance = "Sigorta"
+    case accounting = "Muhasebe"
+    case other = "Diğer"
+    var icon: String {
+        switch self {
+        case .officeRent: return "building"
+        case .utilities: return "bolt"
+        case .vehicleFuel: return "car"
+        case .communication: return "phone"
+        case .insurance: return "shield.checkered"
+        case .accounting: return "doc.text"
+        case .other: return "square.grid.2x2"
+        }
+    }
+}
+
+@Model final class OverheadExpense {
+    var id: UUID
+    var categoryRaw: String
+    var expenseName: String
+    var amount: Double
+    var expenseDate: Date
+    var invoiceNo: String
+    var notes: String
+    var budget: ProjectBudget?
+
+    init(expenseName: String, category: ExpenseCategory, amount: Double, expenseDate: Date) {
+        self.id = UUID()
+        self.categoryRaw = category.rawValue
+        self.expenseName = expenseName
+        self.amount = amount
+        self.expenseDate = expenseDate
+        self.invoiceNo = ""
+        self.notes = ""
+    }
+
+    var category: ExpenseCategory {
+        get { ExpenseCategory(rawValue: categoryRaw) ?? .other }
+        set { categoryRaw = newValue.rawValue }
+    }
+}
