@@ -141,6 +141,13 @@ struct MoreTabView: View {
                     }
                 }
 
+                Section("Veri Yönetimi") {
+                    NavigationLink(destination: BackupView()) {
+                        Label("Yedekleme", systemImage: "externaldrive.badge.checkmark")
+                            .accessibilityLabel("Yedekleme")
+                    }
+                }
+
                 Section("Gizlilik & Güvenlik") {
                     NavigationLink(destination: KVKKConsentView()) {
                         Label("KVKK Aydınlatma", systemImage: "person.badge.shield.checkmark")

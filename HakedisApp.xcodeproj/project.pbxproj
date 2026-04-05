@@ -143,7 +143,10 @@
 		NB055 /* ReportBuilderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N055 /* ReportBuilderViews.swift */; };
 		NB056 /* PerformanceInfrastructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = N056 /* PerformanceInfrastructure.swift */; };
 		NB057 /* KVKKViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N057 /* KVKKViews.swift */; };
+		NB058 /* BackupViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
 		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
+		TB036 /* FazC3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T029 /* FazC3Tests.swift */; };
+		TB037 /* BackupViews.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
 		TB034 /* FazC2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T028 /* FazC2Tests.swift */; };
 		TB035 /* KVKKViews.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N057 /* KVKKViews.swift */; };
 		TB032 /* FazC1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T027 /* FazC1Tests.swift */; };
@@ -298,7 +301,9 @@
 		N055 /* ReportBuilderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReportBuilderViews.swift; path = HakedisApp/Views/Projects/ReportBuilderViews.swift; sourceTree = "<group>"; };
 		N056 /* PerformanceInfrastructure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PerformanceInfrastructure.swift; path = HakedisApp/Models/PerformanceInfrastructure.swift; sourceTree = "<group>"; };
 		N057 /* KVKKViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KVKKViews.swift; path = HakedisApp/Views/Shared/KVKKViews.swift; sourceTree = "<group>"; };
+		N058 /* BackupViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BackupViews.swift; path = HakedisApp/Views/Shared/BackupViews.swift; sourceTree = "<group>"; };
 		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
+		T029 /* FazC3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC3Tests.swift; sourceTree = "<group>"; };
 		T028 /* FazC2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC2Tests.swift; sourceTree = "<group>"; };
 		T027 /* FazC1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC1Tests.swift; sourceTree = "<group>"; };
 		T026 /* FazB9Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB9Tests.swift; sourceTree = "<group>"; };
@@ -447,6 +452,7 @@
 				N055 /* ReportBuilderViews.swift */,
 				N056 /* PerformanceInfrastructure.swift */,
 				N057 /* KVKKViews.swift */,
+				N058 /* BackupViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -491,6 +497,7 @@
 				T026 /* FazB9Tests.swift */,
 				T027 /* FazC1Tests.swift */,
 				T028 /* FazC2Tests.swift */,
+				T029 /* FazC3Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -765,6 +772,7 @@
 				NB055 /* ReportBuilderViews.swift in Sources */,
 				NB056 /* PerformanceInfrastructure.swift in Sources */,
 				NB057 /* KVKKViews.swift in Sources */,
+				NB058 /* BackupViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -807,6 +815,8 @@
 				TB033 /* PerformanceInfrastructure.swift in TestSources */,
 				TB034 /* FazC2Tests.swift in Sources */,
 				TB035 /* KVKKViews.swift in TestSources */,
+				TB036 /* FazC3Tests.swift in Sources */,
+				TB037 /* BackupViews.swift in TestSources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
