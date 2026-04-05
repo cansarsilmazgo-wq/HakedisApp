@@ -4512,3 +4512,278 @@ final class MeetingDecision {
         return status
     }
 }
+
+// MARK: - B3 Keşif ve İhale Hazırlık
+
+enum SurveyStatus: String, Codable, CaseIterable {
+    case draft = "Taslak"
+    case inProgress = "Devam Ediyor"
+    case completed = "Tamamlandı"
+    case approved = "Onaylandı"
+    var icon: String {
+        switch self {
+        case .draft: return "doc"
+        case .inProgress: return "pencil"
+        case .completed: return "checkmark.circle"
+        case .approved: return "checkmark.seal.fill"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .draft: return "secondary"
+        case .inProgress: return "hakedisWarning"
+        case .completed: return "hakedisSuccess"
+        case .approved: return "hakedisOrange"
+        }
+    }
+}
+
+@Model final class Survey {
+    var id: UUID
+    var surveyNo: String
+    var surveyName: String
+    var projectName: String
+    var surveyDate: Date
+    var statusRaw: String
+    var preparedBy: String
+    var approvedBy: String?
+    var approvalDate: Date?
+    var notes: String
+    var locations: [SurveyLocation]
+    var createdAt: Date
+
+    init(surveyNo: String, surveyName: String, projectName: String, preparedBy: String) {
+        self.id = UUID()
+        self.surveyNo = surveyNo
+        self.surveyName = surveyName
+        self.projectName = projectName
+        self.surveyDate = Date()
+        self.statusRaw = SurveyStatus.draft.rawValue
+        self.preparedBy = preparedBy
+        self.notes = ""
+        self.locations = []
+        self.createdAt = Date()
+    }
+
+    var status: SurveyStatus {
+        get { SurveyStatus(rawValue: statusRaw) ?? .draft }
+        set { statusRaw = newValue.rawValue }
+    }
+    var totalItems: Int { locations.reduce(0) { $0 + $1.items.count } }
+    var totalEstimatedCost: Double {
+        locations.reduce(0.0) { $0 + $1.items.reduce(0.0) { $0 + $1.estimatedTotal } }
+    }
+    static func generateNo(existingCount: Int, year: Int) -> String {
+        String(format: "KES-%d/%03d", year, existingCount + 1)
+    }
+}
+
+enum LocationType: String, Codable, CaseIterable {
+    case floor = "Kat"
+    case zone = "Bölge"
+    case block = "Blok"
+    case exterior = "Dış Alan"
+    case basement = "Bodrum"
+    case other = "Diğer"
+    var icon: String {
+        switch self {
+        case .floor: return "building.2"
+        case .zone: return "square.dashed"
+        case .block: return "building"
+        case .exterior: return "tree"
+        case .basement: return "arrow.down.to.line"
+        case .other: return "mappin"
+        }
+    }
+}
+
+@Model final class SurveyLocation {
+    var id: UUID
+    var locationName: String
+    var typeRaw: String
+    var sortOrder: Int
+    var items: [SurveyItem]
+    var survey: Survey?
+
+    init(locationName: String, type: LocationType, sortOrder: Int) {
+        self.id = UUID()
+        self.locationName = locationName
+        self.typeRaw = type.rawValue
+        self.sortOrder = sortOrder
+        self.items = []
+    }
+
+    var locationType: LocationType {
+        get { LocationType(rawValue: typeRaw) ?? .other }
+        set { typeRaw = newValue.rawValue }
+    }
+    var subtotal: Double { items.reduce(0.0) { $0 + $1.estimatedTotal } }
+}
+
+@Model final class SurveyItem {
+    var id: UUID
+    var pozCode: String
+    var pozName: String
+    var unit: String
+    var quantity: Double
+    var unitPrice: Double
+    var notes: String
+    var location: SurveyLocation?
+
+    init(pozCode: String, pozName: String, unit: String, quantity: Double, unitPrice: Double) {
+        self.id = UUID()
+        self.pozCode = pozCode
+        self.pozName = pozName
+        self.unit = unit
+        self.quantity = quantity
+        self.unitPrice = unitPrice
+        self.notes = ""
+    }
+
+    var estimatedTotal: Double { quantity * unitPrice }
+}
+
+enum BidStatus: String, Codable, CaseIterable {
+    case preparation = "Hazırlanıyor"
+    case submitted = "Teklif Verildi"
+    case won = "Kazanıldı"
+    case lost = "Kaybedildi"
+    case cancelled = "İptal"
+    var icon: String {
+        switch self {
+        case .preparation: return "pencil"
+        case .submitted: return "paperplane"
+        case .won: return "trophy.fill"
+        case .lost: return "xmark.circle"
+        case .cancelled: return "minus.circle"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .preparation: return "hakedisWarning"
+        case .submitted: return "hakedisOrange"
+        case .won: return "hakedisSuccess"
+        case .lost: return "hakedisDanger"
+        case .cancelled: return "secondary"
+        }
+    }
+}
+
+@Model final class BidPreparation {
+    var id: UUID
+    var bidNo: String
+    var projectTitle: String
+    var clientName: String
+    var bidDeadline: Date
+    var statusRaw: String
+    var estimatedBudget: Double
+    var bidAmount: Double
+    var overheadRate: Double
+    var profitRate: Double
+    var taxRate: Double
+    var notes: String
+    var analysisRecords: [AnalysisRecord]
+    var createdAt: Date
+
+    init(bidNo: String, projectTitle: String, clientName: String, bidDeadline: Date) {
+        self.id = UUID()
+        self.bidNo = bidNo
+        self.projectTitle = projectTitle
+        self.clientName = clientName
+        self.bidDeadline = bidDeadline
+        self.statusRaw = BidStatus.preparation.rawValue
+        self.estimatedBudget = 0
+        self.bidAmount = 0
+        self.overheadRate = 15.0
+        self.profitRate = 10.0
+        self.taxRate = 20.0
+        self.notes = ""
+        self.analysisRecords = []
+        self.createdAt = Date()
+    }
+
+    var status: BidStatus {
+        get { BidStatus(rawValue: statusRaw) ?? .preparation }
+        set { statusRaw = newValue.rawValue }
+    }
+    var totalDirectCost: Double { analysisRecords.reduce(0.0) { $0 + $1.totalCost } }
+    var overheadAmount: Double { totalDirectCost * overheadRate / 100 }
+    var profitAmount: Double { (totalDirectCost + overheadAmount) * profitRate / 100 }
+    var subtotalBeforeTax: Double { totalDirectCost + overheadAmount + profitAmount }
+    var taxAmount: Double { subtotalBeforeTax * taxRate / 100 }
+    var totalWithTax: Double { subtotalBeforeTax + taxAmount }
+    var isOverdue: Bool { status == .preparation && bidDeadline < Date() }
+    static func generateNo(existingCount: Int, year: Int) -> String {
+        String(format: "IH-%d/%03d", year, existingCount + 1)
+    }
+}
+
+enum AnalysisResourceType: String, Codable, CaseIterable {
+    case labor = "İşçilik"
+    case material = "Malzeme"
+    case equipment = "Makine"
+    case subcontract = "Taşeron"
+    var icon: String {
+        switch self {
+        case .labor: return "person.2"
+        case .material: return "shippingbox"
+        case .equipment: return "wrench.and.screwdriver"
+        case .subcontract: return "building.2"
+        }
+    }
+}
+
+struct AnalysisResourceItem: Codable, Identifiable {
+    var id: UUID = UUID()
+    var resourceName: String
+    var typeRaw: String
+    var unit: String
+    var quantity: Double
+    var unitPrice: Double
+
+    var resourceType: AnalysisResourceType {
+        get { AnalysisResourceType(rawValue: typeRaw) ?? .material }
+        set { typeRaw = newValue.rawValue }
+    }
+    var total: Double { quantity * unitPrice }
+}
+
+@Model final class AnalysisRecord {
+    var id: UUID
+    var pozCode: String
+    var pozName: String
+    var unit: String
+    var quantity: Double
+    var resourcesJSON: String
+    var notes: String
+    var bidPreparation: BidPreparation?
+    var createdAt: Date
+
+    init(pozCode: String, pozName: String, unit: String, quantity: Double) {
+        self.id = UUID()
+        self.pozCode = pozCode
+        self.pozName = pozName
+        self.unit = unit
+        self.quantity = quantity
+        self.resourcesJSON = "[]"
+        self.notes = ""
+        self.createdAt = Date()
+    }
+
+    var resources: [AnalysisResourceItem] {
+        get {
+            guard let data = resourcesJSON.data(using: .utf8),
+                  let items = try? JSONDecoder().decode([AnalysisResourceItem].self, from: data)
+            else { return [] }
+            return items
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue),
+               let str = String(data: data, encoding: .utf8) {
+                resourcesJSON = str
+            }
+        }
+    }
+    var unitCost: Double { resources.reduce(0.0) { $0 + $1.total } }
+    var totalCost: Double { unitCost * quantity }
+}

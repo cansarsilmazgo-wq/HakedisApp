@@ -133,7 +133,10 @@
 		NB045 /* ContractCorrespondenceSystemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N045 /* ContractCorrespondenceSystemViews.swift */; };
 		NB046 /* DocumentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N046 /* DocumentViews.swift */; };
 		NB047 /* MeetingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N047 /* MeetingViews.swift */; };
+		NB048 /* SurveyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N048 /* SurveyViews.swift */; };
+		NB049 /* BidPreparationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N049 /* BidPreparationViews.swift */; };
 		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
+		TB025 /* FazB3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T020 /* FazB3Tests.swift */; };
 		TB023 /* FazB1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T018 /* FazB1Tests.swift */; };
 		TB024 /* FazB2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T019 /* FazB2Tests.swift */; };
 		TB021 /* Faz6A7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T016 /* Faz6A7Tests.swift */; };
@@ -267,7 +270,10 @@
 		N045 /* ContractCorrespondenceSystemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractCorrespondenceSystemViews.swift; path = HakedisApp/Views/Contracts/ContractCorrespondenceSystemViews.swift; sourceTree = "<group>"; };
 		N046 /* DocumentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DocumentViews.swift; path = HakedisApp/Views/Projects/DocumentViews.swift; sourceTree = "<group>"; };
 		N047 /* MeetingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingViews.swift; path = HakedisApp/Views/Projects/MeetingViews.swift; sourceTree = "<group>"; };
+		N048 /* SurveyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SurveyViews.swift; path = HakedisApp/Views/Projects/SurveyViews.swift; sourceTree = "<group>"; };
+		N049 /* BidPreparationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BidPreparationViews.swift; path = HakedisApp/Views/Projects/BidPreparationViews.swift; sourceTree = "<group>"; };
 		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
+		T020 /* FazB3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB3Tests.swift; sourceTree = "<group>"; };
 		T018 /* FazB1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB1Tests.swift; sourceTree = "<group>"; };
 		T019 /* FazB2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB2Tests.swift; sourceTree = "<group>"; };
 		T016 /* Faz6A7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A7Tests.swift; sourceTree = "<group>"; };
@@ -397,6 +403,8 @@
 				N045 /* ContractCorrespondenceSystemViews.swift */,
 				N046 /* DocumentViews.swift */,
 				N047 /* MeetingViews.swift */,
+				N048 /* SurveyViews.swift */,
+				N049 /* BidPreparationViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -432,6 +440,7 @@
 				T017 /* Faz6A8Tests.swift */,
 				T018 /* FazB1Tests.swift */,
 				T019 /* FazB2Tests.swift */,
+				T020 /* FazB3Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -696,6 +705,8 @@
 				NB045 /* ContractCorrespondenceSystemViews.swift in Sources */,
 				NB046 /* DocumentViews.swift in Sources */,
 				NB047 /* MeetingViews.swift in Sources */,
+				NB048 /* SurveyViews.swift in Sources */,
+				NB049 /* BidPreparationViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -727,6 +738,7 @@
 				TB022 /* Faz6A8Tests.swift in Sources */,
 				TB023 /* FazB1Tests.swift in Sources */,
 				TB024 /* FazB2Tests.swift in Sources */,
+				TB025 /* FazB3Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

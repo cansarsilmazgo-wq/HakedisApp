@@ -28,6 +28,21 @@ struct MoreTabView: View {
                             .accessibilityLabel("İlerleme Raporları")
                     }
                 }
+                Section("Keşif & İhale") {
+                    NavigationLink(destination: SurveyListView()) {
+                        Label("Keşif Çalışmaları", systemImage: "ruler")
+                            .accessibilityLabel("Keşif Çalışmaları")
+                    }
+                    NavigationLink(destination: BidPreparationView()) {
+                        Label("İhale Hazırlık", systemImage: "doc.text.magnifyingglass")
+                            .accessibilityLabel("İhale Hazırlık")
+                    }
+                    NavigationLink(destination: ApproximateCostView()) {
+                        Label("Yaklaşık Maliyet", systemImage: "dollarsign.circle")
+                            .accessibilityLabel("Yaklaşık Maliyet")
+                    }
+                }
+
                 Section("Mevzuat Referans") {
                     NavigationLink(destination: LegalReferenceView()) {
                         Label("4734 / 4735 Kanun Referansı", systemImage: "book.closed")

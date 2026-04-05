@@ -35,6 +35,8 @@ struct HakedisApp: App {
             Correspondence.self, OfficialNotification.self, ContractMilestone.self,
             ProjectDocument.self, DocumentRevision.self,
             Meeting.self, MeetingDecision.self,
+            Survey.self, SurveyLocation.self, SurveyItem.self,
+            BidPreparation.self, AnalysisRecord.self,
             AttachmentRecord.self,
             PriceDifferenceCalc.self,
             SubcontractorHakedis.self,
