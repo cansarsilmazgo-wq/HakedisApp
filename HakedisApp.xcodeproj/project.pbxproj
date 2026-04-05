@@ -130,6 +130,12 @@
 		NB042 /* NonConformanceReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N042 /* NonConformanceReportViews.swift */; };
 		NB043 /* QualityDashboardViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N043 /* QualityDashboardViews.swift */; };
 		NB044 /* QualityPDFReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N044 /* QualityPDFReportGenerator.swift */; };
+		NB045 /* ContractCorrespondenceSystemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N045 /* ContractCorrespondenceSystemViews.swift */; };
+		NB046 /* DocumentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N046 /* DocumentViews.swift */; };
+		NB047 /* MeetingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N047 /* MeetingViews.swift */; };
+		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
+		TB023 /* FazB1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T018 /* FazB1Tests.swift */; };
+		TB024 /* FazB2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T019 /* FazB2Tests.swift */; };
 		TB021 /* Faz6A7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T016 /* Faz6A7Tests.swift */; };
 		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
 		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
@@ -258,6 +264,12 @@
 		N042 /* NonConformanceReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NonConformanceReportViews.swift; path = HakedisApp/Views/Contracts/NonConformanceReportViews.swift; sourceTree = "<group>"; };
 		N043 /* QualityDashboardViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QualityDashboardViews.swift; path = HakedisApp/Views/Contracts/QualityDashboardViews.swift; sourceTree = "<group>"; };
 		N044 /* QualityPDFReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QualityPDFReportGenerator.swift; path = HakedisApp/Views/Contracts/QualityPDFReportGenerator.swift; sourceTree = "<group>"; };
+		N045 /* ContractCorrespondenceSystemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractCorrespondenceSystemViews.swift; path = HakedisApp/Views/Contracts/ContractCorrespondenceSystemViews.swift; sourceTree = "<group>"; };
+		N046 /* DocumentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DocumentViews.swift; path = HakedisApp/Views/Projects/DocumentViews.swift; sourceTree = "<group>"; };
+		N047 /* MeetingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeetingViews.swift; path = HakedisApp/Views/Projects/MeetingViews.swift; sourceTree = "<group>"; };
+		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
+		T018 /* FazB1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB1Tests.swift; sourceTree = "<group>"; };
+		T019 /* FazB2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB2Tests.swift; sourceTree = "<group>"; };
 		T016 /* Faz6A7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A7Tests.swift; sourceTree = "<group>"; };
 		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
 		T013 /* Faz6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6Tests.swift; sourceTree = "<group>"; };
@@ -382,6 +394,9 @@
 				N042 /* NonConformanceReportViews.swift */,
 				N043 /* QualityDashboardViews.swift */,
 				N044 /* QualityPDFReportGenerator.swift */,
+				N045 /* ContractCorrespondenceSystemViews.swift */,
+				N046 /* DocumentViews.swift */,
+				N047 /* MeetingViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -414,6 +429,9 @@
 				T014 /* Faz6A3A4Tests.swift */,
 				T015 /* Faz6A5Tests.swift */,
 				T016 /* Faz6A7Tests.swift */,
+				T017 /* Faz6A8Tests.swift */,
+				T018 /* FazB1Tests.swift */,
+				T019 /* FazB2Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -675,6 +693,9 @@
 				NB042 /* NonConformanceReportViews.swift in Sources */,
 				NB043 /* QualityDashboardViews.swift in Sources */,
 				NB044 /* QualityPDFReportGenerator.swift in Sources */,
+				NB045 /* ContractCorrespondenceSystemViews.swift in Sources */,
+				NB046 /* DocumentViews.swift in Sources */,
+				NB047 /* MeetingViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -703,6 +724,9 @@
 				TB019 /* Faz6A3A4Tests.swift in Sources */,
 				TB020 /* Faz6A5Tests.swift in Sources */,
 				TB021 /* Faz6A7Tests.swift in Sources */,
+				TB022 /* Faz6A8Tests.swift in Sources */,
+				TB023 /* FazB1Tests.swift in Sources */,
+				TB024 /* FazB2Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

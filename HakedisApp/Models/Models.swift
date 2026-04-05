@@ -4089,3 +4089,426 @@ struct QualityChecklistTemplateProvider {
         return q
     }
 }
+
+// MARK: - A8 Yazışma Sistemi
+
+enum LetterCategory: String, Codable, CaseIterable {
+    case timeExtension = "Süre Uzatımı"
+    case workChange = "İş Artışı/Eksilişi"
+    case priceDifference = "Fiyat Farkı"
+    case penaltyObjection = "Gecikme Cezası İtirazı"
+    case provisionalAcceptance = "Geçici Kabul"
+    case finalAcceptance = "Kesin Kabul"
+    case guaranteeReturn = "Teminat İadesi"
+    case experienceCertificate = "İş Deneyim Belgesi"
+    case paymentRequest = "Ödeme Talebi"
+    case siteInstruction = "Şantiye Talimatı"
+    case designChange = "Proje Değişikliği"
+    case claimNotice = "Hak Talebi Bildirimi"
+    case general = "Genel Yazışma"
+
+    var icon: String {
+        switch self {
+        case .timeExtension: return "calendar.badge.plus"
+        case .workChange: return "arrow.up.arrow.down.circle"
+        case .priceDifference: return "turkishlirasign.circle"
+        case .penaltyObjection: return "hand.raised"
+        case .provisionalAcceptance: return "checkmark.seal"
+        case .finalAcceptance: return "checkmark.seal.fill"
+        case .guaranteeReturn: return "lock.open"
+        case .experienceCertificate: return "doc.badge.checkmark"
+        case .paymentRequest: return "banknote"
+        case .siteInstruction: return "hammer"
+        case .designChange: return "pencil.and.ruler"
+        case .claimNotice: return "exclamationmark.bubble"
+        case .general: return "envelope"
+        }
+    }
+}
+
+@Model
+final class Correspondence {
+    var id: UUID
+    var correspondenceNo: String
+    var directionRaw: String
+    var date: Date
+    var subject: String
+    var senderOrRecipient: String
+    var attachmentCount: Int
+    var categoryRaw: String
+    var content: String?
+    var responseDeadline: Date?
+    var isResponded: Bool
+    var responseCorrespondenceNo: String?
+    var photoData: [Data]
+    @Relationship var contract: Contract?
+    @Relationship var project: Project?
+    var createdAt: Date
+
+    init(correspondenceNo: String, direction: CorrespondenceDirection, subject: String,
+         senderOrRecipient: String, category: LetterCategory = .general, date: Date = Date()) {
+        self.id = UUID()
+        self.correspondenceNo = correspondenceNo
+        self.directionRaw = direction.rawValue
+        self.date = date
+        self.subject = subject
+        self.senderOrRecipient = senderOrRecipient
+        self.attachmentCount = 0
+        self.categoryRaw = category.rawValue
+        self.isResponded = false
+        self.photoData = []
+        self.createdAt = Date()
+    }
+
+    var direction: CorrespondenceDirection {
+        get { CorrespondenceDirection(rawValue: directionRaw) ?? .gelen }
+        set { directionRaw = newValue.rawValue }
+    }
+    var category: LetterCategory {
+        get { LetterCategory(rawValue: categoryRaw) ?? .general }
+        set { categoryRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        guard let dl = responseDeadline, !isResponded else { return false }
+        return dl < Date()
+    }
+    var isDueSoon: Bool {
+        guard let dl = responseDeadline, !isResponded else { return false }
+        return !isOverdue && dl < Calendar.current.date(byAdding: .day, value: 7, to: Date())!
+    }
+
+    static func generateNo(existingCount: Int, year: Int? = nil) -> String {
+        let y = year ?? Calendar.current.component(.year, from: Date())
+        return String(format: "%d/%03d", y, existingCount + 1)
+    }
+}
+
+enum NotificationType: String, Codable, CaseIterable {
+    case notification = "Tebliğ"
+    case acknowledgment = "Tebellüğ"
+}
+
+@Model
+final class OfficialNotification {
+    var id: UUID
+    var notificationDate: Date
+    var notificationTypeRaw: String
+    var subject: String
+    var givenBy: String
+    var receivedBy: String
+    var witnessName: String?
+    var signaturePhotoData: Data?
+    var relatedCorrespondenceNo: String?
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(subject: String, givenBy: String, receivedBy: String,
+         notificationType: NotificationType = .notification, date: Date = Date()) {
+        self.id = UUID()
+        self.notificationDate = date
+        self.notificationTypeRaw = notificationType.rawValue
+        self.subject = subject
+        self.givenBy = givenBy
+        self.receivedBy = receivedBy
+        self.createdAt = Date()
+    }
+
+    var notificationType: NotificationType {
+        get { NotificationType(rawValue: notificationTypeRaw) ?? .notification }
+        set { notificationTypeRaw = newValue.rawValue }
+    }
+}
+
+enum MilestoneStatus: String, Codable, CaseIterable {
+    case notStarted = "Başlamadı"
+    case inProgress = "Devam Ediyor"
+    case completed = "Tamamlandı"
+    case delayed = "Gecikmiş"
+
+    var icon: String {
+        switch self {
+        case .notStarted: return "circle"
+        case .inProgress: return "circle.lefthalf.filled"
+        case .completed: return "checkmark.circle.fill"
+        case .delayed: return "exclamationmark.triangle.fill"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .notStarted: return "secondary"
+        case .inProgress: return "hakedisWarning"
+        case .completed: return "hakedisSuccess"
+        case .delayed: return "hakedisDanger"
+        }
+    }
+}
+
+@Model
+final class ContractMilestone {
+    var id: UUID
+    var milestoneName: String
+    var plannedDate: Date
+    var actualDate: Date?
+    var statusRaw: String
+    var delayDays: Int?
+    var notes: String?
+    @Relationship var contract: Contract?
+    var createdAt: Date
+
+    init(milestoneName: String, plannedDate: Date, contract: Contract? = nil) {
+        self.id = UUID()
+        self.milestoneName = milestoneName
+        self.plannedDate = plannedDate
+        self.statusRaw = MilestoneStatus.notStarted.rawValue
+        self.contract = contract
+        self.createdAt = Date()
+    }
+
+    var status: MilestoneStatus {
+        get { MilestoneStatus(rawValue: statusRaw) ?? .notStarted }
+        set { statusRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        status != .completed && plannedDate < Date()
+    }
+    var computedDelayDays: Int {
+        guard isOverdue else { return 0 }
+        return Calendar.current.dateComponents([.day], from: plannedDate, to: actualDate ?? Date()).day ?? 0
+    }
+}
+
+// MARK: - B1 Doküman Yönetimi
+
+enum DocumentType: String, Codable, CaseIterable {
+    case drawing = "Çizim/Plan"
+    case specification = "Şartname"
+    case report = "Rapor"
+    case contract = "Sözleşme"
+    case correspondence = "Yazışma"
+    case photo = "Fotoğraf"
+    case calculation = "Hesap"
+    case approval = "Onay Belgesi"
+    case certificate = "Sertifika"
+    case other = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .drawing: return "pencil.and.ruler.fill"
+        case .specification: return "list.clipboard.fill"
+        case .report: return "chart.bar.doc.horizontal.fill"
+        case .contract: return "doc.plaintext.fill"
+        case .correspondence: return "envelope.fill"
+        case .photo: return "photo.fill"
+        case .calculation: return "function"
+        case .approval: return "checkmark.seal.fill"
+        case .certificate: return "rosette"
+        case .other: return "doc.fill"
+        }
+    }
+}
+
+enum DocumentDiscipline: String, Codable, CaseIterable {
+    case architectural = "Mimari"
+    case structural = "Statik"
+    case mechanical = "Mekanik"
+    case electrical = "Elektrik"
+    case landscape = "Peyzaj"
+    case infrastructure = "Altyapı"
+    case general = "Genel"
+}
+
+@Model
+final class ProjectDocument {
+    var id: UUID
+    var documentName: String
+    var documentTypeRaw: String
+    var disciplineRaw: String
+    var revisionNo: String
+    var revisionDate: Date
+    var fileData: Data?
+    var fileSizeKB: Int?
+    var uploadedBy: String?
+    var isCurrentRevision: Bool
+    var notes: String?
+    var tags: String?
+    @Relationship var project: Project?
+    @Relationship(deleteRule: .cascade) var previousRevisions: [DocumentRevision]
+    var createdAt: Date
+
+    init(documentName: String, documentType: DocumentType = .other,
+         discipline: DocumentDiscipline = .general, revisionNo: String = "Rev.0") {
+        self.id = UUID()
+        self.documentName = documentName
+        self.documentTypeRaw = documentType.rawValue
+        self.disciplineRaw = discipline.rawValue
+        self.revisionNo = revisionNo
+        self.revisionDate = Date()
+        self.isCurrentRevision = true
+        self.previousRevisions = []
+        self.createdAt = Date()
+    }
+
+    var documentType: DocumentType {
+        get { DocumentType(rawValue: documentTypeRaw) ?? .other }
+        set { documentTypeRaw = newValue.rawValue }
+    }
+    var discipline: DocumentDiscipline {
+        get { DocumentDiscipline(rawValue: disciplineRaw) ?? .general }
+        set { disciplineRaw = newValue.rawValue }
+    }
+    var tagList: [String] {
+        tags?.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) } ?? []
+    }
+}
+
+@Model
+final class DocumentRevision {
+    var id: UUID
+    var revisionNo: String
+    var revisionDate: Date
+    var changeDescription: String?
+    var fileData: Data?
+    @Relationship var document: ProjectDocument?
+    var createdAt: Date
+
+    init(revisionNo: String, document: ProjectDocument? = nil) {
+        self.id = UUID()
+        self.revisionNo = revisionNo
+        self.revisionDate = Date()
+        self.document = document
+        self.createdAt = Date()
+    }
+}
+
+// MARK: - B2 Toplantı ve Karar Takibi
+
+enum MeetingType: String, Codable, CaseIterable {
+    case weeklyCoordination = "Haftalık Koordinasyon"
+    case monthlyProgress = "Aylık İlerleme"
+    case safety = "İSG Toplantısı"
+    case quality = "Kalite Toplantısı"
+    case design = "Tasarım Toplantısı"
+    case kickoff = "Başlangıç Toplantısı"
+    case handover = "Teslim Toplantısı"
+    case emergency = "Acil Toplantı"
+    case other = "Diğer"
+
+    var icon: String {
+        switch self {
+        case .weeklyCoordination: return "calendar"
+        case .monthlyProgress: return "chart.line.uptrend.xyaxis"
+        case .safety: return "shield.fill"
+        case .quality: return "checkmark.seal"
+        case .design: return "pencil.and.ruler"
+        case .kickoff: return "flag.fill"
+        case .handover: return "tray.and.arrow.up.fill"
+        case .emergency: return "exclamationmark.triangle.fill"
+        case .other: return "person.3.fill"
+        }
+    }
+}
+
+struct MeetingAttendee: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var title: String?
+    var company: String?
+    var isSigned: Bool = false
+}
+
+enum DecisionStatus: String, Codable, CaseIterable {
+    case open = "Açık"
+    case inProgress = "Devam Ediyor"
+    case completed = "Tamamlandı"
+    case overdue = "Gecikmiş"
+
+    var icon: String {
+        switch self {
+        case .open: return "circle"
+        case .inProgress: return "circle.lefthalf.filled"
+        case .completed: return "checkmark.circle.fill"
+        case .overdue: return "exclamationmark.triangle.fill"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .open: return "hakedisWarning"
+        case .inProgress: return "hakedisInfo"
+        case .completed: return "hakedisSuccess"
+        case .overdue: return "hakedisDanger"
+        }
+    }
+}
+
+@Model
+final class Meeting {
+    var id: UUID
+    var meetingDate: Date
+    var meetingTypeRaw: String
+    var title: String
+    var location: String?
+    var attendeesJSON: String
+    var agendaItems: String?
+    var minutesText: String?
+    var previousMeetingId: UUID?
+    @Relationship(deleteRule: .cascade) var decisions: [MeetingDecision]
+    @Relationship var project: Project?
+    var createdAt: Date
+
+    init(title: String, meetingType: MeetingType = .other, meetingDate: Date = Date()) {
+        self.id = UUID()
+        self.meetingDate = meetingDate
+        self.meetingTypeRaw = meetingType.rawValue
+        self.title = title
+        self.attendeesJSON = "[]"
+        self.decisions = []
+        self.createdAt = Date()
+    }
+
+    var meetingType: MeetingType {
+        get { MeetingType(rawValue: meetingTypeRaw) ?? .other }
+        set { meetingTypeRaw = newValue.rawValue }
+    }
+    var attendees: [MeetingAttendee] {
+        get { (try? JSONDecoder().decode([MeetingAttendee].self, from: Data(attendeesJSON.utf8))) ?? [] }
+        set { attendeesJSON = (try? String(data: JSONEncoder().encode(newValue), encoding: .utf8)) ?? "[]" }
+    }
+    var openDecisionCount: Int { decisions.filter { $0.status == .open || $0.status == .inProgress }.count }
+}
+
+@Model
+final class MeetingDecision {
+    var id: UUID
+    var decisionNo: Int
+    var decisionText: String
+    var responsiblePerson: String
+    var deadline: Date
+    var completionDate: Date?
+    var statusRaw: String
+    var notes: String?
+    @Relationship var meeting: Meeting?
+    var createdAt: Date
+
+    init(decisionNo: Int, decisionText: String, responsiblePerson: String, deadline: Date) {
+        self.id = UUID()
+        self.decisionNo = decisionNo
+        self.decisionText = decisionText
+        self.responsiblePerson = responsiblePerson
+        self.deadline = deadline
+        self.statusRaw = DecisionStatus.open.rawValue
+        self.createdAt = Date()
+    }
+
+    var status: DecisionStatus {
+        get { DecisionStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        status != .completed && deadline < Date()
+    }
+    var effectiveStatus: DecisionStatus {
+        if status == .completed { return .completed }
+        if isOverdue { return .overdue }
+        return status
+    }
+}

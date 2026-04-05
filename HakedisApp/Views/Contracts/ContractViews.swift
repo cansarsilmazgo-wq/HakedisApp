@@ -609,6 +609,22 @@ struct ContractDetailView: View {
                     Label("Süre Uzatımı / İş Artışı", systemImage: "doc.badge.gearshape")
                         .accessibilityLabel("Sözleşme yönetimi")
                 }
+                NavigationLink(destination: CorrespondenceLogView(contract: contract)) {
+                    Label("Yazışma Defteri", systemImage: "envelope.open")
+                        .accessibilityLabel("Yazışma defteri")
+                }
+                NavigationLink(destination: OfficialNotificationListView(contract: contract)) {
+                    Label("Tebliğ / Tebellüğ", systemImage: "person.badge.shield.checkmark")
+                        .accessibilityLabel("Tebliğ kayıtları")
+                }
+                NavigationLink(destination: LetterGeneratorView(contract: contract)) {
+                    Label("Dilekçe Oluşturucu", systemImage: "doc.plaintext")
+                        .accessibilityLabel("Dilekçe şablon oluşturucu")
+                }
+                NavigationLink(destination: ContractMilestoneView(contract: contract)) {
+                    Label("Milestone Takibi", systemImage: "flag.checkered")
+                        .accessibilityLabel("Sözleşme milestone takibi")
+                }
                 NavigationLink(destination: QualityChecklistListView()) {
                     Label("Kalite Kontrol Listeleri", systemImage: "checkmark.seal")
                         .accessibilityLabel("Kalite kontrol listeleri")

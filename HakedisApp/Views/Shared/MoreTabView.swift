@@ -42,6 +42,24 @@ struct MoreTabView: View {
                     }
                 }
 
+                Section("Dokümanlar") {
+                    NavigationLink(destination: DocumentListView()) {
+                        Label("Proje Dokümanları", systemImage: "doc.fill")
+                            .accessibilityLabel("Proje doküman yönetimi")
+                    }
+                }
+
+                Section("Toplantılar") {
+                    NavigationLink(destination: MeetingListView()) {
+                        Label("Tüm Toplantılar", systemImage: "person.3.fill")
+                            .accessibilityLabel("Toplantı listesi")
+                    }
+                    NavigationLink(destination: DecisionTrackingView()) {
+                        Label("Karar Takibi", systemImage: "checklist")
+                            .accessibilityLabel("Toplantı kararları takibi")
+                    }
+                }
+
                 Section("Garanti & Teminat") {
                     NavigationLink(destination: AllGuaranteeListView()) {
                         Label("Teminat Mektupları", systemImage: "lock.shield")

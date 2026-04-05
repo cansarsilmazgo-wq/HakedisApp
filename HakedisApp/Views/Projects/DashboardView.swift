@@ -272,6 +272,9 @@ struct DashboardView: View {
                         }
                     }
 
+                    // Gecikmiş Karar Uyarısı
+                    OverdueDecisionsCard()
+
                     // İSG Dashboard Kartı
                     let highUncontrolledRisks = allRiskAssessments.filter { ($0.riskLevel == .high || $0.riskLevel == .veryHigh) && !$0.isControlled }
                     let overdueActions = allCorrectiveActions.filter { $0.isOverdue }
@@ -1008,5 +1011,29 @@ private struct ISGDashboardAlertRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(text)
+    }
+}
+
+// MARK: - OverdueDecisionsCard
+
+private struct OverdueDecisionsCard: View {
+    @Query private var allDecisions: [MeetingDecision]
+
+    private var overdueDecisions: [MeetingDecision] {
+        allDecisions.filter { $0.isOverdue && $0.status != .completed }
+    }
+
+    var body: some View {
+        if !overdueDecisions.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionHeader("Toplantı Kararları")
+                NavigationLink(destination: DecisionTrackingView()) {
+                    StatCard(title: "Gecikmiş Karar",
+                             value: "\(overdueDecisions.count)",
+                             color: .hakedisDanger,
+                             icon: "exclamationmark.triangle.fill")
+                }
+            }
+        }
     }
 }
