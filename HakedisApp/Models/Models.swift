@@ -5200,3 +5200,194 @@ enum PinPriority: String, Codable, CaseIterable {
     var isOpen: Bool { status == .open || status == .inProgress }
     static func generateNumber(existingCount: Int) -> Int { existingCount + 1 }
 }
+
+// MARK: - B7 Saha İletişim
+
+enum WorkOrderStatus: String, Codable, CaseIterable {
+    case open = "Açık"
+    case assigned = "Atandı"
+    case inProgress = "Devam Ediyor"
+    case completed = "Tamamlandı"
+    case cancelled = "İptal"
+    var icon: String {
+        switch self {
+        case .open: return "circle"
+        case .assigned: return "person.badge.plus"
+        case .inProgress: return "arrow.right.circle"
+        case .completed: return "checkmark.circle.fill"
+        case .cancelled: return "xmark.circle"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .open: return "hakedisWarning"
+        case .assigned: return "hakedisOrange"
+        case .inProgress: return "hakedisOrange"
+        case .completed: return "hakedisSuccess"
+        case .cancelled: return "secondary"
+        }
+    }
+}
+
+enum WorkOrderType: String, Codable, CaseIterable {
+    case repair = "Onarım"
+    case installation = "Montaj"
+    case inspection = "Muayene"
+    case maintenance = "Bakım"
+    case demolition = "Yıkım"
+    case other = "Diğer"
+}
+
+@Model final class WorkOrder {
+    var id: UUID
+    var orderNo: String
+    var orderTitle: String
+    var typeRaw: String
+    var statusRaw: String
+    var issuedBy: String
+    var assignedTo: String
+    var location: String
+    var issueDate: Date
+    var dueDate: Date?
+    var completedDate: Date?
+    var workOrderDetails: String
+    var completionNotes: String
+    var createdAt: Date
+
+    init(orderNo: String, orderTitle: String, type: WorkOrderType, issuedBy: String) {
+        self.id = UUID()
+        self.orderNo = orderNo
+        self.orderTitle = orderTitle
+        self.typeRaw = type.rawValue
+        self.statusRaw = WorkOrderStatus.open.rawValue
+        self.issuedBy = issuedBy
+        self.assignedTo = ""
+        self.location = ""
+        self.issueDate = Date()
+        self.workOrderDetails = ""
+        self.completionNotes = ""
+        self.createdAt = Date()
+    }
+
+    var status: WorkOrderStatus {
+        get { WorkOrderStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+    var orderType: WorkOrderType {
+        get { WorkOrderType(rawValue: typeRaw) ?? .other }
+        set { typeRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        guard let due = dueDate, status != .completed && status != .cancelled else { return false }
+        return due < Date()
+    }
+    static func generateNo(existingCount: Int, year: Int) -> String {
+        String(format: "IO-%d/%03d", year, existingCount + 1)
+    }
+}
+
+enum RFIStatus: String, Codable, CaseIterable {
+    case open = "Açık"
+    case pending = "Yanıt Bekleniyor"
+    case answered = "Yanıtlandı"
+    case closed = "Kapatıldı"
+    var icon: String {
+        switch self {
+        case .open: return "questionmark.circle"
+        case .pending: return "clock"
+        case .answered: return "checkmark.message"
+        case .closed: return "checkmark.circle.fill"
+        }
+    }
+}
+
+@Model final class RFI {
+    var id: UUID
+    var rfiNo: String
+    var subject: String
+    var question: String
+    var askedBy: String
+    var answeredBy: String?
+    var answer: String
+    var statusRaw: String
+    var submittedDate: Date
+    var responseDeadline: Date?
+    var answeredDate: Date?
+    var drawingReference: String
+    var specSection: String
+    var createdAt: Date
+
+    init(rfiNo: String, subject: String, question: String, askedBy: String) {
+        self.id = UUID()
+        self.rfiNo = rfiNo
+        self.subject = subject
+        self.question = question
+        self.askedBy = askedBy
+        self.answer = ""
+        self.statusRaw = RFIStatus.open.rawValue
+        self.submittedDate = Date()
+        self.drawingReference = ""
+        self.specSection = ""
+        self.createdAt = Date()
+    }
+
+    var status: RFIStatus {
+        get { RFIStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        guard let deadline = responseDeadline, status != .answered && status != .closed else { return false }
+        return deadline < Date()
+    }
+    static func generateNo(existingCount: Int, year: Int) -> String {
+        String(format: "RFI-%d/%03d", year, existingCount + 1)
+    }
+}
+
+enum AnnouncementType: String, Codable, CaseIterable {
+    case safety = "İSG Duyurusu"
+    case workInstruction = "İş Talimatı"
+    case schedule = "Program Değişikliği"
+    case general = "Genel"
+    case urgent = "Acil"
+    var icon: String {
+        switch self {
+        case .safety: return "shield.checkered"
+        case .workInstruction: return "doc.text"
+        case .schedule: return "calendar.badge.exclamationmark"
+        case .general: return "megaphone"
+        case .urgent: return "exclamationmark.triangle.fill"
+        }
+    }
+}
+
+@Model final class SiteAnnouncement {
+    var id: UUID
+    var announcementTitle: String
+    var content: String
+    var typeRaw: String
+    var postedBy: String
+    var isActive: Bool
+    var expiresAt: Date?
+    var createdAt: Date
+
+    init(announcementTitle: String, content: String, type: AnnouncementType, postedBy: String) {
+        self.id = UUID()
+        self.announcementTitle = announcementTitle
+        self.content = content
+        self.typeRaw = type.rawValue
+        self.postedBy = postedBy
+        self.isActive = true
+        self.createdAt = Date()
+    }
+
+    var announcementType: AnnouncementType {
+        get { AnnouncementType(rawValue: typeRaw) ?? .general }
+        set { typeRaw = newValue.rawValue }
+    }
+    var isExpired: Bool {
+        guard let exp = expiresAt else { return false }
+        return exp < Date()
+    }
+    var isVisible: Bool { isActive && !isExpired }
+}

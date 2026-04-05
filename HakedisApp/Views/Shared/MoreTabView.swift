@@ -28,6 +28,21 @@ struct MoreTabView: View {
                             .accessibilityLabel("İlerleme Raporları")
                     }
                 }
+                Section("Saha İletişim") {
+                    NavigationLink(destination: WorkOrderListView()) {
+                        Label("İş Emirleri", systemImage: "doc.badge.gearshape")
+                            .accessibilityLabel("İş Emirleri")
+                    }
+                    NavigationLink(destination: RFIListView()) {
+                        Label("Teknik Sorular (RFI)", systemImage: "questionmark.circle")
+                            .accessibilityLabel("Teknik Sorular")
+                    }
+                    NavigationLink(destination: SiteAnnouncementView()) {
+                        Label("Şantiye Duyuruları", systemImage: "megaphone")
+                            .accessibilityLabel("Şantiye Duyuruları")
+                    }
+                }
+
                 Section("Çizim & Pinler") {
                     NavigationLink(destination: DrawingPinListView()) {
                         Label("Çizim Pinleri", systemImage: "mappin.and.ellipse")
