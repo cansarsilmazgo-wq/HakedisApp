@@ -41,6 +41,7 @@ struct HakedisApp: App {
             ProjectBudget.self, BudgetLineItem.self, EVMSnapshot.self, OverheadExpense.self,
             DrawingPin.self,
             WorkOrder.self, RFI.self, SiteAnnouncement.self,
+            ProvisionalAcceptance.self, AcceptanceDeficiency.self, FinalAcceptance.self,
             AttachmentRecord.self,
             PriceDifferenceCalc.self,
             SubcontractorHakedis.self,

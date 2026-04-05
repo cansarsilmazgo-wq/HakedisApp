@@ -28,6 +28,21 @@ struct MoreTabView: View {
                             .accessibilityLabel("İlerleme Raporları")
                     }
                 }
+                Section("Kabul İşlemleri") {
+                    NavigationLink(destination: ProvisionalAcceptanceView()) {
+                        Label("Geçici Kabul", systemImage: "checkmark.seal")
+                            .accessibilityLabel("Geçici Kabul")
+                    }
+                    NavigationLink(destination: FinalAcceptanceView()) {
+                        Label("Kesin Kabul", systemImage: "checkmark.seal.fill")
+                            .accessibilityLabel("Kesin Kabul")
+                    }
+                    NavigationLink(destination: DeficiencyTrackingView()) {
+                        Label("Eksiklik Takibi", systemImage: "list.bullet.clipboard")
+                            .accessibilityLabel("Eksiklik Takibi")
+                    }
+                }
+
                 Section("Saha İletişim") {
                     NavigationLink(destination: WorkOrderListView()) {
                         Label("İş Emirleri", systemImage: "doc.badge.gearshape")

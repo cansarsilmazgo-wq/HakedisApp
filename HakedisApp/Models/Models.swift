@@ -5391,3 +5391,192 @@ enum AnnouncementType: String, Codable, CaseIterable {
     }
     var isVisible: Bool { isActive && !isExpired }
 }
+
+// MARK: - B8 Geçici/Kesin Kabul
+
+struct CommissionMember: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var title: String
+    var affiliation: String
+    var isSigned: Bool = false
+}
+
+enum AcceptanceStatus: String, Codable, CaseIterable {
+    case pending = "Bekliyor"
+    case inProgress = "Devam Ediyor"
+    case acceptedWithDeficiency = "Eksiklikle Kabul"
+    case accepted = "Kabul Edildi"
+    case rejected = "Reddedildi"
+    var icon: String {
+        switch self {
+        case .pending: return "clock"
+        case .inProgress: return "arrow.right.circle"
+        case .acceptedWithDeficiency: return "checkmark.triangle"
+        case .accepted: return "checkmark.seal.fill"
+        case .rejected: return "xmark.seal"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .pending: return "hakedisWarning"
+        case .inProgress: return "hakedisOrange"
+        case .acceptedWithDeficiency: return "hakedisWarning"
+        case .accepted: return "hakedisSuccess"
+        case .rejected: return "hakedisDanger"
+        }
+    }
+}
+
+@Model final class ProvisionalAcceptance {
+    var id: UUID
+    var acceptanceNo: String
+    var contractNo: String
+    var contractorName: String
+    var statusRaw: String
+    var acceptanceDate: Date?
+    var scheduledDate: Date
+    var commissionMembersJSON: String
+    var acceptanceNotes: String
+    var defectNotificationDeadline: Date?
+    var warrantyPeriodMonths: Int
+    var warrantyEndDate: Date?
+    var guaranteeReturnDate: Date?
+    var deficiencies: [AcceptanceDeficiency]
+    var createdAt: Date
+
+    init(acceptanceNo: String, contractNo: String, contractorName: String, scheduledDate: Date) {
+        self.id = UUID()
+        self.acceptanceNo = acceptanceNo
+        self.contractNo = contractNo
+        self.contractorName = contractorName
+        self.statusRaw = AcceptanceStatus.pending.rawValue
+        self.scheduledDate = scheduledDate
+        self.commissionMembersJSON = "[]"
+        self.acceptanceNotes = ""
+        self.warrantyPeriodMonths = 12
+        self.deficiencies = []
+        self.createdAt = Date()
+    }
+
+    var status: AcceptanceStatus {
+        get { AcceptanceStatus(rawValue: statusRaw) ?? .pending }
+        set { statusRaw = newValue.rawValue }
+    }
+    var commissionMembers: [CommissionMember] {
+        get {
+            guard let data = commissionMembersJSON.data(using: .utf8),
+                  let items = try? JSONDecoder().decode([CommissionMember].self, from: data)
+            else { return [] }
+            return items
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue),
+               let str = String(data: data, encoding: .utf8) {
+                commissionMembersJSON = str
+            }
+        }
+    }
+    var openDeficiencyCount: Int { deficiencies.filter { $0.statusRaw != "Giderildi" }.count }
+    var isWarrantyExpiring: Bool {
+        guard let end = warrantyEndDate else { return false }
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: end).day ?? 0
+        return days <= 30 && days >= 0
+    }
+    var isWarrantyExpired: Bool {
+        guard let end = warrantyEndDate else { return false }
+        return end < Date()
+    }
+    static func generateNo(existingCount: Int, year: Int) -> String {
+        String(format: "GKB-%d/%03d", year, existingCount + 1)
+    }
+}
+
+enum DeficiencyStatus: String, Codable, CaseIterable {
+    case open = "Açık"
+    case inProgress = "Gideriliyor"
+    case resolved = "Giderildi"
+    case disputed = "İhtilaf"
+}
+
+@Model final class AcceptanceDeficiency {
+    var id: UUID
+    var deficiencyNo: Int
+    var deficiencyText: String
+    var location: String
+    var statusRaw: String
+    var responsibleParty: String
+    var deadline: Date?
+    var resolvedDate: Date?
+    var resolvedNotes: String
+    var acceptance: ProvisionalAcceptance?
+
+    init(deficiencyNo: Int, deficiencyText: String, location: String) {
+        self.id = UUID()
+        self.deficiencyNo = deficiencyNo
+        self.deficiencyText = deficiencyText
+        self.location = location
+        self.statusRaw = DeficiencyStatus.open.rawValue
+        self.responsibleParty = ""
+        self.resolvedNotes = ""
+    }
+
+    var status: DeficiencyStatus {
+        get { DeficiencyStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        guard let d = deadline, status != .resolved else { return false }
+        return d < Date()
+    }
+}
+
+@Model final class FinalAcceptance {
+    var id: UUID
+    var acceptanceNo: String
+    var contractNo: String
+    var contractorName: String
+    var statusRaw: String
+    var acceptanceDate: Date?
+    var scheduledDate: Date
+    var commissionMembersJSON: String
+    var finalAcceptanceNotes: String
+    var guaranteeReturnDate: Date?
+    var retentionReleaseDate: Date?
+    var provisionalAcceptanceId: UUID?
+    var createdAt: Date
+
+    init(acceptanceNo: String, contractNo: String, contractorName: String, scheduledDate: Date) {
+        self.id = UUID()
+        self.acceptanceNo = acceptanceNo
+        self.contractNo = contractNo
+        self.contractorName = contractorName
+        self.statusRaw = AcceptanceStatus.pending.rawValue
+        self.scheduledDate = scheduledDate
+        self.commissionMembersJSON = "[]"
+        self.finalAcceptanceNotes = ""
+        self.createdAt = Date()
+    }
+
+    var status: AcceptanceStatus {
+        get { AcceptanceStatus(rawValue: statusRaw) ?? .pending }
+        set { statusRaw = newValue.rawValue }
+    }
+    var commissionMembers: [CommissionMember] {
+        get {
+            guard let data = commissionMembersJSON.data(using: .utf8),
+                  let items = try? JSONDecoder().decode([CommissionMember].self, from: data)
+            else { return [] }
+            return items
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue),
+               let str = String(data: data, encoding: .utf8) {
+                commissionMembersJSON = str
+            }
+        }
+    }
+    static func generateNo(existingCount: Int, year: Int) -> String {
+        String(format: "KKB-%d/%03d", year, existingCount + 1)
+    }
+}

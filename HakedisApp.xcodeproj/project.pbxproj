@@ -139,7 +139,9 @@
 		NB051 /* EVMViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N051 /* EVMViews.swift */; };
 		NB052 /* DrawingPinViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N052 /* DrawingPinViews.swift */; };
 		NB053 /* SiteCommunicationViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N053 /* SiteCommunicationViews.swift */; };
+		NB054 /* AcceptanceManagementViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N054 /* AcceptanceManagementViews.swift */; };
 		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
+		TB030 /* FazB8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T025 /* FazB8Tests.swift */; };
 		TB029 /* FazB7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T024 /* FazB7Tests.swift */; };
 		TB028 /* FazB6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T023 /* FazB6Tests.swift */; };
 		TB027 /* FazB5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T022 /* FazB5Tests.swift */; };
@@ -284,7 +286,9 @@
 		N051 /* EVMViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EVMViews.swift; path = HakedisApp/Views/Projects/EVMViews.swift; sourceTree = "<group>"; };
 		N052 /* DrawingPinViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrawingPinViews.swift; path = HakedisApp/Views/Projects/DrawingPinViews.swift; sourceTree = "<group>"; };
 		N053 /* SiteCommunicationViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteCommunicationViews.swift; path = HakedisApp/Views/Projects/SiteCommunicationViews.swift; sourceTree = "<group>"; };
+		N054 /* AcceptanceManagementViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AcceptanceManagementViews.swift; path = HakedisApp/Views/Contracts/AcceptanceManagementViews.swift; sourceTree = "<group>"; };
 		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
+		T025 /* FazB8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB8Tests.swift; sourceTree = "<group>"; };
 		T024 /* FazB7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB7Tests.swift; sourceTree = "<group>"; };
 		T023 /* FazB6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB6Tests.swift; sourceTree = "<group>"; };
 		T022 /* FazB5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB5Tests.swift; sourceTree = "<group>"; };
@@ -425,6 +429,7 @@
 				N051 /* EVMViews.swift */,
 				N052 /* DrawingPinViews.swift */,
 				N053 /* SiteCommunicationViews.swift */,
+				N054 /* AcceptanceManagementViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -465,6 +470,7 @@
 				T022 /* FazB5Tests.swift */,
 				T023 /* FazB6Tests.swift */,
 				T024 /* FazB7Tests.swift */,
+				T025 /* FazB8Tests.swift */,
 			);
 			name = HakedisAppTests;
 			path = HakedisAppTests;
@@ -735,6 +741,7 @@
 				NB051 /* EVMViews.swift in Sources */,
 				NB052 /* DrawingPinViews.swift in Sources */,
 				NB053 /* SiteCommunicationViews.swift in Sources */,
+				NB054 /* AcceptanceManagementViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -771,6 +778,7 @@
 				TB027 /* FazB5Tests.swift in Sources */,
 				TB028 /* FazB6Tests.swift in Sources */,
 				TB029 /* FazB7Tests.swift in Sources */,
+				TB030 /* FazB8Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
