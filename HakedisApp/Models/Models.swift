@@ -5075,3 +5075,128 @@ enum ExpenseCategory: String, Codable, CaseIterable {
         set { categoryRaw = newValue.rawValue }
     }
 }
+
+// MARK: - B6 Çizim Pin Sistemi
+
+enum PinCategory: String, Codable, CaseIterable {
+    case structural = "Yapısal"
+    case mechanical = "Mekanik"
+    case electrical = "Elektrik"
+    case finishing = "İmalat"
+    case safety = "İSG"
+    case quality = "Kalite"
+    case general = "Genel"
+    var icon: String {
+        switch self {
+        case .structural: return "building.columns"
+        case .mechanical: return "wrench"
+        case .electrical: return "bolt"
+        case .finishing: return "paintbrush"
+        case .safety: return "shield.checkered"
+        case .quality: return "checkmark.seal"
+        case .general: return "mappin"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .structural: return "hakedisOrange"
+        case .mechanical: return "blue"
+        case .electrical: return "yellow"
+        case .finishing: return "green"
+        case .safety: return "hakedisDanger"
+        case .quality: return "purple"
+        case .general: return "secondary"
+        }
+    }
+}
+
+enum PinStatus: String, Codable, CaseIterable {
+    case open = "Açık"
+    case inProgress = "İşlemde"
+    case resolved = "Çözüldü"
+    case closed = "Kapatıldı"
+    var icon: String {
+        switch self {
+        case .open: return "circle"
+        case .inProgress: return "arrow.right.circle"
+        case .resolved: return "checkmark.circle"
+        case .closed: return "xmark.circle.fill"
+        }
+    }
+}
+
+enum PinPriority: String, Codable, CaseIterable {
+    case low = "Düşük"
+    case medium = "Orta"
+    case high = "Yüksek"
+    case critical = "Kritik"
+    var icon: String {
+        switch self {
+        case .low: return "arrow.down"
+        case .medium: return "minus"
+        case .high: return "arrow.up"
+        case .critical: return "exclamationmark.2"
+        }
+    }
+    var colorName: String {
+        switch self {
+        case .low: return "hakedisSuccess"
+        case .medium: return "hakedisWarning"
+        case .high: return "hakedisOrange"
+        case .critical: return "hakedisDanger"
+        }
+    }
+}
+
+@Model final class DrawingPin {
+    var id: UUID
+    var pinNumber: Int
+    var drawingName: String
+    var title: String
+    var pinDetails: String
+    var categoryRaw: String
+    var statusRaw: String
+    var priorityRaw: String
+    var xPosition: Double
+    var yPosition: Double
+    var assignedTo: String
+    var dueDate: Date?
+    var resolvedDate: Date?
+    var createdBy: String
+    var createdAt: Date
+
+    init(pinNumber: Int, drawingName: String, title: String, xPosition: Double, yPosition: Double) {
+        self.id = UUID()
+        self.pinNumber = pinNumber
+        self.drawingName = drawingName
+        self.title = title
+        self.pinDetails = ""
+        self.categoryRaw = PinCategory.general.rawValue
+        self.statusRaw = PinStatus.open.rawValue
+        self.priorityRaw = PinPriority.medium.rawValue
+        self.xPosition = xPosition
+        self.yPosition = yPosition
+        self.assignedTo = ""
+        self.createdBy = ""
+        self.createdAt = Date()
+    }
+
+    var category: PinCategory {
+        get { PinCategory(rawValue: categoryRaw) ?? .general }
+        set { categoryRaw = newValue.rawValue }
+    }
+    var status: PinStatus {
+        get { PinStatus(rawValue: statusRaw) ?? .open }
+        set { statusRaw = newValue.rawValue }
+    }
+    var priority: PinPriority {
+        get { PinPriority(rawValue: priorityRaw) ?? .medium }
+        set { priorityRaw = newValue.rawValue }
+    }
+    var isOverdue: Bool {
+        guard let due = dueDate, status != .resolved && status != .closed else { return false }
+        return due < Date()
+    }
+    var isOpen: Bool { status == .open || status == .inProgress }
+    static func generateNumber(existingCount: Int) -> Int { existingCount + 1 }
+}

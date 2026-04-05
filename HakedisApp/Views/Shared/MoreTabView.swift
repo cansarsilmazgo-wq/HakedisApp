@@ -28,6 +28,13 @@ struct MoreTabView: View {
                             .accessibilityLabel("İlerleme Raporları")
                     }
                 }
+                Section("Çizim & Pinler") {
+                    NavigationLink(destination: DrawingPinListView()) {
+                        Label("Çizim Pinleri", systemImage: "mappin.and.ellipse")
+                            .accessibilityLabel("Çizim Pinleri")
+                    }
+                }
+
                 Section("Maliyet Kontrol") {
                     NavigationLink(destination: BudgetView()) {
                         Label("Bütçe Yönetimi", systemImage: "dollarsign.circle")
