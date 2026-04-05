@@ -146,6 +146,10 @@ struct MoreTabView: View {
                         Label("Yedekleme", systemImage: "externaldrive.badge.checkmark")
                             .accessibilityLabel("Yedekleme")
                     }
+                    NavigationLink(destination: SyncStatusView()) {
+                        Label("iCloud Senkronizasyonu", systemImage: "icloud.and.arrow.up.fill")
+                            .accessibilityLabel("iCloud Senkronizasyonu")
+                    }
                 }
 
                 Section("Gizlilik & Güvenlik") {
