@@ -7,6 +7,10 @@ struct MoreTabView: View {
         NavigationStack {
             List {
                 Section("Raporlar") {
+                    NavigationLink(destination: ReportListView()) {
+                        Label("Rapor Oluşturucu", systemImage: "doc.text.below.ecg")
+                            .accessibilityLabel("Rapor Oluşturucu")
+                    }
                     NavigationLink(destination: ReportsView()) {
                         Label("Genel Raporlar", systemImage: "chart.bar.doc.horizontal")
                             .accessibilityLabel("Genel Raporlar")

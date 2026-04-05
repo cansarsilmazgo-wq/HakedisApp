@@ -5580,3 +5580,119 @@ enum DeficiencyStatus: String, Codable, CaseIterable {
         String(format: "KKB-%d/%03d", year, existingCount + 1)
     }
 }
+
+// MARK: - B9 Raporlama Motoru
+
+enum ReportType: String, Codable, CaseIterable {
+    case weekly = "Haftalık Rapor"
+    case monthly = "Aylık Rapor"
+    case hakedis = "Hakediş Raporu"
+    case financial = "Finansal Rapor"
+    case safety = "İSG Raporu"
+    case quality = "Kalite Raporu"
+    case progress = "İlerleme Raporu"
+    case acceptance = "Kabul Raporu"
+    case evm = "EVM Raporu"
+    case survey = "Keşif Raporu"
+    case bid = "İhale Raporu"
+    var icon: String {
+        switch self {
+        case .weekly: return "calendar.badge.clock"
+        case .monthly: return "calendar"
+        case .hakedis: return "doc.text.fill"
+        case .financial: return "dollarsign.circle"
+        case .safety: return "shield.checkered"
+        case .quality: return "checkmark.seal"
+        case .progress: return "chart.line.uptrend.xyaxis"
+        case .acceptance: return "checkmark.seal.fill"
+        case .evm: return "chart.xyaxis.line"
+        case .survey: return "ruler"
+        case .bid: return "doc.text.magnifyingglass"
+        }
+    }
+}
+
+enum ReportSectionType: String, Codable, CaseIterable {
+    case summary = "Özet"
+    case financial = "Finansal Bilgiler"
+    case progress = "İlerleme Durumu"
+    case safety = "İSG Bilgileri"
+    case quality = "Kalite Kontrol"
+    case activities = "Aktiviteler"
+    case issues = "Sorunlar"
+    case decisions = "Kararlar"
+    case photos = "Fotoğraflar"
+    case appendix = "Ekler"
+}
+
+struct ReportSection: Codable, Identifiable {
+    var id: UUID = UUID()
+    var typeRaw: String
+    var sectionTitle: String
+    var isEnabled: Bool = true
+    var sortOrder: Int
+    var sectionType: ReportSectionType {
+        get { ReportSectionType(rawValue: typeRaw) ?? .summary }
+        set { typeRaw = newValue.rawValue }
+    }
+}
+
+@Model final class ReportTemplate {
+    var id: UUID
+    var templateName: String
+    var typeRaw: String
+    var sectionsJSON: String
+    var isDefault: Bool
+    var notes: String
+    var createdAt: Date
+
+    init(templateName: String, type: ReportType) {
+        self.id = UUID()
+        self.templateName = templateName
+        self.typeRaw = type.rawValue
+        self.sectionsJSON = "[]"
+        self.isDefault = false
+        self.notes = ""
+        self.createdAt = Date()
+    }
+
+    var reportType: ReportType {
+        get { ReportType(rawValue: typeRaw) ?? .weekly }
+        set { typeRaw = newValue.rawValue }
+    }
+    var sections: [ReportSection] {
+        get {
+            guard let data = sectionsJSON.data(using: .utf8),
+                  let items = try? JSONDecoder().decode([ReportSection].self, from: data)
+            else { return [] }
+            return items.sorted(by: { $0.sortOrder < $1.sortOrder })
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue),
+               let str = String(data: data, encoding: .utf8) {
+                sectionsJSON = str
+            }
+        }
+    }
+    var enabledSections: [ReportSection] { sections.filter(\.isEnabled) }
+    static func defaultSections(for type: ReportType) -> [ReportSection] {
+        let sectionTypes: [ReportSectionType]
+        switch type {
+        case .weekly, .monthly, .progress:
+            sectionTypes = [.summary, .progress, .activities, .issues, .photos]
+        case .financial, .evm:
+            sectionTypes = [.summary, .financial, .appendix]
+        case .safety:
+            sectionTypes = [.summary, .safety, .issues, .appendix]
+        case .quality:
+            sectionTypes = [.summary, .quality, .issues, .appendix]
+        case .hakedis:
+            sectionTypes = [.summary, .financial, .progress, .appendix]
+        default:
+            sectionTypes = [.summary, .appendix]
+        }
+        return sectionTypes.enumerated().map { i, t in
+            ReportSection(typeRaw: t.rawValue, sectionTitle: t.rawValue, sortOrder: i)
+        }
+    }
+}
