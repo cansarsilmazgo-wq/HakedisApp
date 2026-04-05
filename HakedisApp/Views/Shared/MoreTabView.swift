@@ -28,6 +28,17 @@ struct MoreTabView: View {
                             .accessibilityLabel("İlerleme Raporları")
                     }
                 }
+                Section("İş Programı") {
+                    NavigationLink(destination: ActivityListView()) {
+                        Label("İş Programı", systemImage: "chart.bar.xaxis")
+                            .accessibilityLabel("İş Programı")
+                    }
+                    NavigationLink(destination: ScheduleComparisonView()) {
+                        Label("Program Karşılaştırma", systemImage: "arrow.left.arrow.right")
+                            .accessibilityLabel("Program Karşılaştırma")
+                    }
+                }
+
                 Section("Keşif & İhale") {
                     NavigationLink(destination: SurveyListView()) {
                         Label("Keşif Çalışmaları", systemImage: "ruler")

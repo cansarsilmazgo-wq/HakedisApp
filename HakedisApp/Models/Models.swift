@@ -4787,3 +4787,120 @@ struct AnalysisResourceItem: Codable, Identifiable {
     var unitCost: Double { resources.reduce(0.0) { $0 + $1.total } }
     var totalCost: Double { unitCost * quantity }
 }
+
+// MARK: - B4 İş Programı Gantt
+
+enum DependencyType: String, Codable, CaseIterable {
+    case finishToStart = "Bitiş-Başlangıç"
+    case startToStart = "Başlangıç-Başlangıç"
+    case finishToFinish = "Bitiş-Bitiş"
+    case startToFinish = "Başlangıç-Bitiş"
+}
+
+enum ActivityStatus: String, Codable, CaseIterable {
+    case notStarted = "Başlamadı"
+    case inProgress = "Devam Ediyor"
+    case completed = "Tamamlandı"
+    case delayed = "Gecikmiş"
+    case onHold = "Beklemede"
+    var colorName: String {
+        switch self {
+        case .notStarted: return "secondary"
+        case .inProgress: return "hakedisOrange"
+        case .completed: return "hakedisSuccess"
+        case .delayed: return "hakedisDanger"
+        case .onHold: return "hakedisWarning"
+        }
+    }
+    var icon: String {
+        switch self {
+        case .notStarted: return "circle"
+        case .inProgress: return "arrow.right.circle"
+        case .completed: return "checkmark.circle.fill"
+        case .delayed: return "exclamationmark.circle.fill"
+        case .onHold: return "pause.circle"
+        }
+    }
+}
+
+struct ActivityDependency: Codable, Identifiable {
+    var id: UUID = UUID()
+    var predecessorId: UUID
+    var dependencyTypeRaw: String
+    var lagDays: Int
+    var dependencyType: DependencyType {
+        get { DependencyType(rawValue: dependencyTypeRaw) ?? .finishToStart }
+        set { dependencyTypeRaw = newValue.rawValue }
+    }
+}
+
+@Model final class ProjectActivity {
+    var id: UUID
+    var activityCode: String
+    var activityName: String
+    var plannedStart: Date
+    var plannedEnd: Date
+    var actualStart: Date?
+    var actualEnd: Date?
+    var statusRaw: String
+    var progressPercent: Double
+    var isCritical: Bool
+    var responsiblePerson: String
+    var dependenciesJSON: String
+    var wbsLevel: Int
+    var parentCode: String?
+    var notes: String
+    var createdAt: Date
+
+    init(activityCode: String, activityName: String, plannedStart: Date, plannedEnd: Date) {
+        self.id = UUID()
+        self.activityCode = activityCode
+        self.activityName = activityName
+        self.plannedStart = plannedStart
+        self.plannedEnd = plannedEnd
+        self.statusRaw = ActivityStatus.notStarted.rawValue
+        self.progressPercent = 0
+        self.isCritical = false
+        self.responsiblePerson = ""
+        self.dependenciesJSON = "[]"
+        self.wbsLevel = 1
+        self.notes = ""
+        self.createdAt = Date()
+    }
+
+    var status: ActivityStatus {
+        get { ActivityStatus(rawValue: statusRaw) ?? .notStarted }
+        set { statusRaw = newValue.rawValue }
+    }
+    var plannedDurationDays: Int {
+        Calendar.current.dateComponents([.day], from: plannedStart, to: plannedEnd).day ?? 0
+    }
+    var isDelayed: Bool {
+        if status == .completed { return false }
+        return plannedEnd < Date() || (progressPercent < expectedProgress && plannedStart < Date())
+    }
+    var expectedProgress: Double {
+        let total = Double(plannedDurationDays)
+        guard total > 0 else { return 0 }
+        let elapsed = max(0, Double(Calendar.current.dateComponents([.day], from: plannedStart, to: Date()).day ?? 0))
+        return min(100, elapsed / total * 100)
+    }
+    var scheduleVarianceDays: Int {
+        guard let actualS = actualStart else { return 0 }
+        return Calendar.current.dateComponents([.day], from: plannedStart, to: actualS).day ?? 0
+    }
+    var dependencies: [ActivityDependency] {
+        get {
+            guard let data = dependenciesJSON.data(using: .utf8),
+                  let items = try? JSONDecoder().decode([ActivityDependency].self, from: data)
+            else { return [] }
+            return items
+        }
+        set {
+            if let data = try? JSONEncoder().encode(newValue),
+               let str = String(data: data, encoding: .utf8) {
+                dependenciesJSON = str
+            }
+        }
+    }
+}

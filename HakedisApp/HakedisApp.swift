@@ -37,6 +37,7 @@ struct HakedisApp: App {
             Meeting.self, MeetingDecision.self,
             Survey.self, SurveyLocation.self, SurveyItem.self,
             BidPreparation.self, AnalysisRecord.self,
+            ProjectActivity.self,
             AttachmentRecord.self,
             PriceDifferenceCalc.self,
             SubcontractorHakedis.self,
