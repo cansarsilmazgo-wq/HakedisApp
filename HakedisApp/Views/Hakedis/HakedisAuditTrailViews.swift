@@ -99,7 +99,11 @@ struct AuditLogHelper {
         let log = HakedisAuditLog(action: action, performedBy: performedBy, details: details)
         log.hakedis = hakedis
         context.insert(log)
-        try? context.save()
+        do {
+            try context.save()
+        } catch {
+            print("HakedisAuditLog save error: \(error.localizedDescription)")
+        }
     }
 }
 

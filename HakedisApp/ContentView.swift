@@ -3,8 +3,12 @@ import SwiftData
 
 struct ContentView: View {
     @StateObject private var networkMonitor = NetworkMonitor.shared
+    @StateObject private var authManager = BiometricAuthManager.shared
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var projects: [Project]
     @Query private var hakedisler: [Hakedis]
+
+    @AppStorage("appLockEnabled") private var appLockEnabled = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -46,6 +50,23 @@ struct ContentView: View {
         }
         .onChange(of: hakedisler.map { $0.totalPaid }.reduce(0, +)) {
             WidgetDataManager.update(projects: projects, hakedisler: hakedisler)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard appLockEnabled else { return }
+            switch newPhase {
+            case .active:
+                authManager.checkTimeout()
+            case .background, .inactive:
+                authManager.updateActivity()
+            @unknown default:
+                break
+            }
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { appLockEnabled && authManager.isLocked },
+            set: { if !$0 { authManager.isLocked = false } }
+        )) {
+            LockScreenView()
         }
     }
 }

@@ -52,8 +52,16 @@ class NotificationManager: ObservableObject {
         UNUserNotificationCenter.current().add(request)
     }
 
+    var dailyReminderEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "dailyReminderEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "dailyReminderEnabled") }
+    }
+
     func scheduleDailyEntryReminder() {
-        guard isAuthorized else { return }
+        guard isAuthorized, dailyReminderEnabled else {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["daily_reminder"])
+            return
+        }
         let content = UNMutableNotificationContent()
         content.title = "Günlük Saha Girişi"
         content.body = "Bugünkü saha çalışmalarını girdiniz mi?"
@@ -364,7 +372,6 @@ class NotificationManager: ObservableObject {
 
 struct NotificationSettingsView: View {
     @StateObject private var manager = NotificationManager.shared
-    @State private var dailyReminderEnabled = false
     @AppStorage("overdueAlertsEnabled") private var overdueAlertsEnabled = false
     @AppStorage("approvalAlertsEnabled") private var approvalAlertsEnabled = false
     @AppStorage("budgetAlertsEnabled") private var budgetAlertsEnabled = false
@@ -388,12 +395,14 @@ struct NotificationSettingsView: View {
             }
 
             Section("Bildirim Türleri") {
-                Toggle("Günlük Saha Hatırlatıcı (17:00)", isOn: $dailyReminderEnabled)
-                    .tint(.hakedisOrange)
-                    .onChange(of: dailyReminderEnabled) { _, val in
-                        if val { manager.scheduleDailyEntryReminder() }
-                        else { manager.cancelNotification(id: "daily_reminder") }
+                Toggle("Günlük Saha Hatırlatıcı (17:00)", isOn: Binding(
+                    get: { manager.dailyReminderEnabled },
+                    set: { val in
+                        manager.dailyReminderEnabled = val
+                        manager.scheduleDailyEntryReminder()
                     }
+                ))
+                .tint(.hakedisOrange)
                 Toggle("Geciken Ödeme Uyarıları", isOn: $overdueAlertsEnabled)
                     .tint(.hakedisOrange)
                     .onChange(of: overdueAlertsEnabled) { _, val in
@@ -478,7 +487,7 @@ struct NotificationSettingsView: View {
             }
             UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
                 DispatchQueue.main.async {
-                    dailyReminderEnabled = requests.contains { $0.identifier == "daily_reminder" }
+                    manager.dailyReminderEnabled = requests.contains { $0.identifier == "daily_reminder" }
                 }
             }
         }

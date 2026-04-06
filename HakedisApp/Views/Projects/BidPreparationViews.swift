@@ -110,6 +110,8 @@ struct BidDetailView: View {
                                value: bid.taxAmount.currencyFormatted)
                 LabeledContent("TOPLAM (KDV Dahil)", value: bid.totalWithTax.currencyFormatted)
                     .bold()
+                LabeledContent("Geçici Teminat (%3)", value: bid.bidBondAmount.currencyFormatted)
+                    .foregroundColor(.hakedisOrange)
             }
             Section {
                 ForEach(bid.analysisRecords) { rec in
@@ -212,20 +214,63 @@ private struct AnalysisResourceRow: View {
 
 // MARK: - Approximate Cost View
 
+// MARK: - Yapı Sınıfı Birim Maliyet Tablosu (2026 referans değerleri)
+
+struct BuildingCostRate: Identifiable {
+    let id = UUID()
+    let sinif: String          // I, II, III, IV, V
+    let grup: String           // A, B, C, D
+    let aciklama: String
+    var birimMaliyet: Double   // TL/m² — SettingsView'dan güncellenebilir
+
+    static let defaults: [BuildingCostRate] = [
+        BuildingCostRate(sinif: "I",   grup: "A", aciklama: "Basit yapı (ahşap çatılı, kerpiç)", birimMaliyet: 8_500),
+        BuildingCostRate(sinif: "I",   grup: "B", aciklama: "Basit kagir yapı",                   birimMaliyet: 10_000),
+        BuildingCostRate(sinif: "II",  grup: "A", aciklama: "Normal yapı (betonarme)",             birimMaliyet: 14_000),
+        BuildingCostRate(sinif: "II",  grup: "B", aciklama: "Normal yapı (çelik karkas)",          birimMaliyet: 16_000),
+        BuildingCostRate(sinif: "III", grup: "A", aciklama: "Lüks konut (<5 kat)",                 birimMaliyet: 22_000),
+        BuildingCostRate(sinif: "III", grup: "B", aciklama: "Lüks konut (≥5 kat)",                 birimMaliyet: 26_000),
+        BuildingCostRate(sinif: "IV",  grup: "A", aciklama: "Çok lüks konut / rezidans",           birimMaliyet: 36_000),
+        BuildingCostRate(sinif: "IV",  grup: "B", aciklama: "Ofis / AVM",                          birimMaliyet: 32_000),
+        BuildingCostRate(sinif: "V",   grup: "A", aciklama: "Endüstriyel / fabrika",               birimMaliyet: 12_000),
+        BuildingCostRate(sinif: "V",   grup: "B", aciklama: "Altyapı / yol / köprü",              birimMaliyet: 18_000),
+    ]
+}
+
 struct ApproximateCostView: View {
-    @State private var laborRate: Double = 350
-    @State private var materialMarkup: Double = 20
-    @State private var equipmentRate: Double = 500
+    // Yapı sınıfı hesabı
+    @State private var rates = BuildingCostRate.defaults
+    @State private var selectedRateIndex = 2        // varsayılan: II-A
+    @State private var alanM2 = ""
+    @State private var customBirimMaliyet = ""
+    @State private var useCustomRate = false
+    @AppStorage("buildingCostRatesJSON") private var savedRatesJSON = ""
+
+    // Manuel hesap
     @State private var overheadRate: Double = 15
     @State private var profitRate: Double = 10
     @State private var taxRate: Double = 20
-
     @State private var quantity = ""
     @State private var unitPrice = ""
     @State private var selectedUnit = "m²"
 
     private let units = ["m²", "m³", "m", "adet", "kg", "ton"]
 
+    // Yapı sınıfı hesabı
+    private var secilenRate: BuildingCostRate { rates[min(selectedRateIndex, rates.count - 1)] }
+    private var alan: Double { Double(alanM2.replacingOccurrences(of: ",", with: ".")) ?? 0 }
+    private var gecerliBirimMaliyet: Double {
+        if useCustomRate, let v = Double(customBirimMaliyet.replacingOccurrences(of: ",", with: ".")) { return v }
+        return secilenRate.birimMaliyet
+    }
+    private var yapiMaliyeti: Double { alan * gecerliBirimMaliyet }
+    private var yapiGenel: Double { yapiMaliyeti * overheadRate / 100 }
+    private var yapiKar: Double { (yapiMaliyeti + yapiGenel) * profitRate / 100 }
+    private var yapiAra: Double { yapiMaliyeti + yapiGenel + yapiKar }
+    private var yapiKDV: Double { yapiAra * taxRate / 100 }
+    private var yapiToplam: Double { yapiAra + yapiKDV }
+
+    // Manuel hesap
     private var q: Double { Double(quantity.replacingOccurrences(of: ",", with: ".")) ?? 0 }
     private var p: Double { Double(unitPrice.replacingOccurrences(of: ",", with: ".")) ?? 0 }
     private var directCost: Double { q * p }
@@ -238,49 +283,86 @@ struct ApproximateCostView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Parametreler") {
-                    HStack {
-                        Text("İşçilik Katsayısı (₺/gün)")
-                        Spacer()
-                        TextField("", value: $laborRate, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
+                // --- YAPI SINIFI HESABI ---
+                Section("Yapı Sınıfı Bazlı Hesap") {
+                    Picker("Yapı Sınıfı", selection: $selectedRateIndex) {
+                        ForEach(rates.indices, id: \.self) { i in
+                            Text("Sınıf \(rates[i].sinif)-\(rates[i].grup): \(rates[i].aciklama)")
+                                .tag(i)
+                        }
                     }
-                    HStack {
-                        Text("Malzeme Markap (%)")
-                        Spacer()
-                        TextField("", value: $materialMarkup, format: .number)
+                    .pickerStyle(.menu)
+
+                    LabeledContent("Birim Maliyet (TL/m²)",
+                                   value: secilenRate.birimMaliyet.currencyFormatted)
+
+                    Toggle("Özel birim maliyet gir", isOn: $useCustomRate)
+                    if useCustomRate {
+                        TextField("Birim maliyet (₺/m²)", text: $customBirimMaliyet)
                             .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
                     }
-                    HStack {
-                        Text("Makine Saatlik (₺)")
-                        Spacer()
-                        TextField("", value: $equipmentRate, format: .number)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
+
+                    TextField("Alan (m²)", text: $alanM2)
+                        .keyboardType(.decimalPad)
+                        .accessibilityLabel("Alan metrekare")
+                }
+
+                if alan > 0 {
+                    Section("Yapı Sınıfı Sonucu") {
+                        LabeledContent("Yapım Maliyeti", value: yapiMaliyeti.currencyFormatted)
+                        LabeledContent("Genel Gider (\(overheadRate, format: .number)%)", value: yapiGenel.currencyFormatted)
+                        LabeledContent("Kâr (\(profitRate, format: .number)%)", value: yapiKar.currencyFormatted)
+                        LabeledContent("KDV Hariç", value: yapiAra.currencyFormatted)
+                        LabeledContent("KDV (\(taxRate, format: .number)%)", value: yapiKDV.currencyFormatted)
+                        LabeledContent("YAKLAŞIK MALİYET", value: yapiToplam.currencyFormatted).bold()
                     }
                 }
-                Section("Hesap") {
+
+                // --- ORTAK ORANLAR ---
+                Section("Genel Oranlar") {
+                    HStack {
+                        Text("Genel Gider (%)")
+                        Spacer()
+                        TextField("", value: $overheadRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                    }
+                    HStack {
+                        Text("Kâr (%)")
+                        Spacer()
+                        TextField("", value: $profitRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                    }
+                    HStack {
+                        Text("KDV (%)")
+                        Spacer()
+                        TextField("", value: $taxRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                    }
+                }
+
+                // --- ÖZEL/MANUEL HESAP ---
+                Section("Manuel Birim Fiyat Hesabı") {
                     Picker("Birim", selection: $selectedUnit) {
                         ForEach(units, id: \.self) { Text($0).tag($0) }
                     }
                     TextField("Miktar", text: $quantity).keyboardType(.decimalPad)
                     TextField("Birim Fiyat (₺)", text: $unitPrice).keyboardType(.decimalPad)
                 }
-                Section("Sonuç") {
-                    LabeledContent("Doğrudan Maliyet", value: directCost.currencyFormatted)
-                    LabeledContent("Genel Gider (\(overheadRate, format: .number)%)",
-                                   value: overhead.currencyFormatted)
-                    LabeledContent("Kâr (\(profitRate, format: .number)%)",
-                                   value: profit.currencyFormatted)
-                    LabeledContent("KDV Hariç", value: subtotal.currencyFormatted)
-                    LabeledContent("KDV (\(taxRate, format: .number)%)",
-                                   value: tax.currencyFormatted)
-                    LabeledContent("TOPLAM", value: total.currencyFormatted).bold()
+                if q > 0 && p > 0 {
+                    Section("Manuel Hesap Sonucu") {
+                        LabeledContent("Doğrudan Maliyet", value: directCost.currencyFormatted)
+                        LabeledContent("Genel Gider", value: overhead.currencyFormatted)
+                        LabeledContent("Kâr", value: profit.currencyFormatted)
+                        LabeledContent("KDV Hariç", value: subtotal.currencyFormatted)
+                        LabeledContent("KDV", value: tax.currencyFormatted)
+                        LabeledContent("TOPLAM", value: total.currencyFormatted).bold()
+                    }
                 }
             }
             .navigationTitle("Yaklaşık Maliyet")

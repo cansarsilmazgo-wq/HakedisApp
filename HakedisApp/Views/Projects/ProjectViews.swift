@@ -305,7 +305,7 @@ struct ProjectDetailView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Saha Raporları")
                                 .font(.subheadline)
-                            Text("\(reports.count) rapor\(reports.isEmpty ? "" : " • son: \(reports.first!.date.shortFormatted)")")
+                            Text("\(reports.count) rapor\(reports.first.map { " • son: \($0.date.shortFormatted)" } ?? "")")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

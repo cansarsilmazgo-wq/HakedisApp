@@ -133,13 +133,15 @@ final class SubcontractorHakedisTests: XCTestCase {
     }
 
     func test_subHakedis_profitMargin_dogru_hesaplama() {
+        // Yeni formül: (anaGross - taşeronGross) / anaGross × 100
+        // Contract bağlantısı olmadığında 0 döner
         let h = SubcontractorHakedis(periodName: "Mayıs 2026", periodStart: Date(), periodEnd: Date())
         h.grossAmount = 100_000
         h.retentionAmount = 5_000
         h.netAmount = 95_000
-        // profitMargin = (grossAmount - netAmount) / grossAmount * 100
-        //              = (100_000 - 95_000) / 100_000 * 100 = 5.0%
-        XCTAssertEqual(h.profitMargin, 5.0, accuracy: 0.001)
+        // Sözleşme yok → karşılaştırılacak ana hakediş bulunamaz
+        XCTAssertEqual(h.profitMargin, 0.0, accuracy: 0.001)
+        XCTAssertEqual(h.profitAmount, 0.0, accuracy: 0.01)
     }
 }
 

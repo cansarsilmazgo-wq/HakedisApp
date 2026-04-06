@@ -131,6 +131,7 @@ struct ReportPreviewView: View {
     @State private var reportDate = Date()
     @State private var projectName = ""
     @State private var preparedBy = ""
+    @State private var pdfShareURL: URL? = nil
 
     var body: some View {
         NavigationStack {
@@ -146,16 +147,20 @@ struct ReportPreviewView: View {
             }
             .navigationTitle("Rapor Önizleme")
             .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $pdfShareURL) { url in ShareSheet(items: [url]) }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Kapat") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        ComprehensiveReportPDFGenerator.generate(template: template,
-                                                                  reportDate: reportDate,
-                                                                  projectName: projectName,
-                                                                  preparedBy: preparedBy)
+                        let data = ComprehensiveReportPDFGenerator.generate(
+                            template: template, reportDate: reportDate,
+                            projectName: projectName, preparedBy: preparedBy)
+                        let url = FileManager.default.temporaryDirectory
+                            .appendingPathComponent("\(template.templateName.prefix(30)).pdf")
+                        try? data.write(to: url)
+                        pdfShareURL = url
                     } label: {
                         Label("PDF", systemImage: "doc.fill")
                     }
@@ -216,10 +221,113 @@ private struct ReportSectionPreview: View {
 // MARK: - Comprehensive Report PDF Generator
 
 struct ComprehensiveReportPDFGenerator {
+    private static let pageWidth:  CGFloat = 595.2
+    private static let pageHeight: CGFloat = 841.8
+    private static let margin:     CGFloat = 40.0
+
     static func generate(template: ReportTemplate, reportDate: Date,
-                         projectName: String, preparedBy: String) {
-        // PDF generation stub — renders to UIActivityViewController in real impl
-        print("PDF: \(template.templateName) - \(reportDate)")
+                         projectName: String, preparedBy: String) -> Data {
+        let renderer = UIGraphicsPDFRenderer(
+            bounds: CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
+
+        return renderer.pdfData { ctx in
+            ctx.beginPage()
+            var y = drawHeader(template: template, reportDate: reportDate,
+                               projectName: projectName, preparedBy: preparedBy)
+
+            for section in template.enabledSections {
+                if y > pageHeight - 120 { ctx.beginPage(); y = margin }
+                y = drawSection(section: section, y: y)
+            }
+            drawFooter(reportDate: reportDate)
+        }
+    }
+
+    @discardableResult
+    private static func drawHeader(template: ReportTemplate, reportDate: Date,
+                                   projectName: String, preparedBy: String) -> CGFloat {
+        let headerH: CGFloat = 80
+        UIColor.systemOrange.setFill()
+        UIBezierPath(rect: CGRect(x: 0, y: 0, width: pageWidth, height: headerH)).fill()
+
+        let titleAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 18),
+            .foregroundColor: UIColor.white]
+        let subAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 11),
+            .foregroundColor: UIColor.white]
+
+        template.templateName.draw(at: CGPoint(x: margin, y: 16), withAttributes: titleAttr)
+        template.reportType.rawValue.draw(at: CGPoint(x: margin, y: 38), withAttributes: subAttr)
+
+        let dateStr = reportDate.formatted(date: .long, time: .omitted)
+        dateStr.draw(at: CGPoint(x: margin, y: 56), withAttributes: subAttr)
+
+        var y = headerH + 16
+        let metaAttr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 10), .foregroundColor: UIColor.darkGray]
+        if !projectName.isEmpty {
+            "Proje: \(projectName)".draw(at: CGPoint(x: margin, y: y), withAttributes: metaAttr); y += 14
+        }
+        if !preparedBy.isEmpty {
+            "Hazırlayan: \(preparedBy)".draw(at: CGPoint(x: margin, y: y), withAttributes: metaAttr); y += 14
+        }
+        return y + 8
+    }
+
+    @discardableResult
+    private static func drawSection(section: ReportSection, y: CGFloat) -> CGFloat {
+        var cy = y
+        // Bölüm başlığı
+        let titleAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: 13),
+            .foregroundColor: UIColor.systemOrange]
+        let bodyAttr: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 10),
+            .foregroundColor: UIColor.darkGray]
+
+        // Alt çizgi
+        UIColor.systemOrange.setFill()
+        UIBezierPath(rect: CGRect(x: margin, y: cy, width: pageWidth - margin * 2, height: 1)).fill()
+        cy += 6
+
+        section.sectionTitle.draw(at: CGPoint(x: margin, y: cy), withAttributes: titleAttr)
+        cy += 20
+
+        // Bölüm tipi bazlı içerik özeti
+        let content: String
+        switch section.sectionType {
+        case .summary:
+            content = "Proje genel durumu bu bölümde özetlenmektedir.\nAktivite ilerlemesi, temel metrikler ve öne çıkan bilgiler yer alır."
+        case .financial:
+            content = "Finansal Özet:\n• Toplam hakediş tutarları\n• Ödenen / Kalan tutarlar\n• Teminat ve avans durumu\n• KDV ve stopaj bilgileri"
+        case .progress:
+            content = "İlerleme Durumu:\n• Tamamlanma yüzdesi\n• Planlanan vs. gerçekleşen\n• Geciken aktiviteler\n• Kritik yol analizi"
+        case .safety:
+            content = "İSG Bilgileri:\n• Olay sayıları (ramak kala, yaralanma)\n• Ramak kala olayları\n• Açık düzeltici faaliyetler\n• Eğitim tamamlanma oranı"
+        case .quality:
+            content = "Kalite Kontrol:\n• Kontrol listesi tamamlanma oranı\n• Uygunsuzluk (NCR) sayısı\n• Test sonuç özeti\n• Kalite skoru"
+        case .activities:
+            content = "Aktiviteler:\n• Dönem içi tamamlanan işler\n• Devam eden aktiviteler\n• Bir sonraki dönem planı"
+        case .issues:
+            content = "Sorunlar ve Riskler:\n• Açık sorunlar listesi\n• Risk matrisi özeti\n• Alınan önlemler"
+        case .decisions:
+            content = "Kararlar:\n• Dönem içi alınan kararlar\n• Toplantı özeti\n• Açık kararlar ve sorumluları"
+        case .photos:
+            content = "Fotoğraflar:\n• Saha ilerleme fotoğrafları\n• Kalite kontrol belgeleri\n• Olay kayıtları"
+        case .appendix:
+            content = "Ekler:\n• Destekleyici belgeler\n• Referans dokümanlar\n• İlgili yazışmalar"
+        }
+
+        let rect = CGRect(x: margin, y: cy, width: pageWidth - margin * 2, height: 200)
+        content.draw(in: rect, withAttributes: bodyAttr)
+        cy += min(CGFloat(content.components(separatedBy: "\n").count) * 14 + 8, 120)
+        return cy + 12
+    }
+
+    private static func drawFooter(reportDate: Date) {
+        let attr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 8), .foregroundColor: UIColor.gray]
+        let text = "HakedisApp — \(reportDate.formatted(date: .abbreviated, time: .shortened))"
+        text.draw(at: CGPoint(x: margin, y: pageHeight - 24), withAttributes: attr)
     }
 }
 

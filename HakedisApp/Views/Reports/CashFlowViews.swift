@@ -45,34 +45,32 @@ struct CashFlowView: View {
     // MARK: Body
 
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Senaryo Seçici
-                    senaryoPicker
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                // Senaryo Seçici
+                senaryoPicker
 
-                    // Grafik
-                    nakitGrafigi
+                // Grafik
+                nakitGrafigi
 
-                    // Aylık Kartlar
-                    aylikKartlar
+                // Aylık Kartlar
+                aylikKartlar
 
-                    // Özet Satırı
-                    ozetSatiri
+                // Özet Satırı
+                ozetSatiri
 
-                    // Kritik uyarı (varsa)
-                    if kritikAyVarMi { kritikUyari }
+                // Kritik uyarı (varsa)
+                if kritikAyVarMi { kritikUyari }
 
-                    // Metodoloji notu
-                    metodoloji
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                // Metodoloji notu
+                metodoloji
             }
-            .background(Color.hakedisBackground)
-            .navigationTitle("Nakit Akışı")
-            .navigationBarTitleDisplayMode(.large)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .background(Color.hakedisBackground)
+        .navigationTitle("Nakit Akışı")
+        .navigationBarTitleDisplayMode(.large)
     }
 
     // MARK: - Senaryo Picker

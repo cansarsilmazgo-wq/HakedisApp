@@ -15,61 +15,59 @@ struct DailyEntryListView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                // Date Picker Bar
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(-6...0, id: \.self) { offset in
-                            let date = Calendar.current.date(byAdding: .day, value: offset, to: Date())!
-                            DateChip(date: date, isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate)) {
-                                selectedDate = date
-                            }
+        VStack(spacing: 0) {
+            // Date Picker Bar
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(-6...0, id: \.self) { offset in
+                        let date = Calendar.current.date(byAdding: .day, value: offset, to: Date())!
+                        DateChip(date: date, isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate)) {
+                            selectedDate = date
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
                 }
-                .background(Color.hakedisCard)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .background(Color.hakedisCard)
 
-                // Entries
-                if entriesForSelectedDate.isEmpty {
-                    VStack {
-                        Spacer()
-                        EmptyStateView(
-                            icon: "pencil.and.list.clipboard",
-                            title: "Bu gün için kayıt yok",
-                            subtitle: "Saha çalışmalarını buradan girin",
-                            actionTitle: "Giriş Ekle",
-                            action: { showingAdd = true }
-                        )
-                        Spacer()
+            // Entries
+            if entriesForSelectedDate.isEmpty {
+                VStack {
+                    Spacer()
+                    EmptyStateView(
+                        icon: "pencil.and.list.clipboard",
+                        title: "Bu gün için kayıt yok",
+                        subtitle: "Saha çalışmalarını buradan girin",
+                        actionTitle: "Giriş Ekle",
+                        action: { showingAdd = true }
+                    )
+                    Spacer()
+                }
+            } else {
+                List {
+                    ForEach(entriesForSelectedDate) { entry in
+                        DailyEntryRow(entry: entry)
                     }
-                } else {
-                    List {
-                        ForEach(entriesForSelectedDate) { entry in
-                            DailyEntryRow(entry: entry)
-                        }
-                        .onDelete { offsets in
-                            offsets.map { entriesForSelectedDate[$0] }.forEach { modelContext.delete($0) }
-                        }
+                    .onDelete { offsets in
+                        offsets.map { entriesForSelectedDate[$0] }.forEach { modelContext.delete($0) }
                     }
                 }
             }
-            .background(Color.hakedisBackground)
-            .navigationTitle("Saha Girişi")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingAdd = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
+        }
+        .background(Color.hakedisBackground)
+        .navigationTitle("Saha Girişi")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingAdd = true
+                } label: {
+                    Image(systemName: "plus")
                 }
             }
-            .sheet(isPresented: $showingAdd) {
-                AddDailyEntryView(date: selectedDate)
-            }
+        }
+        .sheet(isPresented: $showingAdd) {
+            AddDailyEntryView(date: selectedDate)
         }
     }
 }

@@ -12,8 +12,10 @@ extension Color {
 }
 
 enum Spacing {
-    static let card: CGFloat = 14
+    static let xs: CGFloat = 8
     static let cardSmall: CGFloat = 12
+    static let card: CGFloat = 14
+    static let md: CGFloat = 16
     static let section: CGFloat = 24
 }
 

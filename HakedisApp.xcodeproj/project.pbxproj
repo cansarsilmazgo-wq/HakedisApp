@@ -166,12 +166,36 @@
 		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
 		TB019 /* Faz6A3A4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T014 /* Faz6A3A4Tests.swift */; };
 		TB020 /* Faz6A5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T015 /* Faz6A5Tests.swift */; };
+		SM001 /* CoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
+		SM002 /* ContractApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
+		SM003 /* SiteWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
+		SM004 /* SiteEquipmentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM004 /* SiteEquipmentModels.swift */; };
+		SM005 /* EquipmentMaintenanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM005 /* EquipmentMaintenanceModels.swift */; };
+		SM006 /* SafetyQualityModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM006 /* SafetyQualityModels.swift */; };
+		SM007 /* ProjectExecutionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM007 /* ProjectExecutionModels.swift */; };
+		SM008 /* InfrastructureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM008 /* InfrastructureModels.swift */; };
+		TM001 /* CoreModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
+		TM002 /* ContractApprovalModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
+		TM003 /* SiteWorkModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
+		TM004 /* SiteEquipmentModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM004 /* SiteEquipmentModels.swift */; };
+		TM005 /* EquipmentMaintenanceModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM005 /* EquipmentMaintenanceModels.swift */; };
+		TM006 /* SafetyQualityModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM006 /* SafetyQualityModels.swift */; };
+		TM007 /* ProjectExecutionModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM007 /* ProjectExecutionModels.swift */; };
+		TM008 /* InfrastructureModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM008 /* InfrastructureModels.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A001 /* HakedisApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisApp.swift; path = HakedisApp/HakedisApp.swift; sourceTree = "<group>"; };
 		A002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = HakedisApp/ContentView.swift; sourceTree = "<group>"; };
 		A003 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = HakedisApp/Models/Models.swift; sourceTree = "<group>"; };
+		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
+		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
+		NM003 /* SiteWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteWorkModels.swift; path = HakedisApp/Models/SiteWorkModels.swift; sourceTree = "<group>"; };
+		NM004 /* SiteEquipmentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteEquipmentModels.swift; path = HakedisApp/Models/SiteEquipmentModels.swift; sourceTree = "<group>"; };
+		NM005 /* EquipmentMaintenanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentMaintenanceModels.swift; path = HakedisApp/Models/EquipmentMaintenanceModels.swift; sourceTree = "<group>"; };
+		NM006 /* SafetyQualityModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyQualityModels.swift; path = HakedisApp/Models/SafetyQualityModels.swift; sourceTree = "<group>"; };
+		NM007 /* ProjectExecutionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectExecutionModels.swift; path = HakedisApp/Models/ProjectExecutionModels.swift; sourceTree = "<group>"; };
+		NM008 /* InfrastructureModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InfrastructureModels.swift; path = HakedisApp/Models/InfrastructureModels.swift; sourceTree = "<group>"; };
 		A004 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DesignSystem.swift; path = HakedisApp/Views/Shared/DesignSystem.swift; sourceTree = "<group>"; };
 		A005 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = HakedisApp/Views/Projects/DashboardView.swift; sourceTree = "<group>"; };
 		A006 /* ProjectViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectViews.swift; path = HakedisApp/Views/Projects/ProjectViews.swift; sourceTree = "<group>"; };
@@ -344,6 +368,14 @@
 				A001 /* HakedisApp.swift */,
 				A002 /* ContentView.swift */,
 				A003 /* Models.swift */,
+				NM001 /* CoreModels.swift */,
+				NM002 /* ContractApprovalModels.swift */,
+				NM003 /* SiteWorkModels.swift */,
+				NM004 /* SiteEquipmentModels.swift */,
+				NM005 /* EquipmentMaintenanceModels.swift */,
+				NM006 /* SafetyQualityModels.swift */,
+				NM007 /* ProjectExecutionModels.swift */,
+				NM008 /* InfrastructureModels.swift */,
 				A004 /* DesignSystem.swift */,
 				A005 /* DashboardView.swift */,
 				A006 /* ProjectViews.swift */,
@@ -663,6 +695,14 @@
 				B001 /* HakedisApp.swift in Sources */,
 				B002 /* ContentView.swift in Sources */,
 				B003 /* Models.swift in Sources */,
+				SM001 /* CoreModels.swift in Sources */,
+				SM002 /* ContractApprovalModels.swift in Sources */,
+				SM003 /* SiteWorkModels.swift in Sources */,
+				SM004 /* SiteEquipmentModels.swift in Sources */,
+				SM005 /* EquipmentMaintenanceModels.swift in Sources */,
+				SM006 /* SafetyQualityModels.swift in Sources */,
+				SM007 /* ProjectExecutionModels.swift in Sources */,
+				SM008 /* InfrastructureModels.swift in Sources */,
 				B004 /* DesignSystem.swift in Sources */,
 				B005 /* DashboardView.swift in Sources */,
 				B006 /* ProjectViews.swift in Sources */,
@@ -784,7 +824,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				TB004 /* Models.swift in TestSources */,
+				TM001 /* CoreModels.swift in TestSources */,
+				TM002 /* ContractApprovalModels.swift in TestSources */,
+				TM003 /* SiteWorkModels.swift in TestSources */,
+				TM004 /* SiteEquipmentModels.swift in TestSources */,
+				TM005 /* EquipmentMaintenanceModels.swift in TestSources */,
+				TM006 /* SafetyQualityModels.swift in TestSources */,
+				TM007 /* ProjectExecutionModels.swift in TestSources */,
+				TM008 /* InfrastructureModels.swift in TestSources */,
 				TB008 /* CashFlowEngine.swift in TestSources */,
 				TB001 /* CalculationTests.swift in Sources */,
 				TB002 /* StatusTransitionTests.swift in Sources */,
