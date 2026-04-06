@@ -202,9 +202,7 @@
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
-			files = (
-				WB002 /* HakedisWidget.appex in Embed Foundation Extensions */,
-			);
+			files = (			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -693,7 +691,6 @@
 			projectRoot = "";
 			targets = (
 				TGT1 /* HakedisApp */,
-				TGT2 /* HakedisWidget */,
 				TTGT /* HakedisAppTests */,
 			);
 		};
