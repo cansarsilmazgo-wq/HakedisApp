@@ -18,9 +18,11 @@ final class UserAccount {
     var assignedProjectIds: [UUID]
     var profilePhotoData: Data?
     var isActive: Bool
+    var accountStatusRaw: String
     var lastLoginDate: Date?
     var passwordHash: String
     var createdAt: Date
+    @Relationship var company: Company?
 
     init(fullName: String, email: String, role: UserRole, passwordHash: String) {
         self.id = UUID()
@@ -30,6 +32,7 @@ final class UserAccount {
         self.passwordHash = passwordHash
         self.assignedProjectIds = []
         self.isActive = true
+        self.accountStatusRaw = AccountStatus.active.rawValue
         self.createdAt = Date()
     }
 
@@ -41,5 +44,10 @@ final class UserAccount {
     var profession: UserProfession? {
         get { professionRaw.flatMap { UserProfession(rawValue: $0) } }
         set { professionRaw = newValue?.rawValue }
+    }
+
+    var accountStatus: AccountStatus {
+        get { AccountStatus(rawValue: accountStatusRaw) ?? .active }
+        set { accountStatusRaw = newValue.rawValue }
     }
 }

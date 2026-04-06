@@ -157,6 +157,9 @@ struct DashboardView: View {
                         )
                     }
 
+                    // Patron: katılma talepleri uyarı kartı
+                    PendingJoinRequestsCard()
+
                     // Financial Summary
                     if !projects.isEmpty {
                         DashboardFinancialSummary(
@@ -1131,6 +1134,57 @@ private struct OverdueDecisionsCard: View {
                              icon: "exclamationmark.triangle.fill")
                 }
             }
+        }
+    }
+}
+
+// MARK: - PendingJoinRequestsCard
+
+private struct PendingJoinRequestsCard: View {
+    @StateObject private var authManager = AuthManager.shared
+    @Query(sort: \JoinRequest.requestDate, order: .reverse) private var allRequests: [JoinRequest]
+
+    private var pendingCount: Int {
+        guard authManager.currentRole == .owner,
+              let company = authManager.currentUser?.company else { return 0 }
+        return allRequests.filter { $0.company?.id == company.id && $0.status == .pending }.count
+    }
+
+    var body: some View {
+        if pendingCount > 0 {
+            NavigationLink(destination: JoinRequestManagementView()) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle().fill(Color.hakedisOrange.opacity(0.15)).frame(width: 44, height: 44)
+                        Image(systemName: "person.badge.clock.fill")
+                            .foregroundColor(.hakedisOrange)
+                            .font(.title3)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(pendingCount) yeni katılma talebi")
+                            .font(.subheadline.bold())
+                        Text("İncelemeniz bekleniyor")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Text("\(pendingCount)")
+                        .font(.caption.bold())
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(Color.hakedisDanger)
+                        .clipShape(Capsule())
+                }
+                .padding(14)
+                .background(Color.hakedisOrange.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.hakedisOrange.opacity(0.25), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(pendingCount) bekleyen katılma talebi")
         }
     }
 }

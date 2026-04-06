@@ -382,6 +382,57 @@ class NotificationManager: ObservableObject {
             "sgk_\(incidentID.uuidString)", "ministry_\(incidentID.uuidString)"
         ])
     }
+
+    // MARK: - Join Request Notifications
+
+    /// Patrona: yeni katılma talebi geldi
+    func scheduleJoinRequestNotification(for user: UserAccount, company: Company) {
+        guard isAuthorized else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Yeni Katılma Talebi"
+        content.body = "\(user.fullName) şirketinize katılmak istiyor."
+        content.sound = .default
+        content.badge = 1
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "join_request_\(user.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    /// Çalışana: talebi onaylandı
+    func scheduleApprovalNotification(for user: UserAccount) {
+        guard isAuthorized else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Talebiniz Onaylandı! 🎉"
+        content.body = "Artık \(user.companyName ?? "şirkete") giriş yapabilirsiniz."
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "approval_\(user.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    /// Çalışana: talebi reddedildi
+    func scheduleRejectionNotification(for user: UserAccount) {
+        guard isAuthorized else { return }
+        let content = UNMutableNotificationContent()
+        content.title = "Talebiniz Reddedildi"
+        content.body = "Şirket yöneticisi talebinizi reddetti. Detay için uygulamayı açın."
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "rejection_\(user.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
 }
 
 struct NotificationSettingsView: View {

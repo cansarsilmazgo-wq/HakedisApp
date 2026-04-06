@@ -52,7 +52,9 @@ struct HakedisApp: App {
             ProgressReport.self,
             Worker.self,
             WorkerCertificate.self,
-            UserAccount.self
+            UserAccount.self,
+            Company.self,
+            JoinRequest.self
         ])
 
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

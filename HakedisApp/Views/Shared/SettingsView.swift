@@ -114,6 +114,20 @@ struct SettingsView: View {
                             Label("Profilim", systemImage: "person.circle")
                         }
                     }
+                    if authManager.currentRole == .owner {
+                        NavigationLink(destination: CompanySettingsView()) {
+                            Label("Şirket Ayarları", systemImage: "building.2")
+                                .accessibilityLabel("Şirket ayarları")
+                        }
+                        NavigationLink(destination: JoinRequestManagementView()) {
+                            HStack {
+                                Label("Katılma Talepleri", systemImage: "person.badge.clock")
+                                Spacer()
+                                PendingRequestsBadge()
+                            }
+                            .accessibilityLabel("Katılma talepleri")
+                        }
+                    }
                     if authManager.currentRole.canManageUsers {
                         NavigationLink(destination: UserManagementView()) {
                             Label("Kullanıcı Yönetimi", systemImage: "person.2")
@@ -277,4 +291,27 @@ struct SettingsView: View {
 private struct ExportItem: Identifiable {
     let id = UUID()
     let url: URL
+}
+
+// MARK: - PendingRequestsBadge
+
+struct PendingRequestsBadge: View {
+    @StateObject private var authManager = AuthManager.shared
+    @Query private var allRequests: [JoinRequest]
+
+    private var count: Int {
+        guard let company = authManager.currentUser?.company else { return 0 }
+        return allRequests.filter { $0.company?.id == company.id && $0.status == .pending }.count
+    }
+
+    var body: some View {
+        if count > 0 {
+            Text("\(count)")
+                .font(.caption2.bold())
+                .foregroundColor(.white)
+                .padding(.horizontal, 7).padding(.vertical, 3)
+                .background(Color.hakedisDanger)
+                .clipShape(Capsule())
+        }
+    }
 }

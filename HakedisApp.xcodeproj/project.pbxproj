@@ -86,7 +86,10 @@
 		NB066 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N066 /* ProfileView.swift */; };
 		NB067 /* UserManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N067 /* UserManagementView.swift */; };
 		NB068 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = N068 /* AuthManager.swift */; };
+		NB069 /* JoinRequestManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N069 /* JoinRequestManagementView.swift */; };
 		SM009 /* UserAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM009 /* UserAccountModel.swift */; };
+		SM010 /* CompanyModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM010 /* CompanyModel.swift */; };
+		TM010 /* CompanyModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM010 /* CompanyModel.swift */; };
 		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
 		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
 		S003 /* RevisionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003 /* RevisionViews.swift */; };
@@ -343,6 +346,8 @@
 		N066 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = HakedisApp/Views/Auth/ProfileView.swift; sourceTree = "<group>"; };
 		N067 /* UserManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserManagementView.swift; path = HakedisApp/Views/Auth/UserManagementView.swift; sourceTree = "<group>"; };
 		N068 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AuthManager.swift; path = HakedisApp/Views/Shared/AuthManager.swift; sourceTree = "<group>"; };
+		N069 /* JoinRequestManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = JoinRequestManagementView.swift; path = HakedisApp/Views/Auth/JoinRequestManagementView.swift; sourceTree = "<group>"; };
+		NM010 /* CompanyModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CompanyModel.swift; path = HakedisApp/Models/CompanyModel.swift; sourceTree = "<group>"; };
 		NM009 /* UserAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserAccountModel.swift; path = HakedisApp/Models/UserAccountModel.swift; sourceTree = "<group>"; };
 		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
 		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
@@ -542,6 +547,8 @@
 				N066 /* ProfileView.swift */,
 				N067 /* UserManagementView.swift */,
 				N068 /* AuthManager.swift */,
+			N069 /* JoinRequestManagementView.swift */,
+			NM010 /* CompanyModel.swift */,
 				NM009 /* UserAccountModel.swift */,
 			);
 			name = HakedisApp;
@@ -856,6 +863,8 @@
 				NB066 /* ProfileView.swift in Sources */,
 				NB067 /* UserManagementView.swift in Sources */,
 				NB068 /* AuthManager.swift in Sources */,
+					NB069 /* JoinRequestManagementView.swift in Sources */,
+					SM010 /* CompanyModel.swift in Sources */,
 				SM009 /* UserAccountModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -873,6 +882,7 @@
 				TM007 /* ProjectExecutionModels.swift in Sources */,
 				TM008 /* InfrastructureModels.swift in Sources */,
 				TM009 /* UserAccountModel.swift in Sources */,
+					TM010 /* CompanyModel.swift in Sources */,
 				TB008 /* CashFlowEngine.swift in Sources */,
 				TB001 /* CalculationTests.swift in Sources */,
 				TB002 /* StatusTransitionTests.swift in Sources */,
