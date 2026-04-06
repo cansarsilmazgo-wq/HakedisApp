@@ -407,7 +407,10 @@ struct AddWorkerCertificateView: View {
         cert.worker = worker
         worker.certificates.append(cert)
         modelContext.insert(cert)
-        do { try modelContext.save() } catch { print(error) }
+        do {
+            try modelContext.save()
+            NotificationManager.shared.scheduleCertificateExpiryAlerts(worker: worker)
+        } catch { print(error) }
         dismiss()
     }
 }

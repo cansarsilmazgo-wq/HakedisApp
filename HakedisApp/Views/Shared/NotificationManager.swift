@@ -309,6 +309,20 @@ class NotificationManager: ObservableObject {
         }
     }
 
+    /// Ekipman bakım süresi dolduğunda anlık bildirim gönderir.
+    func scheduleEquipmentMaintenanceAlert(equipment: EquipmentItem) {
+        guard isAuthorized, equipmentAlertsEnabled, equipment.isMaintenanceDue else { return }
+        let notifId = "maintenance_\(equipment.id.uuidString)"
+        let content = UNMutableNotificationContent()
+        content.title = "Ekipman Bakım Zamanı"
+        content.body = "\(equipment.name) bakım zamanı geldi (\(Int(equipment.totalOperatingHours)) saat). Bakım yapılmasını planlayın."
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: notifId, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notifId])
+        UNUserNotificationCenter.current().add(request)
+    }
+
     func cancelEquipmentAlerts(equipmentID: UUID) {
         let ids = [30, 15, 7].flatMap { d in
             ["ins_\(equipmentID.uuidString)_d\(d)", "insp_\(equipmentID.uuidString)_d\(d)"]

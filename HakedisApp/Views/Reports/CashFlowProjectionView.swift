@@ -12,6 +12,8 @@ struct CashFlowProjectionView: View {
     @Query private var attendanceRecords: [Attendance]
     @Query private var equipmentLogs: [EquipmentLog]
     @Query private var subHakedisler: [SubcontractorHakedis]
+    @Query private var overheadExpenses: [OverheadExpense]
+    @Query private var equipmentFailures: [EquipmentFailure]
     @Query private var projects: [Project]
 
     @State private var ayCount: Int = 3        // 3 / 6 / 12
@@ -30,6 +32,8 @@ struct CashFlowProjectionView: View {
             attendanceRecords: attendanceRecords,
             equipmentLogs: equipmentLogs,
             subHakedisler: subHakedisler,
+            overheadExpenses: overheadExpenses,
+            equipmentFailures: equipmentFailures,
             ayCount: ayCount
         )
     }
@@ -140,10 +144,14 @@ struct CashFlowProjectionView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionHeader("Gider Kaynakları")
                         VStack(spacing: 4) {
+                            let totOverhead = projeksiyonlar.reduce(0) { $0 + $1.genelGiderGideri }
                             giderRow("Malzeme Alımları", value: totMalzeme, icon: "shippingbox", color: .hakedisWarning)
                             giderRow("İşçilik", value: totIscilk, icon: "person.2", color: .hakedisInfo)
-                            giderRow("Ekipman", value: totEkip, icon: "wrench.adjustable", color: .hakedisOrange)
+                            giderRow("Ekipman & Tamir", value: totEkip, icon: "wrench.adjustable", color: .hakedisOrange)
                             giderRow("Taşeron Ödemeleri", value: totTaseron, icon: "building.2", color: .hakedisDanger)
+                            if totOverhead > 0 {
+                                giderRow("Genel Gider", value: totOverhead, icon: "briefcase", color: .hakedisInfo)
+                            }
                         }
                         .padding(.horizontal, Spacing.card)
                     }

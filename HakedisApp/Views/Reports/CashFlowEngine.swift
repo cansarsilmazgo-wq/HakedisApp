@@ -166,11 +166,12 @@ struct AylikDetayliProje: Identifiable {
     // Giderler
     var malzemeGideri: Double        // stok girişleri
     var iscilikGideri: Double        // attendance adam-gün × maliyet
-    var ekipmanGideri: Double        // equipment log fuel + rental
+    var ekipmanGideri: Double        // equipment log fuel + rental + tamir
     var taseronGideri: Double        // taşeron ödemeleri (netAmount)
+    var genelGiderGideri: Double     // genel gider (OverheadExpense)
 
     var toplamGelir:  Double { hakedisGeliri + fiyatFarkiGeliri + diger }
-    var toplamGider:  Double { malzemeGideri + iscilikGideri + ekipmanGideri + taseronGideri }
+    var toplamGider:  Double { malzemeGideri + iscilikGideri + ekipmanGideri + taseronGideri + genelGiderGideri }
     var fark:         Double { toplamGelir - toplamGider }
     var kumulatif:    Double = 0
 }
@@ -198,6 +199,8 @@ struct GenisletilmisCashFlowEngine {
         attendanceRecords: [Attendance],
         equipmentLogs: [EquipmentLog],
         subHakedisler: [SubcontractorHakedis],
+        overheadExpenses: [OverheadExpense] = [],
+        equipmentFailures: [EquipmentFailure] = [],
         ayCount: Int,
         referenceDate: Date = Date(),
         laborDailyRate: Double = 800   // varsayılan işçilik birim maliyeti (TL/adam-gün)
@@ -245,6 +248,20 @@ struct GenisletilmisCashFlowEngine {
             taseronMap[k, default: 0] += sh.netAmount
         }
 
+        // Genel gider map (ay → amount)
+        var overheadMap: [String: Double] = [:]
+        for oe in overheadExpenses {
+            let k = ayKey(oe.expenseDate)
+            overheadMap[k, default: 0] += oe.amount
+        }
+
+        // Ekipman tamir maliyeti map (ay → repairCost)
+        var repairMap: [String: Double] = [:]
+        for f in equipmentFailures where f.isResolved {
+            let k = ayKey(f.repairDate ?? f.failureDate)
+            repairMap[k, default: 0] += f.repairCost ?? 0
+        }
+
         // Fiyat farkı ortalama
         let avgPriceDiff = priceDiffCalcs.isEmpty ? 0 :
             priceDiffCalcs.reduce(0) { $0 + $1.priceDifferenceAmount } / Double(priceDiffCalcs.count)
@@ -265,8 +282,9 @@ struct GenisletilmisCashFlowEngine {
                 diger: 0,
                 malzemeGideri: stockMap[k] ?? 0,
                 iscilikGideri: laborMap[k] ?? 0,
-                ekipmanGideri: equipMap[k] ?? 0,
-                taseronGideri: taseronMap[k] ?? 0
+                ekipmanGideri: (equipMap[k] ?? 0) + (repairMap[k] ?? 0),
+                taseronGideri: taseronMap[k] ?? 0,
+                genelGiderGideri: overheadMap[k] ?? 0
             )
             cumulative += proje.fark
             proje.kumulatif = cumulative
@@ -282,7 +300,9 @@ struct GenisletilmisCashFlowEngine {
         stockEntries: [StockEntry],
         attendanceRecords: [Attendance],
         equipmentLogs: [EquipmentLog],
-        subHakedisler: [SubcontractorHakedis]
+        subHakedisler: [SubcontractorHakedis],
+        overheadExpenses: [OverheadExpense] = [],
+        equipmentFailures: [EquipmentFailure] = []
     ) -> Double {
         let cal = Calendar.current
         let now = Date()
@@ -308,9 +328,14 @@ struct GenisletilmisCashFlowEngine {
         }
         let taseronGider = subHakedisler.filter { ayKey($0.periodEnd) == key }
             .reduce(0) { $0 + $1.netAmount }
+        let overheadGider = overheadExpenses.filter { ayKey($0.expenseDate) == key }
+            .reduce(0) { $0 + $1.amount }
+        let repairGider = equipmentFailures
+            .filter { $0.isResolved && ayKey($0.repairDate ?? $0.failureDate) == key }
+            .reduce(0) { $0 + ($1.repairCost ?? 0) }
 
         let gelir = avgH + max(avgPD, 0)
-        let gider = stockGider + laborGider + equipGider + taseronGider
+        let gider = stockGider + laborGider + equipGider + taseronGider + overheadGider + repairGider
         return gelir - gider
     }
 }

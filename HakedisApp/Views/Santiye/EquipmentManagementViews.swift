@@ -439,7 +439,11 @@ struct AddEquipmentItemView: View {
         item.dailyRentalCost = Double(dailyRentalCostText) ?? 0
         item.fuelType = fuelType.isEmpty ? nil : fuelType
         modelContext.insert(item)
-        do { try modelContext.save() } catch { print("Kayıt: \(error)") }
+        do {
+            try modelContext.save()
+            NotificationManager.shared.scheduleEquipmentInsuranceAlerts(equipment: item)
+            NotificationManager.shared.scheduleEquipmentMaintenanceAlert(equipment: item)
+        } catch { print("Kayıt: \(error)") }
         dismiss()
     }
 }
@@ -529,7 +533,10 @@ struct EquipmentLogForm: View {
         log.equipment = item
         item.totalOperatingHours += hours
         modelContext.insert(log)
-        do { try modelContext.save() } catch { print("Kayıt: \(error)") }
+        do {
+            try modelContext.save()
+            NotificationManager.shared.scheduleEquipmentMaintenanceAlert(equipment: item)
+        } catch { print("Kayıt: \(error)") }
         dismiss()
     }
 }

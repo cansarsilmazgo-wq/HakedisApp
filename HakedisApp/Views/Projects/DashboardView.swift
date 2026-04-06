@@ -275,6 +275,15 @@ struct DashboardView: View {
                     // Gecikmiş Karar Uyarısı
                     OverdueDecisionsCard()
 
+                    // Cevaplanmamış RFI'lar
+                    OpenRFIsCard()
+
+                    // Gecikmiş İş Emirleri
+                    OverdueWorkOrdersCard()
+
+                    // Gecikmiş Kabul Eksiklikleri
+                    OverdueAcceptanceDeficienciesCard()
+
                     // İSG Dashboard Kartı
                     let highUncontrolledRisks = allRiskAssessments.filter { ($0.riskLevel == .high || $0.riskLevel == .veryHigh) && !$0.isControlled }
                     let overdueActions = allCorrectiveActions.filter { $0.isOverdue }
@@ -1011,6 +1020,88 @@ private struct ISGDashboardAlertRow: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(text)
+    }
+}
+
+// MARK: - OpenRFIsCard
+
+private struct OpenRFIsCard: View {
+    @Query private var rfis: [RFI]
+
+    private var unansweredRFIs: [RFI] {
+        rfis.filter { $0.status == .open || $0.status == .pending }
+    }
+
+    var body: some View {
+        if !unansweredRFIs.isEmpty {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                SectionHeader("Cevaplanmamış RFI'lar")
+                NavigationLink(destination: RFIListView()) {
+                    StatCard(
+                        title: "Bekleyen RFI",
+                        value: "\(unansweredRFIs.count)",
+                        color: .hakedisWarning,
+                        icon: "questionmark.bubble.fill"
+                    )
+                }
+            }
+            .accessibilityLabel("\(unansweredRFIs.count) cevaplanmamış RFI")
+        }
+    }
+}
+
+// MARK: - OverdueWorkOrdersCard
+
+private struct OverdueWorkOrdersCard: View {
+    @Query private var workOrders: [WorkOrder]
+
+    private var overdueOrders: [WorkOrder] {
+        workOrders.filter { wo in
+            wo.status != .completed && wo.status != .cancelled
+            && { guard let d = wo.dueDate else { return false }; return d < Date() }()
+        }
+    }
+
+    var body: some View {
+        if !overdueOrders.isEmpty {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                SectionHeader("Gecikmiş İş Emirleri")
+                NavigationLink(destination: WorkOrderListView()) {
+                    StatCard(
+                        title: "Gecikmiş İş Emri",
+                        value: "\(overdueOrders.count)",
+                        color: .hakedisDanger,
+                        icon: "wrench.badge.xmark"
+                    )
+                }
+            }
+            .accessibilityLabel("\(overdueOrders.count) gecikmiş iş emri")
+        }
+    }
+}
+
+// MARK: - OverdueAcceptanceDeficienciesCard
+
+private struct OverdueAcceptanceDeficienciesCard: View {
+    @Query private var deficiencies: [AcceptanceDeficiency]
+
+    private var overdueDeficiencies: [AcceptanceDeficiency] {
+        deficiencies.filter { $0.isOverdue }
+    }
+
+    var body: some View {
+        if !overdueDeficiencies.isEmpty {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                SectionHeader("Gecikmiş Kabul Eksiklikleri")
+                StatCard(
+                    title: "Gecikmiş Eksiklik",
+                    value: "\(overdueDeficiencies.count)",
+                    color: .hakedisDanger,
+                    icon: "checklist.unchecked"
+                )
+            }
+            .accessibilityLabel("\(overdueDeficiencies.count) gecikmiş kabul eksikliği")
+        }
     }
 }
 

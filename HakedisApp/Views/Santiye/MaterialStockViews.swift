@@ -219,6 +219,25 @@ struct MaterialDetailView: View {
 
     var body: some View {
         List {
+            if material.hasNonConformingTest {
+                Section {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.hakedisDanger)
+                            .font(.title3)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Uygunsuz Test Sonucu")
+                                .font(.subheadline.bold())
+                                .foregroundColor(.hakedisDanger)
+                            Text("Bu malzemede uygunsuz test sonucu var. Kullanmadan önce kontrol edin.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                    .accessibilityLabel("Uyarı: Bu malzemede uygunsuz test sonucu var")
+                }
+            }
             Section("Özet") {
                 HStack {
                     Text("Mevcut Stok")
@@ -440,6 +459,7 @@ struct StockEntryView: View {
 
     @State private var date = Date()
     @State private var entryType = StockEntryType.incoming
+    @State private var showNonConformingAlert = false
     @State private var quantityText = ""
     @State private var supplierName = ""
     @State private var deliveryNoteNo = ""
@@ -493,6 +513,16 @@ struct StockEntryView: View {
                         }
                     }
                 } else {
+                    if material.hasNonConformingTest {
+                        Section {
+                            HStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.hakedisDanger)
+                                Text("Uygunsuz test sonucu var. Kullanmadan önce kontrol edin.")
+                                    .font(.caption).foregroundColor(.hakedisDanger)
+                            }
+                            .accessibilityLabel("Uyarı: uygunsuz test sonucu")
+                        }
+                    }
                     Section("Çıkış Bilgileri") {
                         TextField("Kullanılan imalat", text: $usedForWorkItem)
                             .accessibilityLabel("Kullanım yeri")
@@ -511,8 +541,20 @@ struct StockEntryView: View {
                     Button("İptal") { dismiss() }.accessibilityLabel("İptal")
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Kaydet") { save() }.accessibilityLabel("Kaydet")
+                    Button("Kaydet") {
+                        if entryType == .outgoing && material.hasNonConformingTest {
+                            showNonConformingAlert = true
+                        } else {
+                            save()
+                        }
+                    }.accessibilityLabel("Kaydet")
                 }
+            }
+            .confirmationDialog("Uygunsuz Test Sonucu", isPresented: $showNonConformingAlert, titleVisibility: .visible) {
+                Button("Yine de Kullan", role: .destructive) { save() }
+                Button("İptal", role: .cancel) {}
+            } message: {
+                Text("Bu malzemede uygunsuz test sonucu bulunmaktadır. Kullanmak istediğinizden emin misiniz?")
             }
         }
     }
