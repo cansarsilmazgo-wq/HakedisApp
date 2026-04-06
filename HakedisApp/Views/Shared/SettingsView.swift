@@ -16,9 +16,6 @@ struct SettingsView: View {
     // Para birimi
     @AppStorage("selectedCurrency") private var selectedCurrency = "TRY"
 
-    // Kullanıcı rolü
-    @AppStorage("userRole") private var userRole = "owner"
-
     // Dashboard kartları
     @AppStorage("dashboard_showFinancialSummary") private var showFinancialSummary = true
     @AppStorage("dashboard_showStockAlerts")      private var showStockAlerts = true
@@ -27,6 +24,7 @@ struct SettingsView: View {
     @AppStorage("dashboard_showWorkOrderCard")    private var showWorkOrderCard = true
 
     @Environment(\.modelContext) private var modelContext
+    @StateObject private var authManager = AuthManager.shared
     @Query private var projects:   [Project]
     @Query private var hakedisler: [Hakedis]
 
@@ -106,14 +104,28 @@ struct SettingsView: View {
                     }
                 }
 
-                // MARK: Kullanıcı Rolü
-                Section("Kullanıcı Rolü") {
-                    Picker("Rolüm", selection: $userRole) {
-                        ForEach(UserRole.allCases, id: \.rawValue) { role in
-                            Label(role.displayName, systemImage: role.icon).tag(role.rawValue)
+                // MARK: Hesabım
+                Section("Hesabım") {
+                    NavigationLink(destination: ProfileView()) {
+                        if let user = authManager.currentUser {
+                            Label(user.fullName, systemImage: user.role.icon)
+                                .accessibilityLabel("Profilim")
+                        } else {
+                            Label("Profilim", systemImage: "person.circle")
                         }
                     }
-                    .accessibilityLabel("Kullanıcı rolü seç")
+                    if authManager.currentRole.canManageUsers {
+                        NavigationLink(destination: UserManagementView()) {
+                            Label("Kullanıcı Yönetimi", systemImage: "person.2")
+                                .accessibilityLabel("Kullanıcı yönetimi")
+                        }
+                    }
+                    Button(role: .destructive) {
+                        authManager.logout()
+                    } label: {
+                        Label("Çıkış Yap", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                    .accessibilityLabel("Çıkış yap")
                 }
 
                 // MARK: Para Birimi

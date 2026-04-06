@@ -118,36 +118,95 @@ struct EmptyStateView: View {
 
 // MARK: - UserRole
 
-enum UserRole: String, CaseIterable {
+enum UserRole: String, Codable, CaseIterable {
     case owner          = "owner"
     case projectManager = "projectManager"
     case siteEngineer   = "siteEngineer"
     case safetyOfficer  = "safetyOfficer"
+    case siteForeman    = "siteForeman"
     case accountant     = "accountant"
     case subcontractor  = "subcontractor"
     case viewer         = "viewer"
 
     var displayName: String {
         switch self {
-        case .owner:          return "Firma Sahibi"
+        case .owner:          return "Patron / Firma Sahibi"
         case .projectManager: return "Proje Müdürü"
         case .siteEngineer:   return "Şantiye Mühendisi"
         case .safetyOfficer:  return "İSG Uzmanı"
+        case .siteForeman:    return "Şantiye Şefi"
         case .accountant:     return "Muhasebeci"
         case .subcontractor:  return "Taşeron"
-        case .viewer:         return "Görüntüleyici"
+        case .viewer:         return "İzleyici (Salt Okuma)"
         }
     }
 
     var icon: String {
         switch self {
-        case .owner:          return "person.crop.circle.badge.checkmark"
-        case .projectManager: return "person.crop.circle.fill"
-        case .siteEngineer:   return "hammer.circle.fill"
-        case .safetyOfficer:  return "shield.checkered"
+        case .owner:          return "crown.fill"
+        case .projectManager: return "person.badge.shield.checkmark"
+        case .siteEngineer:   return "hammer.fill"
+        case .safetyOfficer:  return "cross.case.fill"
+        case .siteForeman:    return "wrench.and.screwdriver.fill"
         case .accountant:     return "banknote.fill"
-        case .subcontractor:  return "person.2.circle"
-        case .viewer:         return "eye.circle"
+        case .subcontractor:  return "building.2.fill"
+        case .viewer:         return "eye.fill"
+        }
+    }
+
+    var canSeeFinancials: Bool        { [.owner, .projectManager, .accountant].contains(self) }
+    var canSeeProfitability: Bool     { self == .owner }
+    var canSeeSalaries: Bool          { [.owner, .accountant].contains(self) }
+    var canSeeAllProjects: Bool       { [.owner, .accountant].contains(self) }
+    var canCreateHakedis: Bool        { [.owner, .projectManager, .siteEngineer, .accountant].contains(self) }
+    var canApproveHakedis: Bool       { [.owner, .projectManager].contains(self) }
+    var canManageWorkers: Bool        { [.owner, .projectManager, .siteEngineer, .siteForeman].contains(self) }
+    var canManageSafety: Bool         { [.owner, .projectManager, .siteEngineer, .safetyOfficer].contains(self) }
+    var canManageMaterials: Bool      { [.owner, .projectManager, .siteEngineer, .siteForeman].contains(self) }
+    var canManageEquipment: Bool      { [.owner, .projectManager, .siteEngineer, .siteForeman].contains(self) }
+    var canManageDocuments: Bool      { [.owner, .projectManager, .siteEngineer, .accountant].contains(self) }
+    var canManageContracts: Bool      { [.owner, .projectManager, .accountant].contains(self) }
+    var canDeleteData: Bool           { [.owner, .projectManager].contains(self) }
+    var canExportData: Bool           { [.owner, .projectManager, .accountant].contains(self) }
+    var canManageUsers: Bool          { self == .owner }
+    var canSeeDailyEntry: Bool        { self != .accountant }
+    var canSeeSiteDiary: Bool         { self != .accountant && self != .subcontractor }
+    var canSeeAttendance: Bool        { [.owner, .projectManager, .siteEngineer, .siteForeman, .accountant].contains(self) }
+    var canSeeBudget: Bool            { [.owner, .projectManager, .accountant].contains(self) }
+    var canSeeEVM: Bool               { [.owner, .projectManager].contains(self) }
+    var canSeeSubcontractorDetails: Bool { [.owner, .projectManager, .accountant].contains(self) }
+    var canCreateWorkOrder: Bool      { [.owner, .projectManager, .siteEngineer, .siteForeman].contains(self) }
+    var canCreateRFI: Bool            { [.owner, .projectManager, .siteEngineer].contains(self) }
+}
+
+// MARK: - UserProfession
+
+enum UserProfession: String, Codable, CaseIterable {
+    case civilEngineer      = "civilEngineer"
+    case architect          = "architect"
+    case mechanicalEngineer = "mechanicalEngineer"
+    case electricalEngineer = "electricalEngineer"
+    case geologicalEngineer = "geologicalEngineer"
+    case surveyor           = "surveyor"
+    case technician         = "technician"
+    case safetySpecialist   = "safetySpecialist"
+    case accountantProf     = "accountantProf"
+    case contractor         = "contractor"
+    case other              = "other"
+
+    var displayName: String {
+        switch self {
+        case .civilEngineer:      return "İnşaat Mühendisi"
+        case .architect:          return "Mimar"
+        case .mechanicalEngineer: return "Makine Mühendisi"
+        case .electricalEngineer: return "Elektrik Mühendisi"
+        case .geologicalEngineer: return "Jeoloji Mühendisi"
+        case .surveyor:           return "Harita Mühendisi"
+        case .technician:         return "Tekniker"
+        case .safetySpecialist:   return "İSG Uzmanı"
+        case .accountantProf:     return "Mali Müşavir / Muhasebeci"
+        case .contractor:         return "Müteahhit"
+        case .other:              return "Diğer"
         }
     }
 }
@@ -205,6 +264,16 @@ extension Double {
         case 1_000...: return "\(sign)\(sym)\(String(format: "%.0f", abs / 1_000))B"
         default: return currencyFormatted
         }
+    }
+
+    func maskedCurrency(for role: UserRole) -> String {
+        guard role.canSeeFinancials else { return "₺***" }
+        return currencyFormatted
+    }
+
+    func maskedSalary(for role: UserRole) -> String {
+        guard role.canSeeSalaries else { return "***" }
+        return currencyFormatted
     }
 }
 

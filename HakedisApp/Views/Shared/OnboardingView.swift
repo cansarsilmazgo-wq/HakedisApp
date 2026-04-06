@@ -7,6 +7,7 @@ struct OnboardingView: View {
     @State private var currentPage = 0
     @AppStorage("companyName") private var companyName = ""
     @State private var companyInput = ""
+    @State private var showRegister = false
 
     private let pages = OnboardingPage.allPages
 
@@ -48,6 +49,7 @@ struct OnboardingView: View {
                         Button {
                             if !companyInput.isEmpty { companyName = companyInput }
                             hasSeenOnboarding = true
+                            showRegister = true
                         } label: {
                             Text("Başla")
                                 .font(.headline)
@@ -68,6 +70,9 @@ struct OnboardingView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, 32)
             }
+        }
+        .fullScreenCover(isPresented: $showRegister) {
+            RegisterView()
         }
     }
 }

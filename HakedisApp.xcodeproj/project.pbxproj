@@ -81,6 +81,12 @@
 		NB061 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N061 /* HelpView.swift */; };
 		NB062 /* PhotoComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N062 /* PhotoComparisonView.swift */; };
 		NB063 /* DrawingAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N063 /* DrawingAnnotationView.swift */; };
+		NB064 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N064 /* LoginView.swift */; };
+		NB065 /* RegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N065 /* RegisterView.swift */; };
+		NB066 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N066 /* ProfileView.swift */; };
+		NB067 /* UserManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N067 /* UserManagementView.swift */; };
+		NB068 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = N068 /* AuthManager.swift */; };
+		SM009 /* UserAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM009 /* UserAccountModel.swift */; };
 		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
 		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
 		S003 /* RevisionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003 /* RevisionViews.swift */; };
@@ -174,6 +180,7 @@
 		TB035 /* KVKKViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N057 /* KVKKViews.swift */; };
 		TB036 /* FazC3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T029 /* FazC3Tests.swift */; };
 		TB037 /* BackupViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
+		TB038 /* AuthAndRoleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T030 /* AuthAndRoleTests.swift */; };
 		TM001 /* CoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
 		TM002 /* ContractApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
 		TM003 /* SiteWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
@@ -182,6 +189,7 @@
 		TM006 /* SafetyQualityModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM006 /* SafetyQualityModels.swift */; };
 		TM007 /* ProjectExecutionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM007 /* ProjectExecutionModels.swift */; };
 		TM008 /* InfrastructureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM008 /* InfrastructureModels.swift */; };
+		TM009 /* UserAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM009 /* UserAccountModel.swift */; };
 		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
 		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -330,6 +338,12 @@
 		N061 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HelpView.swift; path = HakedisApp/Views/Shared/HelpView.swift; sourceTree = "<group>"; };
 		N062 /* PhotoComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoComparisonView.swift; path = HakedisApp/Views/Projects/PhotoComparisonView.swift; sourceTree = "<group>"; };
 		N063 /* DrawingAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrawingAnnotationView.swift; path = HakedisApp/Views/Projects/DrawingAnnotationView.swift; sourceTree = "<group>"; };
+		N064 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LoginView.swift; path = HakedisApp/Views/Auth/LoginView.swift; sourceTree = "<group>"; };
+		N065 /* RegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RegisterView.swift; path = HakedisApp/Views/Auth/RegisterView.swift; sourceTree = "<group>"; };
+		N066 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = HakedisApp/Views/Auth/ProfileView.swift; sourceTree = "<group>"; };
+		N067 /* UserManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserManagementView.swift; path = HakedisApp/Views/Auth/UserManagementView.swift; sourceTree = "<group>"; };
+		N068 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AuthManager.swift; path = HakedisApp/Views/Shared/AuthManager.swift; sourceTree = "<group>"; };
+		NM009 /* UserAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserAccountModel.swift; path = HakedisApp/Models/UserAccountModel.swift; sourceTree = "<group>"; };
 		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
 		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
 		NM003 /* SiteWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteWorkModels.swift; path = HakedisApp/Models/SiteWorkModels.swift; sourceTree = "<group>"; };
@@ -370,6 +384,7 @@
 		T027 /* FazC1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC1Tests.swift; sourceTree = "<group>"; };
 		T028 /* FazC2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC2Tests.swift; sourceTree = "<group>"; };
 		T029 /* FazC3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC3Tests.swift; sourceTree = "<group>"; };
+		T030 /* AuthAndRoleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAndRoleTests.swift; sourceTree = "<group>"; };
 		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
 		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
 		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
@@ -522,6 +537,12 @@
 				N061 /* HelpView.swift */,
 				N062 /* PhotoComparisonView.swift */,
 				N063 /* DrawingAnnotationView.swift */,
+				N064 /* LoginView.swift */,
+				N065 /* RegisterView.swift */,
+				N066 /* ProfileView.swift */,
+				N067 /* UserManagementView.swift */,
+				N068 /* AuthManager.swift */,
+				NM009 /* UserAccountModel.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -577,6 +598,7 @@
 				T027 /* FazC1Tests.swift */,
 				T028 /* FazC2Tests.swift */,
 				T029 /* FazC3Tests.swift */,
+				T030 /* AuthAndRoleTests.swift */,
 			);
 			path = HakedisAppTests;
 			sourceTree = "<group>";
@@ -829,6 +851,12 @@
 				NB061 /* HelpView.swift in Sources */,
 				NB062 /* PhotoComparisonView.swift in Sources */,
 				NB063 /* DrawingAnnotationView.swift in Sources */,
+				NB064 /* LoginView.swift in Sources */,
+				NB065 /* RegisterView.swift in Sources */,
+				NB066 /* ProfileView.swift in Sources */,
+				NB067 /* UserManagementView.swift in Sources */,
+				NB068 /* AuthManager.swift in Sources */,
+				SM009 /* UserAccountModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -844,6 +872,7 @@
 				TM006 /* SafetyQualityModels.swift in Sources */,
 				TM007 /* ProjectExecutionModels.swift in Sources */,
 				TM008 /* InfrastructureModels.swift in Sources */,
+				TM009 /* UserAccountModel.swift in Sources */,
 				TB008 /* CashFlowEngine.swift in Sources */,
 				TB001 /* CalculationTests.swift in Sources */,
 				TB002 /* StatusTransitionTests.swift in Sources */,
@@ -880,6 +909,7 @@
 				TB035 /* KVKKViews.swift in Sources */,
 				TB036 /* FazC3Tests.swift in Sources */,
 				TB037 /* BackupViews.swift in Sources */,
+				TB038 /* AuthAndRoleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

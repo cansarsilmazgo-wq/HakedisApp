@@ -1,0 +1,45 @@
+import Foundation
+import SwiftData
+import CryptoKit
+
+// MARK: - UserAccount
+
+@Model
+final class UserAccount {
+    var id: UUID
+    var fullName: String
+    var email: String
+    var phone: String?
+    var companyName: String?
+    var companyLogoData: Data?
+    var roleRaw: String
+    var professionRaw: String?
+    var registrationNumber: String?
+    var assignedProjectIds: [UUID]
+    var profilePhotoData: Data?
+    var isActive: Bool
+    var lastLoginDate: Date?
+    var passwordHash: String
+    var createdAt: Date
+
+    init(fullName: String, email: String, role: UserRole, passwordHash: String) {
+        self.id = UUID()
+        self.fullName = fullName
+        self.email = email
+        self.roleRaw = role.rawValue
+        self.passwordHash = passwordHash
+        self.assignedProjectIds = []
+        self.isActive = true
+        self.createdAt = Date()
+    }
+
+    var role: UserRole {
+        get { UserRole(rawValue: roleRaw) ?? .viewer }
+        set { roleRaw = newValue.rawValue }
+    }
+
+    var profession: UserProfession? {
+        get { professionRaw.flatMap { UserProfession(rawValue: $0) } }
+        set { professionRaw = newValue?.rawValue }
+    }
+}

@@ -1,23 +1,35 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - RootView (Onboarding gate)
+// MARK: - RootView (Auth + Onboarding gate)
 
 struct RootView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @StateObject private var authManager = AuthManager.shared
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        if hasSeenOnboarding {
-            ContentView()
-        } else {
-            OnboardingView()
+        Group {
+            if !hasSeenOnboarding {
+                OnboardingView()
+            } else if !authManager.isLoggedIn {
+                LoginView()
+            } else {
+                ContentView()
+            }
+        }
+        .onAppear {
+            if hasSeenOnboarding && !authManager.isLoggedIn {
+                authManager.tryAutoLogin(context: modelContext)
+            }
         }
     }
 }
 
 struct ContentView: View {
     @StateObject private var networkMonitor = NetworkMonitor.shared
-    @StateObject private var authManager = BiometricAuthManager.shared
+    @StateObject private var authManager = AuthManager.shared
+    @StateObject private var biometricAuth = BiometricAuthManager.shared
     @Environment(\.scenePhase) private var scenePhase
     @Query private var projects: [Project]
     @Query private var hakedisler: [Hakedis]
@@ -27,25 +39,38 @@ struct ContentView: View {
 
     @AppStorage("appLockEnabled") private var appLockEnabled = false
 
+    private var role: UserRole { authManager.currentRole }
+
     var body: some View {
         ZStack(alignment: .top) {
             TabView {
+                // Tab 1 — Ana Ekran (herkese)
                 DashboardView()
                     .tabItem { Label("Ana Ekran", systemImage: "house.fill") }
                     .accessibilityLabel("Ana Ekran")
 
-                ProjectListView()
-                    .tabItem { Label("Projeler", systemImage: "folder.fill") }
-                    .accessibilityLabel("Projeler")
+                // Tab 2 — Projeler (subcontractor hariç)
+                if role != .subcontractor {
+                    ProjectListView()
+                        .tabItem { Label("Projeler", systemImage: "folder.fill") }
+                        .accessibilityLabel("Projeler")
+                }
 
-                SantiyeTabView()
-                    .tabItem { Label("Şantiye", systemImage: "hammer.fill") }
-                    .accessibilityLabel("Şantiye")
+                // Tab 3 — Şantiye (accountant ve viewer hariç)
+                if role.canSeeDailyEntry || role.canManageSafety {
+                    SantiyeTabView()
+                        .tabItem { Label("Şantiye", systemImage: "hammer.fill") }
+                        .accessibilityLabel("Şantiye")
+                }
 
-                FinansTabView()
-                    .tabItem { Label("Finans", systemImage: "banknote.fill") }
-                    .accessibilityLabel("Finans")
+                // Tab 4 — Finans (canSeeFinancials)
+                if role.canSeeFinancials {
+                    FinansTabView()
+                        .tabItem { Label("Finans", systemImage: "banknote.fill") }
+                        .accessibilityLabel("Finans")
+                }
 
+                // Tab 5 — Daha Fazla (herkese)
                 MoreTabView()
                     .tabItem { Label("Daha Fazla", systemImage: "ellipsis.circle.fill") }
                     .accessibilityLabel("Daha Fazla")
@@ -75,17 +100,14 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newPhase in
             guard appLockEnabled else { return }
             switch newPhase {
-            case .active:
-                authManager.checkTimeout()
-            case .background, .inactive:
-                authManager.updateActivity()
-            @unknown default:
-                break
+            case .active: biometricAuth.checkTimeout()
+            case .background, .inactive: biometricAuth.updateActivity()
+            @unknown default: break
             }
         }
         .fullScreenCover(isPresented: Binding(
-            get: { appLockEnabled && authManager.isLocked },
-            set: { if !$0 { authManager.isLocked = false } }
+            get: { appLockEnabled && biometricAuth.isLocked },
+            set: { if !$0 { biometricAuth.isLocked = false } }
         )) {
             LockScreenView()
         }
