@@ -1,9 +1,6 @@
 import WidgetKit
 import SwiftUI
 
-// MARK: - Shared App Group ID
-private let appGroupID = "group.com.hakedis.app"
-
 // MARK: - Timeline Entry
 
 struct HakedisWidgetEntry: TimelineEntry {
@@ -50,15 +47,15 @@ struct HakedisWidgetProvider: TimelineProvider {
     }
 
     private func loadEntry() -> HakedisWidgetEntry {
-        let d = UserDefaults(suiteName: appGroupID)
+        let d = UserDefaults.standard
         return HakedisWidgetEntry(
             date: .now,
-            pendingAmount: d?.double(forKey: "widget_pending") ?? 0,
-            activeProjects: d?.integer(forKey: "widget_activeProjects") ?? 0,
-            overdueCount: d?.integer(forKey: "widget_overdueCount") ?? 0,
-            lastHakedisName: d?.string(forKey: "widget_lastHakedis") ?? "—",
-            lastHakedisStatus: d?.string(forKey: "widget_lastStatus") ?? "—",
-            lastHakedisAmount: d?.double(forKey: "widget_lastAmount") ?? 0
+            pendingAmount: d.double(forKey: "widget_pending"),
+            activeProjects: d.integer(forKey: "widget_activeProjects"),
+            overdueCount: d.integer(forKey: "widget_overdueCount"),
+            lastHakedisName: d.string(forKey: "widget_lastHakedis") ?? "—",
+            lastHakedisStatus: d.string(forKey: "widget_lastStatus") ?? "—",
+            lastHakedisAmount: d.double(forKey: "widget_lastAmount")
         )
     }
 }
@@ -111,7 +108,6 @@ struct MediumWidgetView: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Sol panel — bekleyen ödeme
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 4) {
                     Image(systemName: "building.2.fill").font(.caption2).foregroundStyle(.orange)
@@ -134,7 +130,6 @@ struct MediumWidgetView: View {
 
             Divider().padding(.vertical, 12)
 
-            // Sağ panel — son hakediş
             VStack(alignment: .leading, spacing: 6) {
                 Text("Son Hakediş")
                     .font(.caption2.bold()).foregroundStyle(.secondary)

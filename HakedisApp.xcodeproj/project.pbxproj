@@ -7,39 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		TB001 /* CalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T001 /* CalculationTests.swift */; };
-		TB002 /* StatusTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T002 /* StatusTransitionTests.swift */; };
-		TB003 /* CRUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T003 /* CRUDTests.swift */; };
-		TB005 /* FinancialTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T005 /* FinancialTrackingTests.swift */; };
-		TB006 /* TestProjesiAScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T006 /* TestProjesiAScenarioTests.swift */; };
-		TB007 /* Grup3FeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T007 /* Grup3FeatureTests.swift */; };
-		TB009 /* ApprovalAndHandoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T008 /* ApprovalAndHandoverTests.swift */; };
-		TB010 /* NewFeaturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T009 /* NewFeaturesTests.swift */; };
-		S029 /* CorrespondenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C029 /* CorrespondenceViews.swift */; };
-		S030 /* PriceDifferenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C030 /* PriceDifferenceViews.swift */; };
-		S031 /* VATWithholdingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C031 /* VATWithholdingViews.swift */; };
-		S032 /* SGKLaborViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C032 /* SGKLaborViews.swift */; };
-		S033 /* SiteLogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C033 /* SiteLogViews.swift */; };
-		S034 /* EquipmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C034 /* EquipmentViews.swift */; };
-		S035 /* SoilRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C035 /* SoilRecordViews.swift */; };
-		S036 /* TestRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C036 /* TestRecordViews.swift */; };
-		S037 /* AcceptanceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C037 /* AcceptanceViews.swift */; };
-		S038 /* WarrantyClaimViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C038 /* WarrantyClaimViews.swift */; };
-		S039 /* EditContractView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039 /* EditContractView.swift */; };
-		S03A /* GuaranteeViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03A /* GuaranteeViews.swift */; };
-		S03B /* MultipleEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03B /* MultipleEntryView.swift */; };
-		S03C /* PetitionGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03C /* PetitionGeneratorView.swift */; };
-		S03D /* SCurveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03D /* SCurveView.swift */; };
-		S03E /* WeeklyReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03E /* WeeklyReportView.swift */; };
-		S03F /* PozLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03F /* PozLibraryView.swift */; };
-		S040 /* PozLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
-		S041 /* HakedisKopyalaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C041 /* HakedisKopyalaView.swift */; };
-		TB004 /* Models.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
-		TB008 /* CashFlowEngine.swift in TestSources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
-		TB011 /* PozLibrary.swift in TestSources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
-		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
-		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
-		SPM_BF2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP2 /* FirebaseCrashlytics */; };
 		B001 /* HakedisApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A001 /* HakedisApp.swift */; };
 		B002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A002 /* ContentView.swift */; };
 		B003 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A003 /* Models.swift */; };
@@ -51,36 +18,6 @@
 		B009 /* ContractViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A009 /* ContractViews.swift */; };
 		B010 /* DailyEntryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A010 /* DailyEntryViews.swift */; };
 		B011 /* HakedisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A011 /* HakedisViews.swift */; };
-		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
-		S016 /* ApprovalChainViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C016 /* ApprovalChainViews.swift */; };
-		S017 /* RejectionFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C017 /* RejectionFlowViews.swift */; };
-		S019 /* SiteHandoverViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C019 /* SiteHandoverViews.swift */; };
-		S020 /* MeasurementBookViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C020 /* MeasurementBookViews.swift */; };
-		S021 /* CumulativeQuantityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021 /* CumulativeQuantityViews.swift */; };
-		S018 /* UnitPriceAnalysisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C018 /* UnitPriceAnalysisViews.swift */; };
-		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
-		S012 /* ChangeOrderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C012 /* ChangeOrderViews.swift */; };
-		S013 /* ContractorPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C013 /* ContractorPerformanceView.swift */; };
-		S014 /* MilestoneViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C014 /* MilestoneViews.swift */; };
-		S015 /* SiteReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C015 /* SiteReportViews.swift */; };
-		S003 /* RevisionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003 /* RevisionViews.swift */; };
-		S004 /* ComparisonAndGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C004 /* ComparisonAndGallery.swift */; };
-		S005 /* PDFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C005 /* PDFView.swift */; };
-		S006 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C006 /* NotificationManager.swift */; };
-		S007 /* OfflineSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C007 /* OfflineSyncManager.swift */; };
-		S008 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C008 /* SettingsView.swift */; };
-		S009 /* CSVManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C009 /* CSVManager.swift */; };
-
-		S010 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C010 /* WidgetDataManager.swift */; };
-		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
-		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		S022 /* PhotoWorkItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C022 /* PhotoWorkItemViews.swift */; };
-		S023 /* LaborTrackingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C023 /* LaborTrackingViews.swift */; };
-		S024 /* MaterialInventoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C024 /* MaterialInventoryViews.swift */; };
-		S025 /* SpecificationChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025 /* SpecificationChecklistViews.swift */; };
-		S026 /* HakedisComparisonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C026 /* HakedisComparisonViews.swift */; };
-		S027 /* CashFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C027 /* CashFlowViews.swift */; };
-		S028 /* CashFlowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
 		NB001 /* SantiyeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N001 /* SantiyeTabView.swift */; };
 		NB002 /* FinansTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N002 /* FinansTabView.swift */; };
 		NB003 /* MoreTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N003 /* MoreTabView.swift */; };
@@ -92,13 +29,8 @@
 		NB009 /* AllHakedisListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N009 /* AllHakedisListView.swift */; };
 		NB010 /* AllPaymentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N010 /* AllPaymentsView.swift */; };
 		NB011 /* AllGuaranteeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N011 /* AllGuaranteeListView.swift */; };
-		TB012 /* SantiyeModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T010 /* SantiyeModuleTests.swift */; };
 		NB012 /* SiteDiaryPDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N012 /* SiteDiaryPDFGenerator.swift */; };
 		NB013 /* AttendancePDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N013 /* AttendancePDFGenerator.swift */; };
-		TB013 /* PDFGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T011 /* PDFGeneratorTests.swift */; };
-		TB014 /* SiteDiaryPDFGenerator.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N012 /* SiteDiaryPDFGenerator.swift */; };
-		TB015 /* AttendancePDFGenerator.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N013 /* AttendancePDFGenerator.swift */; };
-		TB016 /* DesignSystem.swift in TestSources */ = {isa = PBXBuildFile; fileRef = A004 /* DesignSystem.swift */; };
 		NB014 /* AttachmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N014 /* AttachmentViews.swift */; };
 		NB015 /* AttachmentPDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N015 /* AttachmentPDFGenerator.swift */; };
 		NB016 /* PriceDifferenceCalcView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N016 /* PriceDifferenceCalcView.swift */; };
@@ -149,27 +81,52 @@
 		NB061 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N061 /* HelpView.swift */; };
 		NB062 /* PhotoComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N062 /* PhotoComparisonView.swift */; };
 		NB063 /* DrawingAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N063 /* DrawingAnnotationView.swift */; };
-		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
-		TB036 /* FazC3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T029 /* FazC3Tests.swift */; };
-		TB037 /* BackupViews.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
-		TB034 /* FazC2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T028 /* FazC2Tests.swift */; };
-		TB035 /* KVKKViews.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N057 /* KVKKViews.swift */; };
-		TB032 /* FazC1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T027 /* FazC1Tests.swift */; };
-		TB033 /* PerformanceInfrastructure.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N056 /* PerformanceInfrastructure.swift */; };
-		TB031 /* FazB9Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T026 /* FazB9Tests.swift */; };
-		TB030 /* FazB8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T025 /* FazB8Tests.swift */; };
-		TB029 /* FazB7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T024 /* FazB7Tests.swift */; };
-		TB028 /* FazB6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T023 /* FazB6Tests.swift */; };
-		TB027 /* FazB5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T022 /* FazB5Tests.swift */; };
-		TB026 /* FazB4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T021 /* FazB4Tests.swift */; };
-		TB025 /* FazB3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T020 /* FazB3Tests.swift */; };
-		TB023 /* FazB1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T018 /* FazB1Tests.swift */; };
-		TB024 /* FazB2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T019 /* FazB2Tests.swift */; };
-		TB021 /* Faz6A7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T016 /* Faz6A7Tests.swift */; };
-		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
-		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
-		TB019 /* Faz6A3A4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T014 /* Faz6A3A4Tests.swift */; };
-		TB020 /* Faz6A5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T015 /* Faz6A5Tests.swift */; };
+		S001 /* SearchFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C001 /* SearchFilterView.swift */; };
+		S002 /* ContractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C002 /* ContractorPortalView.swift */; };
+		S003 /* RevisionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C003 /* RevisionViews.swift */; };
+		S004 /* ComparisonAndGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = C004 /* ComparisonAndGallery.swift */; };
+		S005 /* PDFView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C005 /* PDFView.swift */; };
+		S006 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C006 /* NotificationManager.swift */; };
+		S007 /* OfflineSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C007 /* OfflineSyncManager.swift */; };
+		S008 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C008 /* SettingsView.swift */; };
+		S009 /* CSVManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C009 /* CSVManager.swift */; };
+		S010 /* WidgetDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C010 /* WidgetDataManager.swift */; };
+		S012 /* ChangeOrderViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C012 /* ChangeOrderViews.swift */; };
+		S013 /* ContractorPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C013 /* ContractorPerformanceView.swift */; };
+		S014 /* MilestoneViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C014 /* MilestoneViews.swift */; };
+		S015 /* SiteReportViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C015 /* SiteReportViews.swift */; };
+		S016 /* ApprovalChainViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C016 /* ApprovalChainViews.swift */; };
+		S017 /* RejectionFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C017 /* RejectionFlowViews.swift */; };
+		S018 /* UnitPriceAnalysisViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C018 /* UnitPriceAnalysisViews.swift */; };
+		S019 /* SiteHandoverViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C019 /* SiteHandoverViews.swift */; };
+		S020 /* MeasurementBookViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C020 /* MeasurementBookViews.swift */; };
+		S021 /* CumulativeQuantityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C021 /* CumulativeQuantityViews.swift */; };
+		S022 /* PhotoWorkItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C022 /* PhotoWorkItemViews.swift */; };
+		S023 /* LaborTrackingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C023 /* LaborTrackingViews.swift */; };
+		S024 /* MaterialInventoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C024 /* MaterialInventoryViews.swift */; };
+		S025 /* SpecificationChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025 /* SpecificationChecklistViews.swift */; };
+		S026 /* HakedisComparisonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C026 /* HakedisComparisonViews.swift */; };
+		S027 /* CashFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C027 /* CashFlowViews.swift */; };
+		S028 /* CashFlowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
+		S029 /* CorrespondenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C029 /* CorrespondenceViews.swift */; };
+		S030 /* PriceDifferenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C030 /* PriceDifferenceViews.swift */; };
+		S031 /* VATWithholdingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C031 /* VATWithholdingViews.swift */; };
+		S032 /* SGKLaborViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C032 /* SGKLaborViews.swift */; };
+		S033 /* SiteLogViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C033 /* SiteLogViews.swift */; };
+		S034 /* EquipmentViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C034 /* EquipmentViews.swift */; };
+		S035 /* SoilRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C035 /* SoilRecordViews.swift */; };
+		S036 /* TestRecordViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C036 /* TestRecordViews.swift */; };
+		S037 /* AcceptanceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C037 /* AcceptanceViews.swift */; };
+		S038 /* WarrantyClaimViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C038 /* WarrantyClaimViews.swift */; };
+		S039 /* EditContractView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C039 /* EditContractView.swift */; };
+		S03A /* GuaranteeViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03A /* GuaranteeViews.swift */; };
+		S03B /* MultipleEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03B /* MultipleEntryView.swift */; };
+		S03C /* PetitionGeneratorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03C /* PetitionGeneratorView.swift */; };
+		S03D /* SCurveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03D /* SCurveView.swift */; };
+		S03E /* WeeklyReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03E /* WeeklyReportView.swift */; };
+		S03F /* PozLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03F /* PozLibraryView.swift */; };
+		S040 /* PozLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
+		S041 /* HakedisKopyalaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C041 /* HakedisKopyalaView.swift */; };
 		SM001 /* CoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
 		SM002 /* ContractApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
 		SM003 /* SiteWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
@@ -178,28 +135,85 @@
 		SM006 /* SafetyQualityModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM006 /* SafetyQualityModels.swift */; };
 		SM007 /* ProjectExecutionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM007 /* ProjectExecutionModels.swift */; };
 		SM008 /* InfrastructureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM008 /* InfrastructureModels.swift */; };
-		TM001 /* CoreModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
-		TM002 /* ContractApprovalModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
-		TM003 /* SiteWorkModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
-		TM004 /* SiteEquipmentModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM004 /* SiteEquipmentModels.swift */; };
-		TM005 /* EquipmentMaintenanceModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM005 /* EquipmentMaintenanceModels.swift */; };
-		TM006 /* SafetyQualityModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM006 /* SafetyQualityModels.swift */; };
-		TM007 /* ProjectExecutionModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM007 /* ProjectExecutionModels.swift */; };
-		TM008 /* InfrastructureModels.swift in TestSources */ = {isa = PBXBuildFile; fileRef = NM008 /* InfrastructureModels.swift */; };
+		SPM_BF0 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP0 /* FirebaseCore */; };
+		SPM_BF1 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP1 /* FirebaseAnalytics */; };
+		SPM_BF2 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = SPM_DEP2 /* FirebaseCrashlytics */; };
+		TB001 /* CalculationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T001 /* CalculationTests.swift */; };
+		TB002 /* StatusTransitionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T002 /* StatusTransitionTests.swift */; };
+		TB003 /* CRUDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T003 /* CRUDTests.swift */; };
+		TB005 /* FinancialTrackingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T005 /* FinancialTrackingTests.swift */; };
+		TB006 /* TestProjesiAScenarioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T006 /* TestProjesiAScenarioTests.swift */; };
+		TB007 /* Grup3FeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T007 /* Grup3FeatureTests.swift */; };
+		TB008 /* CashFlowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
+		TB009 /* ApprovalAndHandoverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T008 /* ApprovalAndHandoverTests.swift */; };
+		TB010 /* NewFeaturesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T009 /* NewFeaturesTests.swift */; };
+		TB011 /* PozLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
+		TB012 /* SantiyeModuleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T010 /* SantiyeModuleTests.swift */; };
+		TB013 /* PDFGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T011 /* PDFGeneratorTests.swift */; };
+		TB014 /* SiteDiaryPDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N012 /* SiteDiaryPDFGenerator.swift */; };
+		TB015 /* AttendancePDFGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N013 /* AttendancePDFGenerator.swift */; };
+		TB016 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A004 /* DesignSystem.swift */; };
+		TB017 /* Faz3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T012 /* Faz3Tests.swift */; };
+		TB018 /* Faz6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T013 /* Faz6Tests.swift */; };
+		TB019 /* Faz6A3A4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T014 /* Faz6A3A4Tests.swift */; };
+		TB020 /* Faz6A5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T015 /* Faz6A5Tests.swift */; };
+		TB021 /* Faz6A7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T016 /* Faz6A7Tests.swift */; };
+		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
+		TB023 /* FazB1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T018 /* FazB1Tests.swift */; };
+		TB024 /* FazB2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T019 /* FazB2Tests.swift */; };
+		TB025 /* FazB3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T020 /* FazB3Tests.swift */; };
+		TB026 /* FazB4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T021 /* FazB4Tests.swift */; };
+		TB027 /* FazB5Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T022 /* FazB5Tests.swift */; };
+		TB028 /* FazB6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T023 /* FazB6Tests.swift */; };
+		TB029 /* FazB7Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T024 /* FazB7Tests.swift */; };
+		TB030 /* FazB8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T025 /* FazB8Tests.swift */; };
+		TB031 /* FazB9Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T026 /* FazB9Tests.swift */; };
+		TB032 /* FazC1Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T027 /* FazC1Tests.swift */; };
+		TB033 /* PerformanceInfrastructure.swift in Sources */ = {isa = PBXBuildFile; fileRef = N056 /* PerformanceInfrastructure.swift */; };
+		TB034 /* FazC2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T028 /* FazC2Tests.swift */; };
+		TB035 /* KVKKViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N057 /* KVKKViews.swift */; };
+		TB036 /* FazC3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T029 /* FazC3Tests.swift */; };
+		TB037 /* BackupViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
+		TM001 /* CoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
+		TM002 /* ContractApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
+		TM003 /* SiteWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
+		TM004 /* SiteEquipmentModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM004 /* SiteEquipmentModels.swift */; };
+		TM005 /* EquipmentMaintenanceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM005 /* EquipmentMaintenanceModels.swift */; };
+		TM006 /* SafetyQualityModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM006 /* SafetyQualityModels.swift */; };
+		TM007 /* ProjectExecutionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM007 /* ProjectExecutionModels.swift */; };
+		TM008 /* InfrastructureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM008 /* InfrastructureModels.swift */; };
+		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
+		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CIP1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = PROJ /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = TGT2;
+			remoteInfo = HakedisWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		PHS3 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				WB002 /* HakedisWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		A001 /* HakedisApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisApp.swift; path = HakedisApp/HakedisApp.swift; sourceTree = "<group>"; };
 		A002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = HakedisApp/ContentView.swift; sourceTree = "<group>"; };
 		A003 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Models.swift; path = HakedisApp/Models/Models.swift; sourceTree = "<group>"; };
-		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
-		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
-		NM003 /* SiteWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteWorkModels.swift; path = HakedisApp/Models/SiteWorkModels.swift; sourceTree = "<group>"; };
-		NM004 /* SiteEquipmentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteEquipmentModels.swift; path = HakedisApp/Models/SiteEquipmentModels.swift; sourceTree = "<group>"; };
-		NM005 /* EquipmentMaintenanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentMaintenanceModels.swift; path = HakedisApp/Models/EquipmentMaintenanceModels.swift; sourceTree = "<group>"; };
-		NM006 /* SafetyQualityModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyQualityModels.swift; path = HakedisApp/Models/SafetyQualityModels.swift; sourceTree = "<group>"; };
-		NM007 /* ProjectExecutionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectExecutionModels.swift; path = HakedisApp/Models/ProjectExecutionModels.swift; sourceTree = "<group>"; };
-		NM008 /* InfrastructureModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InfrastructureModels.swift; path = HakedisApp/Models/InfrastructureModels.swift; sourceTree = "<group>"; };
 		A004 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DesignSystem.swift; path = HakedisApp/Views/Shared/DesignSystem.swift; sourceTree = "<group>"; };
 		A005 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DashboardView.swift; path = HakedisApp/Views/Projects/DashboardView.swift; sourceTree = "<group>"; };
 		A006 /* ProjectViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectViews.swift; path = HakedisApp/Views/Projects/ProjectViews.swift; sourceTree = "<group>"; };
@@ -218,7 +232,6 @@
 		C007 /* OfflineSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OfflineSyncManager.swift; path = HakedisApp/Views/Shared/OfflineSyncManager.swift; sourceTree = "<group>"; };
 		C008 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = HakedisApp/Views/Shared/SettingsView.swift; sourceTree = "<group>"; };
 		C009 /* CSVManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CSVManager.swift; path = HakedisApp/Views/Shared/CSVManager.swift; sourceTree = "<group>"; };
-
 		C010 /* WidgetDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WidgetDataManager.swift; path = HakedisApp/Views/Shared/WidgetDataManager.swift; sourceTree = "<group>"; };
 		C012 /* ChangeOrderViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChangeOrderViews.swift; path = HakedisApp/Views/Contracts/ChangeOrderViews.swift; sourceTree = "<group>"; };
 		C013 /* ContractorPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractorPerformanceView.swift; path = HakedisApp/Views/Contracts/ContractorPerformanceView.swift; sourceTree = "<group>"; };
@@ -226,25 +239,10 @@
 		C015 /* SiteReportViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteReportViews.swift; path = HakedisApp/Views/Projects/SiteReportViews.swift; sourceTree = "<group>"; };
 		C016 /* ApprovalChainViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ApprovalChainViews.swift; path = HakedisApp/Views/Hakedis/ApprovalChainViews.swift; sourceTree = "<group>"; };
 		C017 /* RejectionFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RejectionFlowViews.swift; path = HakedisApp/Views/Hakedis/RejectionFlowViews.swift; sourceTree = "<group>"; };
+		C018 /* UnitPriceAnalysisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UnitPriceAnalysisViews.swift; path = HakedisApp/Views/Contracts/UnitPriceAnalysisViews.swift; sourceTree = "<group>"; };
 		C019 /* SiteHandoverViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteHandoverViews.swift; path = HakedisApp/Views/Contracts/SiteHandoverViews.swift; sourceTree = "<group>"; };
 		C020 /* MeasurementBookViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MeasurementBookViews.swift; path = HakedisApp/Views/Contracts/MeasurementBookViews.swift; sourceTree = "<group>"; };
 		C021 /* CumulativeQuantityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CumulativeQuantityViews.swift; path = HakedisApp/Views/Contracts/CumulativeQuantityViews.swift; sourceTree = "<group>"; };
-		C018 /* UnitPriceAnalysisViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UnitPriceAnalysisViews.swift; path = HakedisApp/Views/Contracts/UnitPriceAnalysisViews.swift; sourceTree = "<group>"; };
-		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
-		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
-		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
-		PROD2 /* HakedisWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HakedisWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		PROD1 /* HakedisApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		PROD3 /* HakedisAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HakedisAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		T001 /* CalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTests.swift; sourceTree = "<group>"; };
-		T002 /* StatusTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusTransitionTests.swift; sourceTree = "<group>"; };
-		T003 /* CRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDTests.swift; sourceTree = "<group>"; };
-		T005 /* FinancialTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTrackingTests.swift; sourceTree = "<group>"; };
-		T006 /* TestProjesiAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProjesiAScenarioTests.swift; sourceTree = "<group>"; };
-		T007 /* Grup3FeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grup3FeatureTests.swift; sourceTree = "<group>"; };
-		T008 /* ApprovalAndHandoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalAndHandoverTests.swift; sourceTree = "<group>"; };
-		T009 /* NewFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeaturesTests.swift; sourceTree = "<group>"; };
-		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		C022 /* PhotoWorkItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoWorkItemViews.swift; path = HakedisApp/Views/DailyEntry/PhotoWorkItemViews.swift; sourceTree = "<group>"; };
 		C023 /* LaborTrackingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LaborTrackingViews.swift; path = HakedisApp/Views/Contracts/LaborTrackingViews.swift; sourceTree = "<group>"; };
 		C024 /* MaterialInventoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialInventoryViews.swift; path = HakedisApp/Views/Contracts/MaterialInventoryViews.swift; sourceTree = "<group>"; };
@@ -282,10 +280,8 @@
 		N009 /* AllHakedisListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllHakedisListView.swift; path = HakedisApp/Views/Finans/AllHakedisListView.swift; sourceTree = "<group>"; };
 		N010 /* AllPaymentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllPaymentsView.swift; path = HakedisApp/Views/Finans/AllPaymentsView.swift; sourceTree = "<group>"; };
 		N011 /* AllGuaranteeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AllGuaranteeListView.swift; path = HakedisApp/Views/Contracts/AllGuaranteeListView.swift; sourceTree = "<group>"; };
-		T010 /* SantiyeModuleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SantiyeModuleTests.swift; sourceTree = "<group>"; };
 		N012 /* SiteDiaryPDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteDiaryPDFGenerator.swift; path = HakedisApp/Views/Santiye/SiteDiaryPDFGenerator.swift; sourceTree = "<group>"; };
 		N013 /* AttendancePDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttendancePDFGenerator.swift; path = HakedisApp/Views/Santiye/AttendancePDFGenerator.swift; sourceTree = "<group>"; };
-		T011 /* PDFGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGeneratorTests.swift; sourceTree = "<group>"; };
 		N014 /* AttachmentViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttachmentViews.swift; path = HakedisApp/Views/Contracts/AttachmentViews.swift; sourceTree = "<group>"; };
 		N015 /* AttachmentPDFGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AttachmentPDFGenerator.swift; path = HakedisApp/Views/Contracts/AttachmentPDFGenerator.swift; sourceTree = "<group>"; };
 		N016 /* PriceDifferenceCalcView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PriceDifferenceCalcView.swift; path = HakedisApp/Views/Finans/PriceDifferenceCalcView.swift; sourceTree = "<group>"; };
@@ -336,37 +332,65 @@
 		N061 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HelpView.swift; path = HakedisApp/Views/Shared/HelpView.swift; sourceTree = "<group>"; };
 		N062 /* PhotoComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoComparisonView.swift; path = HakedisApp/Views/Projects/PhotoComparisonView.swift; sourceTree = "<group>"; };
 		N063 /* DrawingAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrawingAnnotationView.swift; path = HakedisApp/Views/Projects/DrawingAnnotationView.swift; sourceTree = "<group>"; };
-		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
-		T029 /* FazC3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC3Tests.swift; sourceTree = "<group>"; };
-		T028 /* FazC2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC2Tests.swift; sourceTree = "<group>"; };
-		T027 /* FazC1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC1Tests.swift; sourceTree = "<group>"; };
-		T026 /* FazB9Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB9Tests.swift; sourceTree = "<group>"; };
-		T025 /* FazB8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB8Tests.swift; sourceTree = "<group>"; };
-		T024 /* FazB7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB7Tests.swift; sourceTree = "<group>"; };
-		T023 /* FazB6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB6Tests.swift; sourceTree = "<group>"; };
-		T022 /* FazB5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB5Tests.swift; sourceTree = "<group>"; };
-		T021 /* FazB4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB4Tests.swift; sourceTree = "<group>"; };
-		T020 /* FazB3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB3Tests.swift; sourceTree = "<group>"; };
-		T018 /* FazB1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB1Tests.swift; sourceTree = "<group>"; };
-		T019 /* FazB2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB2Tests.swift; sourceTree = "<group>"; };
-		T016 /* Faz6A7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A7Tests.swift; sourceTree = "<group>"; };
+		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
+		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
+		NM003 /* SiteWorkModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteWorkModels.swift; path = HakedisApp/Models/SiteWorkModels.swift; sourceTree = "<group>"; };
+		NM004 /* SiteEquipmentModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SiteEquipmentModels.swift; path = HakedisApp/Models/SiteEquipmentModels.swift; sourceTree = "<group>"; };
+		NM005 /* EquipmentMaintenanceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EquipmentMaintenanceModels.swift; path = HakedisApp/Models/EquipmentMaintenanceModels.swift; sourceTree = "<group>"; };
+		NM006 /* SafetyQualityModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SafetyQualityModels.swift; path = HakedisApp/Models/SafetyQualityModels.swift; sourceTree = "<group>"; };
+		NM007 /* ProjectExecutionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectExecutionModels.swift; path = HakedisApp/Models/ProjectExecutionModels.swift; sourceTree = "<group>"; };
+		NM008 /* InfrastructureModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InfrastructureModels.swift; path = HakedisApp/Models/InfrastructureModels.swift; sourceTree = "<group>"; };
+		PLIST1 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "HakedisApp/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		PROD1 /* HakedisApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HakedisApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		PROD2 /* HakedisWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HakedisWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		PROD3 /* HakedisAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HakedisAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		T001 /* CalculationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculationTests.swift; sourceTree = "<group>"; };
+		T002 /* StatusTransitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusTransitionTests.swift; sourceTree = "<group>"; };
+		T003 /* CRUDTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRUDTests.swift; sourceTree = "<group>"; };
+		T005 /* FinancialTrackingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialTrackingTests.swift; sourceTree = "<group>"; };
+		T006 /* TestProjesiAScenarioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestProjesiAScenarioTests.swift; sourceTree = "<group>"; };
+		T007 /* Grup3FeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grup3FeatureTests.swift; sourceTree = "<group>"; };
+		T008 /* ApprovalAndHandoverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApprovalAndHandoverTests.swift; sourceTree = "<group>"; };
+		T009 /* NewFeaturesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewFeaturesTests.swift; sourceTree = "<group>"; };
+		T010 /* SantiyeModuleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SantiyeModuleTests.swift; sourceTree = "<group>"; };
+		T011 /* PDFGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGeneratorTests.swift; sourceTree = "<group>"; };
 		T012 /* Faz3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz3Tests.swift; sourceTree = "<group>"; };
 		T013 /* Faz6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6Tests.swift; sourceTree = "<group>"; };
 		T014 /* Faz6A3A4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A3A4Tests.swift; sourceTree = "<group>"; };
 		T015 /* Faz6A5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A5Tests.swift; sourceTree = "<group>"; };
+		T016 /* Faz6A7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A7Tests.swift; sourceTree = "<group>"; };
+		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
+		T018 /* FazB1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB1Tests.swift; sourceTree = "<group>"; };
+		T019 /* FazB2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB2Tests.swift; sourceTree = "<group>"; };
+		T020 /* FazB3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB3Tests.swift; sourceTree = "<group>"; };
+		T021 /* FazB4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB4Tests.swift; sourceTree = "<group>"; };
+		T022 /* FazB5Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB5Tests.swift; sourceTree = "<group>"; };
+		T023 /* FazB6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB6Tests.swift; sourceTree = "<group>"; };
+		T024 /* FazB7Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB7Tests.swift; sourceTree = "<group>"; };
+		T025 /* FazB8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB8Tests.swift; sourceTree = "<group>"; };
+		T026 /* FazB9Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazB9Tests.swift; sourceTree = "<group>"; };
+		T027 /* FazC1Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC1Tests.swift; sourceTree = "<group>"; };
+		T028 /* FazC2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC2Tests.swift; sourceTree = "<group>"; };
+		T029 /* FazC3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC3Tests.swift; sourceTree = "<group>"; };
+		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
+		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
+		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXGroup section */
-		WGRP1 /* Widget */ = {
-			isa = PBXGroup;
-			children = (
-				W001 /* HakedisWidget.swift */,
-				W002 /* Info.plist */,
-				W003 /* HakedisWidget.entitlements */,
+/* Begin PBXFrameworksBuildPhase section */
+		PHS2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				SPM_BF0 /* FirebaseCore in Frameworks */,
+				SPM_BF1 /* FirebaseAnalytics in Frameworks */,
+				SPM_BF2 /* FirebaseCrashlytics in Frameworks */,
 			);
-			name = Widget;
-			sourceTree = "<group>";
+			runOnlyForDeploymentPostprocessing = 0;
 		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
 		GRP1 /* HakedisApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -514,6 +538,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		ROOT = {
+			isa = PBXGroup;
+			children = (
+				GRP1 /* HakedisApp */,
+				WGRP1 /* Widget */,
+				TGRP /* HakedisAppTests */,
+				GRP2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
 		TGRP /* HakedisAppTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -525,7 +559,7 @@
 				T007 /* Grup3FeatureTests.swift */,
 				T008 /* ApprovalAndHandoverTests.swift */,
 				T009 /* NewFeaturesTests.swift */,
-			T010 /* SantiyeModuleTests.swift */,
+				T010 /* SantiyeModuleTests.swift */,
 				T011 /* PDFGeneratorTests.swift */,
 				T012 /* Faz3Tests.swift */,
 				T013 /* Faz6Tests.swift */,
@@ -546,28 +580,50 @@
 				T028 /* FazC2Tests.swift */,
 				T029 /* FazC3Tests.swift */,
 			);
-			name = HakedisAppTests;
 			path = HakedisAppTests;
 			sourceTree = "<group>";
 		};
-		ROOT = {
+		WGRP1 /* Widget */ = {
 			isa = PBXGroup;
 			children = (
-				GRP1 /* HakedisApp */,
-				WGRP1 /* Widget */,
-				TGRP /* HakedisAppTests */,
-				GRP2 /* Products */,
+				W001 /* HakedisWidget.swift */,
+				W002 /* Info.plist */,
+				W003 /* HakedisWidget.entitlements */,
 			);
+			name = Widget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		TGT1 /* HakedisApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */;
+			buildPhases = (
+				PHS1 /* Sources */,
+				PHS2 /* Frameworks */,
+				PHS3 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				TDEP1 /* PBXTargetDependency */,
+			);
+			name = HakedisApp;
+			packageProductDependencies = (
+				SPM_DEP0 /* FirebaseCore */,
+				SPM_DEP1 /* FirebaseAnalytics */,
+				SPM_DEP2 /* FirebaseCrashlytics */,
+			);
+			productName = HakedisApp;
+			productReference = PROD1 /* HakedisApp.app */;
+			productType = "com.apple.product-type.application";
+		};
 		TGT2 /* HakedisWidget */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = WCFGLST1 /* Build configuration list for PBXNativeTarget "HakedisWidget" */;
 			buildPhases = (
-				WPS1 /* Sources (Widget) */,
+				WPS1 /* Sources */,
 			);
 			buildRules = (
 			);
@@ -582,7 +638,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = TCFGLST /* Build configuration list for PBXNativeTarget "HakedisAppTests" */;
 			buildPhases = (
-				TPHS1 /* Sources (Tests) */,
+				TPHS1 /* Sources */,
 			);
 			buildRules = (
 			);
@@ -593,62 +649,9 @@
 			productReference = PROD3 /* HakedisAppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		TGT1 /* HakedisApp */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */;
-			buildPhases = (
-				PHS1 /* Sources */,
-				PHS2 /* Frameworks */,
-				PHS3 /* Embed Foundation Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				TDEP1 /* HakedisWidget */,
-			);
-			name = HakedisApp;
-			packageProductDependencies = (
-				SPM_DEP0 /* FirebaseCore */,
-				SPM_DEP1 /* FirebaseAnalytics */,
-				SPM_DEP2 /* FirebaseCrashlytics */,
-			);
-			productName = HakedisApp;
-			productReference = PROD1 /* HakedisApp.app */;
-			productType = "com.apple.product-type.application";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-/* Begin PBXContainerItemProxy section */
-		CIP1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = PROJ /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = TGT2;
-			remoteInfo = HakedisWidget;
-		};
-		TCIP1 /* PBXContainerItemProxy (Tests) */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = PROJ /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = TGT1;
-			remoteInfo = HakedisApp;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXTargetDependency section */
-		TDEP1 /* HakedisWidget */ = {
-			isa = PBXTargetDependency;
-			target = TGT2 /* HakedisWidget */;
-			targetProxy = CIP1 /* PBXContainerItemProxy */;
-		};
-		TTDEP1 /* HakedisApp */ = {
-			isa = PBXTargetDependency;
-			target = TGT1 /* HakedisApp */;
-			targetProxy = TCIP1 /* PBXContainerItemProxy (Tests) */;
-		};
-/* End PBXTargetDependency section */
-
 		PROJ /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
@@ -661,9 +664,7 @@
 							com.apple.CloudKit = {
 								enabled = 1;
 							};
-							com.apple.iCloud = {
-								enabled = 1;
-							};
+							
 						};
 					};
 					TGT2 = {
@@ -725,7 +726,6 @@
 				B011 /* HakedisViews.swift in Sources */,
 				S008 /* SettingsView.swift in Sources */,
 				S009 /* CSVManager.swift in Sources */,
-
 				S010 /* WidgetDataManager.swift in Sources */,
 				S007 /* OfflineSyncManager.swift in Sources */,
 				S006 /* NotificationManager.swift in Sources */,
@@ -836,19 +836,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		TPHS1 /* Sources (Tests) */ = {
+		TPHS1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				TM001 /* CoreModels.swift in TestSources */,
-				TM002 /* ContractApprovalModels.swift in TestSources */,
-				TM003 /* SiteWorkModels.swift in TestSources */,
-				TM004 /* SiteEquipmentModels.swift in TestSources */,
-				TM005 /* EquipmentMaintenanceModels.swift in TestSources */,
-				TM006 /* SafetyQualityModels.swift in TestSources */,
-				TM007 /* ProjectExecutionModels.swift in TestSources */,
-				TM008 /* InfrastructureModels.swift in TestSources */,
-				TB008 /* CashFlowEngine.swift in TestSources */,
+				TM001 /* CoreModels.swift in Sources */,
+				TM002 /* ContractApprovalModels.swift in Sources */,
+				TM003 /* SiteWorkModels.swift in Sources */,
+				TM004 /* SiteEquipmentModels.swift in Sources */,
+				TM005 /* EquipmentMaintenanceModels.swift in Sources */,
+				TM006 /* SafetyQualityModels.swift in Sources */,
+				TM007 /* ProjectExecutionModels.swift in Sources */,
+				TM008 /* InfrastructureModels.swift in Sources */,
+				TB008 /* CashFlowEngine.swift in Sources */,
 				TB001 /* CalculationTests.swift in Sources */,
 				TB002 /* StatusTransitionTests.swift in Sources */,
 				TB003 /* CRUDTests.swift in Sources */,
@@ -857,12 +857,12 @@
 				TB007 /* Grup3FeatureTests.swift in Sources */,
 				TB009 /* ApprovalAndHandoverTests.swift in Sources */,
 				TB010 /* NewFeaturesTests.swift in Sources */,
-				TB011 /* PozLibrary.swift in TestSources */,
+				TB011 /* PozLibrary.swift in Sources */,
 				TB012 /* SantiyeModuleTests.swift in Sources */,
 				TB013 /* PDFGeneratorTests.swift in Sources */,
-				TB014 /* SiteDiaryPDFGenerator.swift in TestSources */,
-				TB015 /* AttendancePDFGenerator.swift in TestSources */,
-				TB016 /* DesignSystem.swift in TestSources */,
+				TB014 /* SiteDiaryPDFGenerator.swift in Sources */,
+				TB015 /* AttendancePDFGenerator.swift in Sources */,
+				TB016 /* DesignSystem.swift in Sources */,
 				TB017 /* Faz3Tests.swift in Sources */,
 				TB018 /* Faz6Tests.swift in Sources */,
 				TB019 /* Faz6A3A4Tests.swift in Sources */,
@@ -879,32 +879,15 @@
 				TB030 /* FazB8Tests.swift in Sources */,
 				TB031 /* FazB9Tests.swift in Sources */,
 				TB032 /* FazC1Tests.swift in Sources */,
-				TB033 /* PerformanceInfrastructure.swift in TestSources */,
+				TB033 /* PerformanceInfrastructure.swift in Sources */,
 				TB034 /* FazC2Tests.swift in Sources */,
-				TB035 /* KVKKViews.swift in TestSources */,
+				TB035 /* KVKKViews.swift in Sources */,
 				TB036 /* FazC3Tests.swift in Sources */,
-				TB037 /* BackupViews.swift in TestSources */,
+				TB037 /* BackupViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXSourcesBuildPhase section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		PHS3 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				WB002 /* HakedisWidget.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		WPS1 /* Sources (Widget) */ = {
+		WPS1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -914,54 +897,15 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXFrameworksBuildPhase section */
-		PHS2 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				SPM_BF0 /* FirebaseCore in Frameworks */,
-				SPM_BF1 /* FirebaseAnalytics in Frameworks */,
-				SPM_BF2 /* FirebaseCrashlytics in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
+/* Begin PBXTargetDependency section */
+		TDEP1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = TGT2 /* HakedisWidget */;
+			targetProxy = CIP1 /* PBXContainerItemProxy */;
 		};
-/* End PBXFrameworksBuildPhase section */
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		TCFG1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 857PAZCN89;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.tests;
-				PRODUCT_NAME = HakedisAppTests;
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		TCFG2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 857PAZCN89;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.tests;
-				PRODUCT_NAME = HakedisAppTests;
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		CFG1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -989,23 +933,23 @@
 		CFG3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = HakedisApp/HakedisApp.entitlements;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/HakedisApp.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 857PAZCN89;
+				DEVELOPMENT_TEAM = ZFKJZD96B7;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Saha fotograflari icin gerekli";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Saha girişlerinde GPS konumu kaydetmek için gerekli";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Saha fotograflari icin gerekli";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alphabisystems.hakedisapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -1018,19 +962,19 @@
 		CFG4 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = HakedisApp/HakedisApp.entitlements;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
 				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/HakedisApp.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = 857PAZCN89;
+				DEVELOPMENT_TEAM = ZFKJZD96B7;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alphabisystems.hakedisapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -1040,18 +984,99 @@
 			};
 			name = Release;
 		};
+		TCFG1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alphabisystems.hakedisapp.tests;
+				PRODUCT_NAME = HakedisAppTests;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		TCFG2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alphabisystems.hakedisapp.tests;
+				PRODUCT_NAME = HakedisAppTests;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		WCFG1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/Widget/HakedisWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HakedisApp/Widget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alphabisystems.hakedisapp.widget;
+				PRODUCT_NAME = HakedisWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		WCFG2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
+				CODE_SIGN_ENTITLEMENTS = HakedisApp/Widget/HakedisWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 857PAZCN89;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HakedisApp/Widget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alphabisystems.hakedisapp.widget;
+				PRODUCT_NAME = HakedisWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		TCFGLST /* Build configuration list for PBXNativeTarget "HakedisAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				TCFG1 /* Debug */,
-				TCFG2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		CFGLST1 /* Build configuration list for PBXNativeTarget "HakedisApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1070,57 +1095,14 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-/* End XCConfigurationList section */
-
-		WCFG1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = HakedisApp/Widget/HakedisWidget.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 857PAZCN89;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = HakedisApp/Widget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.widget;
-				PRODUCT_NAME = HakedisWidget;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		WCFG2 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = HakedisApp/Widget/HakedisWidget.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
-				CODE_SIGN_STYLE = Automatic;
-				"CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]" = NO;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 857PAZCN89;
-				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = HakedisApp/Widget/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.hakedis.app.widget;
-				PRODUCT_NAME = HakedisWidget;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
+		TCFGLST /* Build configuration list for PBXNativeTarget "HakedisAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TCFG1 /* Debug */,
+				TCFG2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		WCFGLST1 /* Build configuration list for PBXNativeTarget "HakedisWidget" */ = {
 			isa = XCConfigurationList;
@@ -1131,6 +1113,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+/* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		SPM_REF1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
