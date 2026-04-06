@@ -67,6 +67,14 @@ struct MoreTabView: View {
                         Label("Çizim Pinleri", systemImage: "mappin.and.ellipse")
                             .accessibilityLabel("Çizim Pinleri")
                     }
+                    NavigationLink(destination: PhotoComparisonView()) {
+                        Label("Fotoğraf Karşılaştırma", systemImage: "photo.stack")
+                            .accessibilityLabel("Fotoğraf Karşılaştırma")
+                    }
+                    NavigationLink(destination: DrawingAnnotationView()) {
+                        Label("Çizim Anotasyonu", systemImage: "pencil.and.ruler.fill")
+                            .accessibilityLabel("Çizim Anotasyonu")
+                    }
                 }
 
                 Section("Maliyet Kontrol") {

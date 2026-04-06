@@ -13,6 +13,19 @@ struct SettingsView: View {
     @AppStorage("defaultAdvanceRate")   private var defaultAdvanceRate   = 0.0
     @AppStorage("defaultKDVRate")       private var defaultKDVRate       = 0.0
 
+    // Para birimi
+    @AppStorage("selectedCurrency") private var selectedCurrency = "TRY"
+
+    // Kullanıcı rolü
+    @AppStorage("userRole") private var userRole = "owner"
+
+    // Dashboard kartları
+    @AppStorage("dashboard_showFinancialSummary") private var showFinancialSummary = true
+    @AppStorage("dashboard_showStockAlerts")      private var showStockAlerts = true
+    @AppStorage("dashboard_showSafetyCard")       private var showSafetyCard = true
+    @AppStorage("dashboard_showRFICard")          private var showRFICard = true
+    @AppStorage("dashboard_showWorkOrderCard")    private var showWorkOrderCard = true
+
     @Environment(\.modelContext) private var modelContext
     @Query private var projects:   [Project]
     @Query private var hakedisler: [Hakedis]
@@ -93,6 +106,36 @@ struct SettingsView: View {
                     }
                 }
 
+                // MARK: Kullanıcı Rolü
+                Section("Kullanıcı Rolü") {
+                    Picker("Rolüm", selection: $userRole) {
+                        ForEach(UserRole.allCases, id: \.rawValue) { role in
+                            Label(role.displayName, systemImage: role.icon).tag(role.rawValue)
+                        }
+                    }
+                    .accessibilityLabel("Kullanıcı rolü seç")
+                }
+
+                // MARK: Para Birimi
+                Section("Para Birimi") {
+                    Picker("Para Birimi", selection: $selectedCurrency) {
+                        ForEach(SupportedCurrency.allCases, id: \.rawValue) { cur in
+                            Text("\(cur.symbol) \(cur.rawValue)").tag(cur.rawValue)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityLabel("Para birimi seç")
+                }
+
+                // MARK: Dashboard Özelleştirme
+                Section("Ana Ekran Kartları") {
+                    Toggle("Finansal Özet", isOn: $showFinancialSummary)
+                    Toggle("Kritik Stok Uyarıları", isOn: $showStockAlerts)
+                    Toggle("İSG Kartı", isOn: $showSafetyCard)
+                    Toggle("RFI Kartı", isOn: $showRFICard)
+                    Toggle("İş Emirleri Kartı", isOn: $showWorkOrderCard)
+                }
+
                 // MARK: Uygulama
                 Section("Uygulama") {
                     NavigationLink(destination: NotificationSettingsView()) {
@@ -134,6 +177,14 @@ struct SettingsView: View {
                     Text("Veri Yönetimi")
                 } footer: {
                     Text("\(projects.count) proje · \(hakedisler.count) hakediş kayıtlı")
+                }
+
+                // MARK: Yardım
+                Section("Yardım") {
+                    NavigationLink(destination: HelpView()) {
+                        Label("Yardım ve Rehber", systemImage: "questionmark.circle")
+                    }
+                    .accessibilityLabel("Yardım ve Rehber")
                 }
 
                 // MARK: Hakkında

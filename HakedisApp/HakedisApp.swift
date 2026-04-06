@@ -81,9 +81,8 @@ struct HakedisApp: App {
     var body: some Scene {
         WindowGroup {
             if let container = modelContainer {
-                ContentView()
+                RootView()
                     .modelContainer(container)
-                    // FIX-23: İlk açılışta bildirim izni iste
                     .onAppear {
                         NotificationManager.shared.requestPermission()
                     }

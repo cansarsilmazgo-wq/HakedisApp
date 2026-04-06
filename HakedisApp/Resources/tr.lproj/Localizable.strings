@@ -1,0 +1,33 @@
+/* MARK: - Navigation & Tabs */
+"tab_home" = "Ana Ekran";
+"tab_projects" = "Projeler";
+"tab_site" = "Şantiye";
+"tab_finance" = "Finans";
+"tab_more" = "Daha Fazla";
+
+/* MARK: - Common Actions */
+"action_add" = "Ekle";
+"action_save" = "Kaydet";
+"action_cancel" = "İptal";
+"action_delete" = "Sil";
+"action_edit" = "Düzenle";
+
+/* MARK: - Status */
+"status_draft" = "Taslak";
+"status_pending" = "Onay Bekliyor";
+"status_approved" = "Onaylandı";
+"status_rejected" = "Reddedildi";
+"status_paid" = "Ödendi";
+
+/* MARK: - Dashboard */
+"dashboard_title" = "Ana Ekran";
+"dashboard_active_projects" = "Aktif Projeler";
+"dashboard_pending_hakedis" = "Bekleyen Hakedişler";
+
+/* MARK: - Settings */
+"settings_title" = "Ayarlar";
+"settings_company_name" = "Şirket / Firma Adı";
+"settings_currency" = "Para Birimi";
+"settings_notifications" = "Bildirim Ayarları";
+"settings_backup" = "Yedekleme";
+"settings_help" = "Yardım ve Rehber";

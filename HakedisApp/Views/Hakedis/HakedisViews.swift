@@ -252,6 +252,7 @@ struct HakedisDetailView: View {
     @State private var showingKopyala = false
     @State private var showingPetition = false
     @State private var paymentToDelete: Payment?
+    @State private var showPaymentToast = false
 
     var statusColor: Color {
         switch hakedis.status {
@@ -571,6 +572,10 @@ struct HakedisDetailView: View {
         .sheet(item: $editingItem) { item in
             EditHakedisItemView(item: item)
         }
+        .onChange(of: hakedis.payments.count) { old, new in
+            if new > old { withAnimation { showPaymentToast = true } }
+        }
+        .toast(isPresented: $showPaymentToast, message: "Ödeme kaydedildi")
         .onChange(of: hakedis.status) { _, newStatus in
             if newStatus == .rejected {
                 showingRejectionCapture = true

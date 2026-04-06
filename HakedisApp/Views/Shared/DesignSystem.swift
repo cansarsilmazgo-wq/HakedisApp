@@ -116,11 +116,78 @@ struct EmptyStateView: View {
     }
 }
 
+// MARK: - UserRole
+
+enum UserRole: String, CaseIterable {
+    case owner          = "owner"
+    case projectManager = "projectManager"
+    case siteEngineer   = "siteEngineer"
+    case safetyOfficer  = "safetyOfficer"
+    case accountant     = "accountant"
+    case subcontractor  = "subcontractor"
+    case viewer         = "viewer"
+
+    var displayName: String {
+        switch self {
+        case .owner:          return "Firma Sahibi"
+        case .projectManager: return "Proje Müdürü"
+        case .siteEngineer:   return "Şantiye Mühendisi"
+        case .safetyOfficer:  return "İSG Uzmanı"
+        case .accountant:     return "Muhasebeci"
+        case .subcontractor:  return "Taşeron"
+        case .viewer:         return "Görüntüleyici"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .owner:          return "person.crop.circle.badge.checkmark"
+        case .projectManager: return "person.crop.circle.fill"
+        case .siteEngineer:   return "hammer.circle.fill"
+        case .safetyOfficer:  return "shield.checkered"
+        case .accountant:     return "banknote.fill"
+        case .subcontractor:  return "person.2.circle"
+        case .viewer:         return "eye.circle"
+        }
+    }
+}
+
+// MARK: - CurrencyManager
+
+enum SupportedCurrency: String, CaseIterable {
+    case TRY = "TRY"
+    case USD = "USD"
+    case EUR = "EUR"
+    case GBP = "GBP"
+
+    var symbol: String {
+        switch self {
+        case .TRY: return "₺"
+        case .USD: return "$"
+        case .EUR: return "€"
+        case .GBP: return "£"
+        }
+    }
+
+    var locale: Locale {
+        switch self {
+        case .TRY: return Locale(identifier: "tr_TR")
+        case .USD: return Locale(identifier: "en_US")
+        case .EUR: return Locale(identifier: "de_DE")
+        case .GBP: return Locale(identifier: "en_GB")
+        }
+    }
+}
+
 extension Double {
     var currencyFormatted: String {
+        let code = UserDefaults.standard.string(forKey: "selectedCurrency") ?? "TRY"
+        let currency = SupportedCurrency(rawValue: code) ?? .TRY
         let f = NumberFormatter()
-        f.numberStyle = .currency; f.currencySymbol = "₺"; f.locale = Locale(identifier: "tr_TR")
-        return f.string(from: NSNumber(value: self)) ?? "₺0"
+        f.numberStyle = .currency
+        f.currencySymbol = currency.symbol
+        f.locale = currency.locale
+        return f.string(from: NSNumber(value: self)) ?? "\(currency.symbol)0"
     }
     var percentFormatted: String { String(format: "%.1f%%", self) }
     var quantityFormatted: String { self == floor(self) ? String(format: "%.0f", self) : String(format: "%.2f", self) }
@@ -128,12 +195,14 @@ extension Double {
     var shortFormatted: String { compactCurrency }
     /// Compact currency — e.g. ₺1,2M or ₺850B
     var compactCurrency: String {
+        let code = UserDefaults.standard.string(forKey: "selectedCurrency") ?? "TRY"
+        let sym = (SupportedCurrency(rawValue: code) ?? .TRY).symbol
         let abs = Swift.abs(self)
         let sign = self < 0 ? "-" : ""
         switch abs {
-        case 1_000_000_000...: return "\(sign)₺\(String(format: "%.1f", abs / 1_000_000_000))Mr"
-        case 1_000_000...: return "\(sign)₺\(String(format: "%.1f", abs / 1_000_000))M"
-        case 1_000...: return "\(sign)₺\(String(format: "%.0f", abs / 1_000))B"
+        case 1_000_000_000...: return "\(sign)\(sym)\(String(format: "%.1f", abs / 1_000_000_000))Mr"
+        case 1_000_000...: return "\(sign)\(sym)\(String(format: "%.1f", abs / 1_000_000))M"
+        case 1_000...: return "\(sign)\(sym)\(String(format: "%.0f", abs / 1_000))B"
         default: return currencyFormatted
         }
     }
@@ -142,4 +211,77 @@ extension Double {
 extension Date {
     var shortFormatted: String { let f = DateFormatter(); f.dateFormat = "dd.MM.yyyy"; return f.string(from: self) }
     var monthYear: String { let f = DateFormatter(); f.locale = Locale(identifier: "tr_TR"); f.dateFormat = "MMMM yyyy"; return f.string(from: self) }
+}
+
+// MARK: - ErrorHelper
+
+enum ErrorHelper {
+    static func userFriendlyMessage(_ error: Error) -> String {
+        let desc = error.localizedDescription
+        if desc.contains("disk") || desc.contains("space") || desc.contains("full") {
+            return "Depolama alanı yetersiz. Lütfen cihazınızda yer açın."
+        } else if desc.contains("iCloud") || desc.contains("CloudKit") || desc.contains("network") || desc.contains("connection") {
+            return "Ağ bağlantısı sorunu. İnternet bağlantınızı kontrol edin."
+        } else if desc.contains("permission") || desc.contains("authorization") || desc.contains("denied") {
+            return "İzin reddedildi. Ayarlar'dan uygulama izinlerini kontrol edin."
+        } else if desc.contains("corrupt") || desc.contains("invalid") || desc.contains("format") {
+            return "Dosya biçimi geçersiz veya bozuk. Farklı bir dosya deneyin."
+        } else if desc.contains("SwiftData") || desc.contains("Core Data") || desc.contains("migration") {
+            return "Veritabanı hatası oluştu. Uygulamayı yeniden başlatmayı deneyin."
+        } else {
+            return "Bir hata oluştu. Lütfen tekrar deneyin."
+        }
+    }
+}
+
+// MARK: - ToastView
+
+struct ToastView: View {
+    let message: String
+    let systemImage: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: systemImage)
+                .foregroundColor(color)
+            Text(message)
+                .font(.subheadline.bold())
+                .foregroundColor(.primary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.regularMaterial, in: Capsule())
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+    }
+}
+
+struct ToastModifier: ViewModifier {
+    @Binding var isPresented: Bool
+    let message: String
+    let systemImage: String
+    let color: Color
+
+    func body(content: Content) -> some View {
+        ZStack(alignment: .bottom) {
+            content
+            if isPresented {
+                ToastView(message: message, systemImage: systemImage, color: color)
+                    .padding(.bottom, 24)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                            withAnimation { isPresented = false }
+                        }
+                    }
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isPresented)
+    }
+}
+
+extension View {
+    func toast(isPresented: Binding<Bool>, message: String, systemImage: String = "checkmark.circle.fill", color: Color = .hakedisSuccess) -> some View {
+        modifier(ToastModifier(isPresented: isPresented, message: message, systemImage: systemImage, color: color))
+    }
 }

@@ -161,7 +161,7 @@ final class BackupManager: ObservableObject {
             UserDefaults.standard.set(lastBackupDate, forKey: "lastBackupDate")
             return jsonURL
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorHelper.userFriendlyMessage(error)
             return nil
         }
     }
@@ -179,7 +179,7 @@ final class BackupManager: ObservableObject {
             try FileManager.default.copyItem(at: jsonURL, to: zipURL)
             return zipURL
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorHelper.userFriendlyMessage(error)
             return nil
         }
     }
@@ -245,7 +245,7 @@ final class BackupManager: ObservableObject {
             try context.save()
             return true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = ErrorHelper.userFriendlyMessage(error)
             return false
         }
     }
@@ -275,9 +275,12 @@ struct BackupView: View {
     @State private var showImport = false
     @State private var showSuccess = false
 
+    @State private var showToast = false
+
     var body: some View {
         NavigationStack {
-            Form {
+            ZStack {
+              Form {
                 Section("Durum") {
                     if let last = manager.lastBackupDate {
                         LabeledContent("Son Yedekleme",
@@ -291,6 +294,7 @@ struct BackupView: View {
                     Button {
                         if let url = manager.exportToJSON(context: context) {
                             exportItem = url
+                            withAnimation { showToast = true }
                         }
                     } label: {
                         Label("JSON Olarak Dışa Aktar", systemImage: "square.and.arrow.up")
@@ -328,11 +332,11 @@ struct BackupView: View {
                     }
                 }
             }
-            .navigationTitle("Yedekleme")
-            .navigationBarTitleDisplayMode(.large)
-            .sheet(item: $exportItem) { url in
-                BackupShareSheet(items: [url])
-            }
+              .navigationTitle("Yedekleme")
+              .navigationBarTitleDisplayMode(.large)
+              .sheet(item: $exportItem) { url in
+                  BackupShareSheet(items: [url])
+              }
             .fileImporter(isPresented: $showImport,
                           allowedContentTypes: [.json, .zip],
                           allowsMultipleSelection: false) { result in
@@ -342,15 +346,26 @@ struct BackupView: View {
                         _ = manager.importFromJSON(url: url, context: context)
                     }
                 case .failure(let error):
-                    manager.errorMessage = error.localizedDescription
+                    manager.errorMessage = ErrorHelper.userFriendlyMessage(error)
                 }
             }
-            .alert("Başarılı", isPresented: $showSuccess) {
-                Button("Tamam", role: .cancel) {}
-            } message: {
-                Text("Haftalık yedekleme hatırlatması ayarlandı.")
+              .alert("Başarılı", isPresented: $showSuccess) {
+                  Button("Tamam", role: .cancel) {}
+              } message: {
+                  Text("Haftalık yedekleme hatırlatması ayarlandı.")
+              }
+              if manager.isExporting {
+                  Color.black.opacity(0.25).ignoresSafeArea()
+                  VStack(spacing: 10) {
+                      ProgressView().scaleEffect(1.3).tint(.white)
+                      Text("Yedekleniyor…").font(.subheadline).foregroundColor(.white)
+                  }
+                  .padding(20)
+                  .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14))
+              }
             }
         }
+        .toast(isPresented: $showToast, message: "Yedek başarıyla oluşturuldu")
     }
 }
 

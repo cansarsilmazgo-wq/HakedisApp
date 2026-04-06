@@ -9,16 +9,34 @@ enum SearchCategory: String, CaseIterable {
     case contractors = "Taşeronlar"
     case workItems   = "İş Kalemleri"
     case hakedisler  = "Hakedişler"
+    case siteDiaries = "Şantiye Günlüğü"
+    case workers     = "İşçiler"
+    case materials   = "Malzemeler"
+    case equipment   = "Ekipmanlar"
+    case safety      = "İSG"
+    case meetings    = "Toplantılar"
+    case correspondence = "Yazışmalar"
+    case workOrders  = "İş Emirleri"
+    case rfis        = "RFI"
 }
 
 // MARK: - Universal Search
 
 struct UniversalSearchView: View {
     @Environment(\.dismiss) private var dismiss
-    @Query private var projects:     [Project]
-    @Query private var contractors:  [Contractor]
-    @Query private var workItems:    [WorkItem]
-    @Query private var hakedisler:   [Hakedis]
+    @Query private var projects:      [Project]
+    @Query private var contractors:   [Contractor]
+    @Query private var workItems:     [WorkItem]
+    @Query private var hakedisler:    [Hakedis]
+    @Query private var siteDiaries:   [SiteDiary]
+    @Query private var workers:       [Worker]
+    @Query private var materials:     [Material]
+    @Query private var equipmentItems:[EquipmentItem]
+    @Query private var safetyIncidents:[SafetyIncident]
+    @Query private var meetings:      [Meeting]
+    @Query private var correspondences:[Correspondence]
+    @Query private var workOrders:    [WorkOrder]
+    @Query private var rfis:          [RFI]
 
     @State private var query    = ""
     @State private var category: SearchCategory = .all
@@ -73,35 +91,88 @@ struct UniversalSearchView: View {
             filteredHakedisler = filteredHakedisler.filter { $0.periodStart <= endOfDay }
         }
 
+        let filteredSiteDiaries: [SiteDiary] = (category == .all || category == .siteDiaries)
+            ? siteDiaries.filter { $0.workDescription.lowercased().contains(q) || ($0.notes?.lowercased().contains(q) ?? false) }
+            : []
+
+        let filteredWorkers: [Worker] = (category == .all || category == .workers)
+            ? workers.filter { $0.fullName.lowercased().contains(q) || ($0.sgkSicilNo?.lowercased().contains(q) ?? false) }
+            : []
+
+        let filteredMaterials: [Material] = (category == .all || category == .materials)
+            ? materials.filter { $0.name.lowercased().contains(q) }
+            : []
+
+        let filteredEquipment: [EquipmentItem] = (category == .all || category == .equipment)
+            ? equipmentItems.filter { $0.name.lowercased().contains(q) || ($0.plateNumber?.lowercased().contains(q) ?? false) }
+            : []
+
+        let filteredSafety: [SafetyIncident] = (category == .all || category == .safety)
+            ? safetyIncidents.filter { $0.incidentDescription.lowercased().contains(q) || ($0.location?.lowercased().contains(q) ?? false) }
+            : []
+
+        let filteredMeetings: [Meeting] = (category == .all || category == .meetings)
+            ? meetings.filter { $0.title.lowercased().contains(q) || ($0.location?.lowercased().contains(q) ?? false) }
+            : []
+
+        let filteredCorrespondences: [Correspondence] = (category == .all || category == .correspondence)
+            ? correspondences.filter { $0.subject.lowercased().contains(q) || $0.senderOrRecipient.lowercased().contains(q) }
+            : []
+
+        let filteredWorkOrders: [WorkOrder] = (category == .all || category == .workOrders)
+            ? workOrders.filter { $0.orderTitle.lowercased().contains(q) || $0.orderNo.lowercased().contains(q) }
+            : []
+
+        let filteredRFIs: [RFI] = (category == .all || category == .rfis)
+            ? rfis.filter { $0.subject.lowercased().contains(q) || $0.rfiNo.lowercased().contains(q) }
+            : []
+
         return SearchResults(
             projects: filteredProjects,
             contractors: filteredContractors,
             workItems: filteredWorkItems,
-            hakedisler: filteredHakedisler
+            hakedisler: filteredHakedisler,
+            siteDiaries: filteredSiteDiaries,
+            workers: filteredWorkers,
+            materials: filteredMaterials,
+            equipment: filteredEquipment,
+            safety: filteredSafety,
+            meetings: filteredMeetings,
+            correspondences: filteredCorrespondences,
+            workOrders: filteredWorkOrders,
+            rfis: filteredRFIs
         )
     }
 
     private var totalCount: Int {
         results.projects.count + results.contractors.count
         + results.workItems.count + results.hakedisler.count
+        + results.siteDiaries.count + results.workers.count
+        + results.materials.count + results.equipment.count
+        + results.safety.count + results.meetings.count
+        + results.correspondences.count + results.workOrders.count + results.rfis.count
+    }
+
+    private var categoryChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(SearchCategory.allCases, id: \.self) { cat in
+                    FilterChip(title: cat.rawValue, isSelected: category == cat) {
+                        category = cat
+                        if cat != .hakedisler { hakedisStatusFilter = nil }
+                    }
+                }
+            }
+            .padding(.horizontal)
+        }
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Category chips
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(SearchCategory.allCases, id: \.self) { cat in
-                            FilterChip(title: cat.rawValue, isSelected: category == cat) {
-                                category = cat
-                                if cat != .hakedisler { hakedisStatusFilter = nil }
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.vertical, 8)
+                categoryChips
+                    .padding(.vertical, 8)
 
                 // Hakedis status filter (only when hakedisler or all selected)
                 if category == .hakedisler || category == .all {
@@ -172,120 +243,20 @@ struct UniversalSearchView: View {
 
                 Divider()
 
-                List {
-                    if query.count < 2 {
-                        // Recent searches
-                        let recent = recentSearches
-                        if !recent.isEmpty {
-                            Section("Son Aramalar") {
-                                ForEach(recent, id: \.self) { term in
-                                    Button {
-                                        query = term
-                                    } label: {
-                                        HStack {
-                                            Image(systemName: "clock")
-                                                .foregroundColor(.secondary).font(.subheadline)
-                                            Text(term).foregroundColor(.primary)
-                                            Spacer()
-                                            Image(systemName: "arrow.up.left")
-                                                .foregroundColor(.secondary).font(.caption)
-                                        }
-                                    }
-                                }
-                                .onDelete { indices in
-                                    var updated = recent
-                                    updated.remove(atOffsets: indices)
-                                    saveRecent(updated)
-                                }
-                                Button("Temizle", role: .destructive) { saveRecent([]) }
-                            }
-                        } else {
-                            ContentUnavailableView(
-                                "Aramak için yazın",
-                                systemImage: "magnifyingglass",
-                                description: Text("En az 2 karakter girin")
-                            )
-                        }
-                    } else if results.isEmpty {
-                        ContentUnavailableView.search(text: query)
-                    } else {
-                        // Result count header
-                        Section {
-                            HStack {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.hakedisSuccess)
-                                Text("\(totalCount) sonuç bulundu")
-                                    .font(.subheadline).foregroundColor(.secondary)
-                            }
-                        }
-                        .listRowBackground(Color.clear)
-
-                        if !results.projects.isEmpty {
-                            Section("Projeler (\(results.projects.count))") {
-                                ForEach(results.projects) { p in
-                                    NavigationLink(destination: ProjectDetailView(project: p)) {
-                                        SearchResultRow(
-                                            icon: "building.2",
-                                            title: p.name,
-                                            subtitle: p.location.isEmpty ? nil : p.location,
-                                            badge: p.status.rawValue,
-                                            badgeColor: p.status == .active ? .hakedisSuccess : .secondary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        if !results.contractors.isEmpty {
-                            Section("Taşeronlar (\(results.contractors.count))") {
-                                ForEach(results.contractors) { c in
-                                    NavigationLink(destination: ContractorDetailView(contractor: c)) {
-                                        SearchResultRow(
-                                            icon: "person.2",
-                                            title: c.name,
-                                            subtitle: c.contactPerson.isEmpty ? nil : c.contactPerson,
-                                            badge: "\(c.contracts.count) sözleşme",
-                                            badgeColor: .hakedisOrange
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        if !results.workItems.isEmpty {
-                            Section("İş Kalemleri (\(results.workItems.count))") {
-                                ForEach(results.workItems) { i in
-                                    NavigationLink(destination: WorkItemDetailView(workItem: i)) {
-                                        SearchResultRow(
-                                            icon: "list.bullet.rectangle",
-                                            title: i.name,
-                                            subtitle: "[\(i.code)] • \(i.contract?.title ?? "—")",
-                                            badge: i.completionPercentage.percentFormatted,
-                                            badgeColor: i.completionPercentage >= 100 ? .hakedisSuccess : .hakedisOrange
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        if !results.hakedisler.isEmpty {
-                            Section("Hakedişler (\(results.hakedisler.count))") {
-                                ForEach(results.hakedisler) { h in
-                                    NavigationLink(destination: HakedisDetailView(hakedis: h)) {
-                                        SearchResultRow(
-                                            icon: "doc.text",
-                                            title: h.periodName,
-                                            subtitle: h.contract?.title,
-                                            badge: h.status.rawValue,
-                                            badgeColor: statusColor(h.status)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                .listStyle(.insetGrouped)
+                SearchResultList(
+                    query: query,
+                    results: results,
+                    totalCount: totalCount,
+                    recentSearches: recentSearches,
+                    onSelectRecent: { query = $0 },
+                    onDeleteRecent: { indices in
+                        var updated = recentSearches
+                        updated.remove(atOffsets: indices)
+                        saveRecent(updated)
+                    },
+                    onClearRecent: { saveRecent([]) },
+                    hakedisStatusColor: statusColor
+                )
             }
             .navigationTitle("Ara")
             .navigationBarTitleDisplayMode(.inline)
@@ -337,6 +308,224 @@ struct UniversalSearchView: View {
     }
 }
 
+// MARK: - Search Result List
+
+private struct SearchResultList: View {
+    let query: String
+    let results: SearchResults
+    let totalCount: Int
+    let recentSearches: [String]
+    let onSelectRecent: (String) -> Void
+    let onDeleteRecent: (IndexSet) -> Void
+    let onClearRecent: () -> Void
+    let hakedisStatusColor: (HakedisStatus) -> Color
+
+    var body: some View {
+        List {
+            if query.count < 2 {
+                recentSection
+            } else if results.isEmpty {
+                ContentUnavailableView.search(text: query)
+            } else {
+                foundSection
+            }
+        }
+        .listStyle(.insetGrouped)
+    }
+
+    @ViewBuilder private var recentSection: some View {
+        if !recentSearches.isEmpty {
+            Section("Son Aramalar") {
+                ForEach(recentSearches, id: \.self) { term in
+                    Button { onSelectRecent(term) } label: {
+                        HStack {
+                            Image(systemName: "clock").foregroundColor(.secondary).font(.subheadline)
+                            Text(term).foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "arrow.up.left").foregroundColor(.secondary).font(.caption)
+                        }
+                    }
+                }
+                .onDelete(perform: onDeleteRecent)
+                Button("Temizle", role: .destructive, action: onClearRecent)
+            }
+        } else {
+            ContentUnavailableView("Aramak için yazın", systemImage: "magnifyingglass",
+                                   description: Text("En az 2 karakter girin"))
+        }
+    }
+
+    @ViewBuilder private var foundSection: some View {
+        Section {
+            HStack {
+                Image(systemName: "checkmark.circle.fill").foregroundColor(.hakedisSuccess)
+                Text("\(totalCount) sonuç bulundu").font(.subheadline).foregroundColor(.secondary)
+            }
+        }
+        .listRowBackground(Color.clear)
+        coreResultSections
+        extendedResultSections
+    }
+
+    @ViewBuilder private var coreResultSections: some View {
+        if !results.projects.isEmpty {
+            Section("Projeler (\(results.projects.count))") {
+                ForEach(results.projects) { p in
+                    NavigationLink(destination: ProjectDetailView(project: p)) {
+                        SearchResultRow(icon: "building.2", title: p.name,
+                            subtitle: p.location.isEmpty ? nil : p.location,
+                            badge: p.status.rawValue,
+                            badgeColor: p.status == .active ? .hakedisSuccess : .secondary)
+                    }
+                }
+            }
+        }
+        if !results.contractors.isEmpty {
+            Section("Taşeronlar (\(results.contractors.count))") {
+                ForEach(results.contractors) { c in
+                    NavigationLink(destination: ContractorDetailView(contractor: c)) {
+                        SearchResultRow(icon: "person.2", title: c.name,
+                            subtitle: c.contactPerson.isEmpty ? nil : c.contactPerson,
+                            badge: "\(c.contracts.count) sözleşme", badgeColor: .hakedisOrange)
+                    }
+                }
+            }
+        }
+        if !results.workItems.isEmpty {
+            Section("İş Kalemleri (\(results.workItems.count))") {
+                ForEach(results.workItems) { i in
+                    NavigationLink(destination: WorkItemDetailView(workItem: i)) {
+                        SearchResultRow(icon: "list.bullet.rectangle", title: i.name,
+                            subtitle: "[\(i.code)] • \(i.contract?.title ?? "—")",
+                            badge: i.completionPercentage.percentFormatted,
+                            badgeColor: i.completionPercentage >= 100 ? .hakedisSuccess : .hakedisOrange)
+                    }
+                }
+            }
+        }
+        if !results.hakedisler.isEmpty {
+            Section("Hakedişler (\(results.hakedisler.count))") {
+                ForEach(results.hakedisler) { h in
+                    NavigationLink(destination: HakedisDetailView(hakedis: h)) {
+                        SearchResultRow(icon: "doc.text", title: h.periodName,
+                            subtitle: h.contract?.title,
+                            badge: h.status.rawValue, badgeColor: hakedisStatusColor(h.status))
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var extendedResultSections: some View {
+        if !results.siteDiaries.isEmpty {
+            Section("Şantiye Günlüğü (\(results.siteDiaries.count))") {
+                ForEach(results.siteDiaries) { d in
+                    NavigationLink(destination: SiteDiaryListView()) {
+                        SearchResultRow(icon: "calendar.badge.checkmark",
+                            title: d.workDescription.prefix(60).description,
+                            subtitle: d.date.shortFormatted, badge: "", badgeColor: .hakedisOrange)
+                    }
+                }
+            }
+        }
+        if !results.workers.isEmpty {
+            Section("İşçiler (\(results.workers.count))") {
+                ForEach(results.workers) { w in
+                    NavigationLink(destination: WorkerListView()) {
+                        SearchResultRow(icon: "person.fill", title: w.fullName,
+                            subtitle: w.professionRaw,
+                            badge: w.isActive ? "Aktif" : "Pasif",
+                            badgeColor: w.isActive ? .hakedisSuccess : .secondary)
+                    }
+                }
+            }
+        }
+        if !results.materials.isEmpty {
+            Section("Malzemeler (\(results.materials.count))") {
+                ForEach(results.materials) { m in
+                    NavigationLink(destination: MaterialListView()) {
+                        SearchResultRow(icon: "shippingbox.fill", title: m.name,
+                            subtitle: "Stok: \(m.currentStock.quantityFormatted) \(m.unit)",
+                            badge: m.currentStock <= m.minimumStock ? "Kritik" : "",
+                            badgeColor: .hakedisDanger)
+                    }
+                }
+            }
+        }
+        moreResultSections
+    }
+
+    @ViewBuilder private var moreResultSections: some View {
+        if !results.equipment.isEmpty {
+            Section("Ekipmanlar (\(results.equipment.count))") {
+                ForEach(results.equipment) { e in
+                    NavigationLink(destination: EquipmentManagementListView()) {
+                        SearchResultRow(icon: "wrench.and.screwdriver.fill", title: e.name,
+                            subtitle: e.plateNumber,
+                            badge: e.isMaintenanceDue ? "Bakım" : "", badgeColor: .hakedisWarning)
+                    }
+                }
+            }
+        }
+        if !results.safety.isEmpty {
+            Section("İSG Olayları (\(results.safety.count))") {
+                ForEach(results.safety) { s in
+                    NavigationLink(destination: SafetyListView()) {
+                        SearchResultRow(icon: "shield.checkered",
+                            title: s.incidentDescription.prefix(60).description,
+                            subtitle: s.location,
+                            badge: s.isResolved ? "Kapatıldı" : "Açık",
+                            badgeColor: s.isResolved ? .hakedisSuccess : .hakedisDanger)
+                    }
+                }
+            }
+        }
+        if !results.meetings.isEmpty {
+            Section("Toplantılar (\(results.meetings.count))") {
+                ForEach(results.meetings) { m in
+                    NavigationLink(destination: MeetingListView()) {
+                        SearchResultRow(icon: "person.3.fill", title: m.title,
+                            subtitle: m.location, badge: m.meetingDate.shortFormatted,
+                            badgeColor: .hakedisOrange)
+                    }
+                }
+            }
+        }
+        if !results.correspondences.isEmpty {
+            Section("Yazışmalar (\(results.correspondences.count))") {
+                ForEach(results.correspondences) { c in
+                    NavigationLink(destination: OfficialNotificationListView()) {
+                        SearchResultRow(icon: "envelope.fill", title: c.subject,
+                            subtitle: c.senderOrRecipient, badge: c.correspondenceNo,
+                            badgeColor: .hakedisOrange)
+                    }
+                }
+            }
+        }
+        if !results.workOrders.isEmpty {
+            Section("İş Emirleri (\(results.workOrders.count))") {
+                ForEach(results.workOrders) { wo in
+                    NavigationLink(destination: WorkOrderListView()) {
+                        SearchResultRow(icon: "doc.badge.gearshape.fill", title: wo.orderTitle,
+                            subtitle: wo.orderNo, badge: wo.status.rawValue, badgeColor: .hakedisOrange)
+                    }
+                }
+            }
+        }
+        if !results.rfis.isEmpty {
+            Section("RFI (\(results.rfis.count))") {
+                ForEach(results.rfis) { r in
+                    NavigationLink(destination: RFIListView()) {
+                        SearchResultRow(icon: "questionmark.bubble.fill", title: r.subject,
+                            subtitle: r.rfiNo, badge: r.status.rawValue,
+                            badgeColor: r.status == .answered ? .hakedisSuccess : .hakedisWarning)
+                    }
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Search Result Row
 
 struct SearchResultRow: View {
@@ -365,13 +554,30 @@ struct SearchResultRow: View {
 // MARK: - Search Results Model
 
 struct SearchResults {
-    let projects:    [Project]
-    let contractors: [Contractor]
-    let workItems:   [WorkItem]
-    let hakedisler:  [Hakedis]
+    let projects:        [Project]
+    let contractors:     [Contractor]
+    let workItems:       [WorkItem]
+    let hakedisler:      [Hakedis]
+    let siteDiaries:     [SiteDiary]
+    let workers:         [Worker]
+    let materials:       [Material]
+    let equipment:       [EquipmentItem]
+    let safety:          [SafetyIncident]
+    let meetings:        [Meeting]
+    let correspondences: [Correspondence]
+    let workOrders:      [WorkOrder]
+    let rfis:            [RFI]
 
-    static let empty = SearchResults(projects: [], contractors: [], workItems: [], hakedisler: [])
-    var isEmpty: Bool { projects.isEmpty && contractors.isEmpty && workItems.isEmpty && hakedisler.isEmpty }
+    static let empty = SearchResults(
+        projects: [], contractors: [], workItems: [], hakedisler: [],
+        siteDiaries: [], workers: [], materials: [], equipment: [],
+        safety: [], meetings: [], correspondences: [], workOrders: [], rfis: []
+    )
+    var isEmpty: Bool {
+        projects.isEmpty && contractors.isEmpty && workItems.isEmpty && hakedisler.isEmpty
+        && siteDiaries.isEmpty && workers.isEmpty && materials.isEmpty && equipment.isEmpty
+        && safety.isEmpty && meetings.isEmpty && correspondences.isEmpty && workOrders.isEmpty && rfis.isEmpty
+    }
 }
 
 // MARK: - Filter Chip

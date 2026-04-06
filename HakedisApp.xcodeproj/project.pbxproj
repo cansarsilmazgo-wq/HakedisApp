@@ -145,6 +145,10 @@
 		NB057 /* KVKKViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N057 /* KVKKViews.swift */; };
 		NB058 /* BackupViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
 		NB059 /* SyncViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N059 /* SyncViews.swift */; };
+		NB060 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N060 /* OnboardingView.swift */; };
+		NB061 /* HelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N061 /* HelpView.swift */; };
+		NB062 /* PhotoComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N062 /* PhotoComparisonView.swift */; };
+		NB063 /* DrawingAnnotationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N063 /* DrawingAnnotationView.swift */; };
 		TB022 /* Faz6A8Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T017 /* Faz6A8Tests.swift */; };
 		TB036 /* FazC3Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T029 /* FazC3Tests.swift */; };
 		TB037 /* BackupViews.swift in TestSources */ = {isa = PBXBuildFile; fileRef = N058 /* BackupViews.swift */; };
@@ -328,6 +332,10 @@
 		N057 /* KVKKViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KVKKViews.swift; path = HakedisApp/Views/Shared/KVKKViews.swift; sourceTree = "<group>"; };
 		N058 /* BackupViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BackupViews.swift; path = HakedisApp/Views/Shared/BackupViews.swift; sourceTree = "<group>"; };
 		N059 /* SyncViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SyncViews.swift; path = HakedisApp/Views/Shared/SyncViews.swift; sourceTree = "<group>"; };
+		N060 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OnboardingView.swift; path = HakedisApp/Views/Shared/OnboardingView.swift; sourceTree = "<group>"; };
+		N061 /* HelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HelpView.swift; path = HakedisApp/Views/Shared/HelpView.swift; sourceTree = "<group>"; };
+		N062 /* PhotoComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoComparisonView.swift; path = HakedisApp/Views/Projects/PhotoComparisonView.swift; sourceTree = "<group>"; };
+		N063 /* DrawingAnnotationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DrawingAnnotationView.swift; path = HakedisApp/Views/Projects/DrawingAnnotationView.swift; sourceTree = "<group>"; };
 		T017 /* Faz6A8Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Faz6A8Tests.swift; sourceTree = "<group>"; };
 		T029 /* FazC3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC3Tests.swift; sourceTree = "<group>"; };
 		T028 /* FazC2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC2Tests.swift; sourceTree = "<group>"; };
@@ -488,6 +496,10 @@
 				N057 /* KVKKViews.swift */,
 				N058 /* BackupViews.swift */,
 				N059 /* SyncViews.swift */,
+				N060 /* OnboardingView.swift */,
+				N061 /* HelpView.swift */,
+				N062 /* PhotoComparisonView.swift */,
+				N063 /* DrawingAnnotationView.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -817,6 +829,10 @@
 				NB057 /* KVKKViews.swift in Sources */,
 				NB058 /* BackupViews.swift in Sources */,
 				NB059 /* SyncViews.swift in Sources */,
+				NB060 /* OnboardingView.swift in Sources */,
+				NB061 /* HelpView.swift in Sources */,
+				NB062 /* PhotoComparisonView.swift in Sources */,
+				NB063 /* DrawingAnnotationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

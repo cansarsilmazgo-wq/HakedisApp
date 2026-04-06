@@ -8,6 +8,7 @@ struct ProjectListView: View {
     @State private var showingAddProject = false
     @State private var searchText = ""
     @State private var projectToDelete: Project?
+    @State private var showAddedToast = false
 
     private var filtered: [Project] {
         if searchText.isEmpty { return projects }
@@ -55,6 +56,10 @@ struct ProjectListView: View {
             .sheet(isPresented: $showingAddProject) {
                 AddProjectView()
             }
+            .onChange(of: projects.count) { old, new in
+                if new > old { withAnimation { showAddedToast = true } }
+            }
+            .toast(isPresented: $showAddedToast, message: "Proje eklendi")
             .confirmationDialog(
                 projectToDelete != nil
                     ? "\(projectToDelete!.name) silinsin mi? \(projectToDelete!.contracts.count) sözleşme ve tüm hakedişler kalıcı olarak silinecek."

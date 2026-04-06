@@ -2,6 +2,12 @@ import SwiftUI
 import SwiftData
 
 struct DashboardView: View {
+    @AppStorage("dashboard_showFinancialSummary") private var showFinancialSummary = true
+    @AppStorage("dashboard_showStockAlerts") private var showStockAlerts = true
+    @AppStorage("dashboard_showSafetyCard") private var showSafetyCard = true
+    @AppStorage("dashboard_showRFICard") private var showRFICard = true
+    @AppStorage("dashboard_showWorkOrderCard") private var showWorkOrderCard = true
+
     @Query private var projects: [Project]
     @Query private var hakedisler: [Hakedis]
     @Query private var dailyEntries: [DailyEntry]
@@ -248,7 +254,7 @@ struct DashboardView: View {
                     }
 
                     // Kritik Stok Uyarısı
-                    if !lowStockMaterials.isEmpty {
+                    if showStockAlerts && !lowStockMaterials.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             SectionHeader("Kritik Stok Uyarısı")
                             ForEach(lowStockMaterials.prefix(3), id: \.id) { mat in
@@ -276,10 +282,10 @@ struct DashboardView: View {
                     OverdueDecisionsCard()
 
                     // Cevaplanmamış RFI'lar
-                    OpenRFIsCard()
+                    if showRFICard { OpenRFIsCard() }
 
                     // Gecikmiş İş Emirleri
-                    OverdueWorkOrdersCard()
+                    if showWorkOrderCard { OverdueWorkOrdersCard() }
 
                     // Gecikmiş Kabul Eksiklikleri
                     OverdueAcceptanceDeficienciesCard()
@@ -290,7 +296,7 @@ struct DashboardView: View {
                     let sgkPendingIncidents = safetyIncidents.filter { $0.incidentType == .majorInjury && !$0.reportedToSGK && $0.isSGKDeadlineApproaching }
                     let sgkOverdueIncidents = safetyIncidents.filter { $0.incidentType == .majorInjury && $0.isSGKDeadlineOverdue }
 
-                    if !openSafetyIncidents.isEmpty || !highUncontrolledRisks.isEmpty || !overdueActions.isEmpty || !sgkPendingIncidents.isEmpty || !sgkOverdueIncidents.isEmpty {
+                    if showSafetyCard && (!openSafetyIncidents.isEmpty || !highUncontrolledRisks.isEmpty || !overdueActions.isEmpty || !sgkPendingIncidents.isEmpty || !sgkOverdueIncidents.isEmpty) {
                         VStack(alignment: .leading, spacing: 8) {
                             SectionHeader("İSG Özeti")
 

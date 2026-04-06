@@ -132,18 +132,34 @@ struct ReportPreviewView: View {
     @State private var projectName = ""
     @State private var preparedBy = ""
     @State private var pdfShareURL: URL? = nil
+    @State private var isGeneratingPDF = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    ReportHeaderView(template: template, reportDate: reportDate,
-                                     projectName: projectName, preparedBy: preparedBy)
-                    ForEach(template.enabledSections) { section in
-                        ReportSectionPreview(section: section)
+            ZStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        ReportHeaderView(template: template, reportDate: reportDate,
+                                         projectName: projectName, preparedBy: preparedBy)
+                        ForEach(template.enabledSections) { section in
+                            ReportSectionPreview(section: section)
+                        }
                     }
+                    .padding()
                 }
-                .padding()
+                if isGeneratingPDF {
+                    Color.black.opacity(0.3).ignoresSafeArea()
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .scaleEffect(1.4)
+                            .tint(.white)
+                        Text("PDF oluşturuluyor…")
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                    }
+                    .padding(24)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                }
             }
             .navigationTitle("Rapor Önizleme")
             .navigationBarTitleDisplayMode(.inline)
@@ -154,16 +170,27 @@ struct ReportPreviewView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        let data = ComprehensiveReportPDFGenerator.generate(
-                            template: template, reportDate: reportDate,
-                            projectName: projectName, preparedBy: preparedBy)
-                        let url = FileManager.default.temporaryDirectory
-                            .appendingPathComponent("\(template.templateName.prefix(30)).pdf")
-                        try? data.write(to: url)
-                        pdfShareURL = url
+                        isGeneratingPDF = true
+                        DispatchQueue.global(qos: .userInitiated).async {
+                            let data = ComprehensiveReportPDFGenerator.generate(
+                                template: template, reportDate: reportDate,
+                                projectName: projectName, preparedBy: preparedBy)
+                            let url = FileManager.default.temporaryDirectory
+                                .appendingPathComponent("\(template.templateName.prefix(30)).pdf")
+                            try? data.write(to: url)
+                            DispatchQueue.main.async {
+                                isGeneratingPDF = false
+                                pdfShareURL = url
+                            }
+                        }
                     } label: {
-                        Label("PDF", systemImage: "doc.fill")
+                        if isGeneratingPDF {
+                            ProgressView().scaleEffect(0.8)
+                        } else {
+                            Label("PDF", systemImage: "doc.fill")
+                        }
                     }
+                    .disabled(isGeneratingPDF)
                 }
             }
         }
