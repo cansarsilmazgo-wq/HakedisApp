@@ -334,6 +334,12 @@ private struct OwnerRegisterView: View {
             guard isValidEmail(email) else {
                 errorMessage = "Geçerli bir e-posta adresi girin."; return false
             }
+            // Email uniqueness — erken kontrol (adım 0'da)
+            let descriptor = FetchDescriptor<UserAccount>()
+            if let existing = try? modelContext.fetch(descriptor),
+               existing.contains(where: { $0.email.lowercased() == email.lowercased() }) {
+                errorMessage = "Bu e-posta adresi zaten kayıtlı."; return false
+            }
         case 1:
             guard !companyName.trimmingCharacters(in: .whitespaces).isEmpty else {
                 errorMessage = "Şirket adı zorunludur."; return false
@@ -352,23 +358,30 @@ private struct OwnerRegisterView: View {
         guard password == passwordConfirm else {
             errorMessage = "Şifreler eşleşmiyor."; return
         }
+
+        // Race-condition guard: email son anda da kontrol et (hiçbir insert yapmadan önce)
+        let userDescriptor = FetchDescriptor<UserAccount>()
+        if let existing = try? modelContext.fetch(userDescriptor),
+           existing.contains(where: { $0.email.lowercased() == email.lowercased() }) {
+            errorMessage = "Bu e-posta adresi zaten kayıtlı."; return
+        }
+
         isCreating = true
         let hash = authManager.hashPassword(password)
 
-        // Create owner user
+        // Önce nesneleri oluştur, henüz insert etme
         let user = UserAccount(fullName: fullName, email: email, role: .owner, passwordHash: hash)
         user.phone = phone.isEmpty ? nil : phone
         user.profilePhotoData = profilePhotoData
         user.professionRaw = selectedProfession.rawValue
 
-        // Create company
         let company = Company(companyName: companyName)
         company.taxNumber = taxNumber.isEmpty ? nil : taxNumber
         company.address = address.isEmpty ? nil : address
         company.phone = companyPhone.isEmpty ? nil : companyPhone
         company.logoData = logoData
 
-        // Fix 6: Davet kodu uniqueness kontrolü
+        // Davet kodu uniqueness
         let companyDescriptor = FetchDescriptor<Company>()
         if let existingCompanies = try? modelContext.fetch(companyDescriptor) {
             var attempts = 0
@@ -383,15 +396,33 @@ private struct OwnerRegisterView: View {
         user.companyName = companyName
         user.companyLogoData = logoData
 
+        // Her iki nesneyi birlikte insert et, sonra tek save
         modelContext.insert(company)
+        modelContext.insert(user)
         authManager.rememberMe = true
-        let success = authManager.register(user: user, context: modelContext)
-        isCreating = false
-        if success {
+
+        do {
+            try modelContext.save()
+            // Login
+            DispatchQueue.main.async {
+                self.authManager.currentUser = user
+                self.authManager.isLoggedIn = true
+                self.authManager.lastUserId = user.id.uuidString
+            }
+            isCreating = false
             createdCompany = company
             withAnimation { step = 3 }
-        } else {
-            errorMessage = "Bu e-posta adresi zaten kayıtlı."
+        } catch {
+            // Save başarısız — context'e eklenen nesneleri geri al
+            modelContext.delete(user)
+            modelContext.delete(company)
+            isCreating = false
+            let desc = "\(error)".lowercased()
+            if desc.contains("unique") || desc.contains("constraint") || desc.contains("duplicate") {
+                errorMessage = "Bu e-posta adresi zaten kayıtlı."
+            } else {
+                errorMessage = "Kayıt sırasında hata oluştu. Lütfen tekrar deneyin."
+            }
         }
     }
 }
@@ -747,6 +778,12 @@ private struct EmployeeRegisterView: View {
             guard isValidEmail(email) else {
                 errorMessage = "Geçerli bir e-posta adresi girin."; return false
             }
+            // Email uniqueness — erken kontrol (adım 1'de, şifre adımına geçmeden)
+            let descriptor = FetchDescriptor<UserAccount>()
+            if let existing = try? modelContext.fetch(descriptor),
+               existing.contains(where: { $0.email.lowercased() == email.lowercased() }) {
+                errorMessage = "Bu e-posta adresi zaten kayıtlı."; return false
+            }
         default: break
         }
         return true
@@ -824,8 +861,15 @@ private struct EmployeeRegisterView: View {
             isCreating = false
             withAnimation { step = 4 }
         } catch {
+            modelContext.delete(user)
+            modelContext.delete(joinRequest)
             isCreating = false
-            errorMessage = "Kayıt sırasında hata oluştu. Tekrar deneyin."
+            let desc = "\(error)".lowercased()
+            if desc.contains("unique") || desc.contains("constraint") || desc.contains("duplicate") {
+                errorMessage = "Bu e-posta adresi zaten kayıtlı."
+            } else {
+                errorMessage = "Kayıt sırasında hata oluştu. Lütfen tekrar deneyin."
+            }
         }
     }
 }
