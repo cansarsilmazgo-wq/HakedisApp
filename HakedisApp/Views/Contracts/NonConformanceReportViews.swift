@@ -13,8 +13,8 @@ struct NonConformanceReportListView: View {
 
     private var filtered: [NonConformanceReport] {
         allNCRs.filter { ncr in
-            let contractMatch = contract == nil || ncr.contract?.id == contract!.id
-            let statusMatch = selectedStatus == nil || ncr.status == selectedStatus!
+            let contractMatch = contract.map { ncr.contract?.id == $0.id } ?? true
+            let statusMatch = selectedStatus.map { ncr.status == $0 } ?? true
             return contractMatch && statusMatch
         }
     }

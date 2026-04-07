@@ -433,6 +433,73 @@ class NotificationManager: ObservableObject {
         )
         UNUserNotificationCenter.current().add(request)
     }
+
+    // MARK: - Malzeme Sipariş Teslimat Bildirimi
+
+    var materialOrderAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "materialOrderAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "materialOrderAlertsEnabled") }
+    }
+
+    func scheduleMaterialOrderDeliveryAlert(order: MaterialOrder) {
+        guard isAuthorized, materialOrderAlertsEnabled else { return }
+        guard let deliveryDate = order.expectedDeliveryDate else { return }
+        let content = UNMutableNotificationContent()
+        let materialName = order.material?.name ?? order.orderNo
+        content.title = "Malzeme Teslimat Hatırlatıcı"
+        content.body = "\(materialName) siparişi (\(order.orderNo)) bugün teslim edilmesi bekleniyor."
+        content.sound = .default
+
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: deliveryDate)
+        components.hour = 8; components.minute = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "matorder_\(order.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func cancelMaterialOrderAlert(orderID: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: ["matorder_\(orderID.uuidString)"]
+        )
+    }
+
+    // MARK: - Yazışma Cevap Süresi Bildirimi
+
+    var correspondenceAlertsEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: "correspondenceAlertsEnabled") }
+        set { UserDefaults.standard.set(newValue, forKey: "correspondenceAlertsEnabled") }
+    }
+
+    func scheduleCorrespondenceDeadlineAlert(correspondence: CorrespondenceRecord) {
+        guard isAuthorized, correspondenceAlertsEnabled else { return }
+        guard let deadline = correspondence.replyDeadline, !correspondence.isReplied else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Yazışma Cevap Süresi Yaklaşıyor"
+        content.body = "'\(correspondence.subject)' konulu yazışmaya (\(correspondence.recordNo)) cevap vermek için son 2 gün kaldı."
+        content.sound = .default
+
+        let alertDate = Calendar.current.date(byAdding: .day, value: -2, to: deadline) ?? deadline
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: alertDate)
+        components.hour = 9; components.minute = 0
+        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "corrdeadline_\(correspondence.id.uuidString)",
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    func cancelCorrespondenceDeadlineAlert(correspondenceID: UUID) {
+        UNUserNotificationCenter.current().removePendingNotificationRequests(
+            withIdentifiers: ["corrdeadline_\(correspondenceID.uuidString)"]
+        )
+    }
 }
 
 struct NotificationSettingsView: View {
@@ -443,6 +510,8 @@ struct NotificationSettingsView: View {
     // FIX-22: Teminat bildirimleri için ayrı AppStorage
     @AppStorage("guaranteeAlertsEnabled") private var guaranteeAlertsEnabled = false
     @AppStorage("certificateAlertsEnabled") private var certificateAlertsEnabled = false
+    @AppStorage("materialOrderAlertsEnabled") private var materialOrderAlertsEnabled = false
+    @AppStorage("correspondenceAlertsEnabled") private var correspondenceAlertsEnabled = false
 
     var body: some View {
         Form {
@@ -524,6 +593,28 @@ struct NotificationSettingsView: View {
                             }
                         }
                     }
+                Toggle("Malzeme Sipariş Teslimat Uyarıları", isOn: $materialOrderAlertsEnabled)
+                    .tint(.hakedisOrange)
+                    .onChange(of: materialOrderAlertsEnabled) { _, val in
+                        manager.materialOrderAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { $0.identifier.hasPrefix("matorder_") }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
+                Toggle("Yazışma Cevap Süresi Uyarıları", isOn: $correspondenceAlertsEnabled)
+                    .tint(.hakedisOrange)
+                    .onChange(of: correspondenceAlertsEnabled) { _, val in
+                        manager.correspondenceAlertsEnabled = val
+                        if !val {
+                            UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+                                let ids = requests.filter { $0.identifier.hasPrefix("corrdeadline_") }.map { $0.identifier }
+                                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+                            }
+                        }
+                    }
             }
 
             Section("Bilgi") {
@@ -539,6 +630,10 @@ struct NotificationSettingsView: View {
                 Text("Teminat uyarıları; son kullanım tarihinden 30, 7 ve 1 gün önce 09:00'da zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Sertifika uyarıları; son kullanım tarihinden 30, 15 ve 7 gün önce 09:00'da zamanlanır.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Malzeme sipariş uyarıları; beklenen teslimat gününde sabah 08:00'de tetiklenir.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("Yazışma cevap süresi uyarıları; son yanıt tarihinden 2 gün önce 09:00'da zamanlanır.")
                     .font(.caption).foregroundColor(.secondary)
             }
         }

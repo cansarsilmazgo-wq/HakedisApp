@@ -12,8 +12,8 @@ struct MeetingListView: View {
 
     private var filtered: [Meeting] {
         allMeetings.filter { m in
-            let projMatch = project == nil || m.project?.id == project!.id
-            let typeMatch = typeFilter == nil || m.meetingType == typeFilter!
+            let projMatch = project.map { m.project?.id == $0.id } ?? true
+            let typeMatch = typeFilter.map { m.meetingType == $0 } ?? true
             return projMatch && typeMatch
         }
     }
@@ -286,7 +286,7 @@ struct AddMeetingView: View {
     private var projectMeetings: [Meeting] {
         allMeetings.filter { m in
             let p = project ?? selectedProject
-            return p == nil || m.project?.id == p!.id
+            return p.map { m.project?.id == $0.id } ?? true
         }
     }
 

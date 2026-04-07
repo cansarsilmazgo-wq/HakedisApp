@@ -221,6 +221,15 @@
 		TB044 /* Module6SGKTaxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T036 /* Module6SGKTaxTests.swift */; };
 		TB045 /* Module7MapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T037 /* Module7MapTests.swift */; };
 		TB046 /* Module8SeismicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T038 /* Module8SeismicTests.swift */; };
+		TB047 /* CorrespondenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T039 /* CorrespondenceTests.swift */; };
+		TB048 /* DocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T040 /* DocumentTests.swift */; };
+		TB049 /* MeetingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T041 /* MeetingTests.swift */; };
+		TB050 /* GanttTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T042 /* GanttTests.swift */; };
+		TB051 /* DrawingPinTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T043 /* DrawingPinTests.swift */; };
+		TB052 /* WorkOrderRFITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T044 /* WorkOrderRFITests.swift */; };
+		TB053 /* ReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T045 /* ReportTests.swift */; };
+		TB054 /* BiometricTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T046 /* BiometricTests.swift */; };
+		TB055 /* BackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T047 /* BackupTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -395,6 +404,15 @@
 		T036 /* Module6SGKTaxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module6SGKTaxTests.swift; sourceTree = "<group>"; };
 		T037 /* Module7MapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module7MapTests.swift; sourceTree = "<group>"; };
 		T038 /* Module8SeismicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module8SeismicTests.swift; sourceTree = "<group>"; };
+		T039 /* CorrespondenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrespondenceTests.swift; sourceTree = "<group>"; };
+		T040 /* DocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTests.swift; sourceTree = "<group>"; };
+		T041 /* MeetingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingTests.swift; sourceTree = "<group>"; };
+		T042 /* GanttTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GanttTests.swift; sourceTree = "<group>"; };
+		T043 /* DrawingPinTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingPinTests.swift; sourceTree = "<group>"; };
+		T044 /* WorkOrderRFITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkOrderRFITests.swift; sourceTree = "<group>"; };
+		T045 /* ReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportTests.swift; sourceTree = "<group>"; };
+		T046 /* BiometricTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricTests.swift; sourceTree = "<group>"; };
+		T047 /* BackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupTests.swift; sourceTree = "<group>"; };
 		NM009 /* UserAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserAccountModel.swift; path = HakedisApp/Models/UserAccountModel.swift; sourceTree = "<group>"; };
 		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
 		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
@@ -674,6 +692,15 @@
 				T036 /* Module6SGKTaxTests.swift */,
 				T037 /* Module7MapTests.swift */,
 				T038 /* Module8SeismicTests.swift */,
+				T039 /* CorrespondenceTests.swift */,
+				T040 /* DocumentTests.swift */,
+				T041 /* MeetingTests.swift */,
+				T042 /* GanttTests.swift */,
+				T043 /* DrawingPinTests.swift */,
+				T044 /* WorkOrderRFITests.swift */,
+				T045 /* ReportTests.swift */,
+				T046 /* BiometricTests.swift */,
+				T047 /* BackupTests.swift */,
 			);
 			path = HakedisAppTests;
 			sourceTree = "<group>";
@@ -1014,6 +1041,15 @@
 				TB044 /* Module6SGKTaxTests.swift in Sources */,
 				TB045 /* Module7MapTests.swift in Sources */,
 				TB046 /* Module8SeismicTests.swift in Sources */,
+				TB047 /* CorrespondenceTests.swift in Sources */,
+				TB048 /* DocumentTests.swift in Sources */,
+				TB049 /* MeetingTests.swift in Sources */,
+				TB050 /* GanttTests.swift in Sources */,
+				TB051 /* DrawingPinTests.swift in Sources */,
+				TB052 /* WorkOrderRFITests.swift in Sources */,
+				TB053 /* ReportTests.swift in Sources */,
+				TB054 /* BiometricTests.swift in Sources */,
+				TB055 /* BackupTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -15,9 +15,9 @@ struct CorrespondenceLogView: View {
 
     private var filtered: [Correspondence] {
         allItems.filter { c in
-            let contractMatch = contract == nil || c.contract?.id == contract!.id
-            let dirMatch = directionFilter == nil || c.direction == directionFilter!
-            let catMatch = categoryFilter == nil || c.category == categoryFilter!
+            let contractMatch = contract.map { c.contract?.id == $0.id } ?? true
+            let dirMatch = directionFilter.map { c.direction == $0 } ?? true
+            let catMatch = categoryFilter.map { c.category == $0 } ?? true
             let searchMatch = searchText.isEmpty ||
                 c.subject.localizedCaseInsensitiveContains(searchText) ||
                 c.correspondenceNo.localizedCaseInsensitiveContains(searchText)
@@ -314,7 +314,7 @@ struct OfficialNotificationListView: View {
     @State private var showingAdd = false
 
     private var filtered: [OfficialNotification] {
-        allItems.filter { contract == nil || $0.contract?.id == contract!.id }
+        allItems.filter { contract.map { c in $0.contract?.id == c.id } ?? true }
     }
 
     var body: some View {

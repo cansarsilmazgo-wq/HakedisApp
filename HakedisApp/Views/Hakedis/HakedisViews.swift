@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import MessageUI
 
 // MARK: - Hakedis List Row
 struct HakedisListRow: View {
@@ -253,6 +254,9 @@ struct HakedisDetailView: View {
     @State private var showingPetition = false
     @State private var paymentToDelete: Payment?
     @State private var showPaymentToast = false
+    @State private var showingMailCompose = false
+    @State private var mailResult: Result<MFMailComposeResult, Error>? = nil
+    @StateObject private var authManager = AuthManager.shared
 
     var statusColor: Color {
         switch hakedis.status {
@@ -550,10 +554,21 @@ struct HakedisDetailView: View {
                     NavigationLink(destination: HakedisPDFPreviewView(hakedis: hakedis)) {
                         Image(systemName: "doc.richtext")
                     }
+                    if authManager.currentRole.canExportData && MFMailComposeViewController.canSendMail() {
+                        Button {
+                            showingMailCompose = true
+                        } label: {
+                            Image(systemName: "envelope")
+                        }
+                        .accessibilityLabel("E-posta ile gönder")
+                    }
                     WhatsAppShareButton(hakedis: hakedis)
                     HakedisShareButton(hakedis: hakedis)
                 }
             }
+        }
+        .sheet(isPresented: $showingMailCompose) {
+            HakedisMailComposeView(hakedis: hakedis, result: $mailResult)
         }
         .navigationTitle(hakedis.periodName)
         .navigationBarTitleDisplayMode(.inline)
@@ -591,7 +606,7 @@ struct HakedisDetailView: View {
             if isDeleted { dismiss() }
         }
         .confirmationDialog(
-            paymentToDelete != nil ? "\(paymentToDelete!.amount.currencyFormatted) tutarındaki ödeme silinsin mi?" : "",
+            paymentToDelete.map { "\($0.amount.currencyFormatted) tutarındaki ödeme silinsin mi?" } ?? "",
             isPresented: Binding(get: { paymentToDelete != nil }, set: { if !$0 { paymentToDelete = nil } }),
             titleVisibility: .visible
         ) {
@@ -1075,6 +1090,62 @@ struct HakedisVergiSection: View {
                 .background(Color.hakedisDanger.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
+        }
+    }
+}
+
+// MARK: - Mail Compose View
+
+struct HakedisMailComposeView: UIViewControllerRepresentable {
+    let hakedis: Hakedis
+    @Binding var result: Result<MFMailComposeResult, Error>?
+    @Environment(\.dismiss) private var dismiss
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let vc = MFMailComposeViewController()
+        vc.mailComposeDelegate = context.coordinator
+
+        let contractorName = hakedis.contract?.contractor?.name ?? "Taşeron"
+        let projectName = hakedis.contract?.project?.name ?? "Proje"
+        vc.setSubject("Hakediş: \(hakedis.periodName) — \(contractorName)")
+        vc.setMessageBody(
+            """
+            Sayın \(contractorName),
+
+            \(projectName) projesi için \(hakedis.periodName) dönemi hakediş belgesi ekte iletilmektedir.
+
+            Net Hakediş Tutarı: \(hakedis.netAmount.currencyFormatted)
+            Durum: \(hakedis.status.rawValue)
+
+            İyi çalışmalar.
+            """,
+            isHTML: false
+        )
+
+        let pdfData = HakedisPDFGenerator.generate(hakedis: hakedis)
+        let fileName = HakedisPDFGenerator.safeFileName(hakedis.periodName)
+        vc.addAttachmentData(pdfData, mimeType: "application/pdf", fileName: "\(fileName).pdf")
+
+        return vc
+    }
+
+    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
+
+    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        let parent: HakedisMailComposeView
+        init(_ parent: HakedisMailComposeView) { self.parent = parent }
+
+        func mailComposeController(_ controller: MFMailComposeViewController,
+                                   didFinishWith result: MFMailComposeResult,
+                                   error: Error?) {
+            if let error {
+                parent.result = .failure(error)
+            } else {
+                parent.result = .success(result)
+            }
+            parent.dismiss()
         }
     }
 }

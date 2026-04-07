@@ -15,9 +15,9 @@ struct DocumentListView: View {
 
     private var filtered: [ProjectDocument] {
         allDocs.filter { d in
-            let projMatch = project == nil || d.project?.id == project!.id
-            let typeMatch = typeFilter == nil || d.documentType == typeFilter!
-            let discMatch = disciplineFilter == nil || d.discipline == disciplineFilter!
+            let projMatch = project.map { d.project?.id == $0.id } ?? true
+            let typeMatch = typeFilter.map { d.documentType == $0 } ?? true
+            let discMatch = disciplineFilter.map { d.discipline == $0 } ?? true
             let searchMatch = searchText.isEmpty ||
                 d.documentName.localizedCaseInsensitiveContains(searchText) ||
                 (d.tags ?? "").localizedCaseInsensitiveContains(searchText)

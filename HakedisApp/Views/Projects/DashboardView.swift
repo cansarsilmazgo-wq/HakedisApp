@@ -25,6 +25,8 @@ struct DashboardView: View {
     @Query private var allMaterialRequests: [MaterialRequest]
     @Query private var allRiskAssessments: [RiskAssessment]
     @Query private var allCorrectiveActions: [CorrectiveAction]
+    @Query private var allActivities: [ProjectActivity]
+    @Query private var seismicAssessments: [SeismicAssessment]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -119,6 +121,15 @@ struct DashboardView: View {
         hakedisler.filter { $0.status == .approved }.reduce(0) { $0 + $1.remainingAmount }
     }
 
+    private var delayedActivities: [ProjectActivity] {
+        allActivities.filter { $0.isDelayed }
+    }
+    private var highRiskBuildings: [SeismicAssessment] {
+        seismicAssessments.filter {
+            $0.assessmentResult == .unsafeHighRisk || $0.assessmentResult == .collapse
+        }
+    }
+
     @StateObject private var notificationManager = NotificationManager.shared
     @State private var showingSearch = false
     @State private var pendingObjectionCount: Int = 0
@@ -126,7 +137,7 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                LazyVStack(alignment: .leading, spacing: 24) {
                     // Stat Cards
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         StatCard(
@@ -354,6 +365,78 @@ struct DashboardView: View {
                                 .accessibilityLabel("ISG olayı: \(incident.incidentType.rawValue)")
                             }
                         }
+                    }
+
+                    // Hava Durumu Uyarısı
+                    if let diary = latestDiary, !diary.weatherCondition.isWorkSuitable {
+                        NavigationLink(destination: WeatherDashboardView()) {
+                            HStack(spacing: 12) {
+                                Image(systemName: diary.weatherCondition.icon)
+                                    .font(.title2).foregroundColor(.hakedisWarning).frame(width: 44)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Hava Koşulu Uyarısı")
+                                        .font(.subheadline.bold())
+                                    Text("\(diary.weatherCondition.rawValue) — saha çalışması uygun olmayabilir")
+                                        .font(.caption).foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.caption).foregroundColor(.secondary)
+                            }
+                            .padding(Spacing.card)
+                            .background(Color.hakedisCard)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisWarning.opacity(0.4), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Hava koşulu uyarısı: \(diary.weatherCondition.rawValue)")
+                    }
+
+                    // Gantt Gecikme Uyarısı
+                    if !delayedActivities.isEmpty {
+                        NavigationLink(destination: ActivityListView()) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "calendar.badge.exclamationmark")
+                                    .font(.title2).foregroundColor(.hakedisDanger).frame(width: 44)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Geciken Aktiviteler")
+                                        .font(.subheadline.bold())
+                                    Text("\(delayedActivities.count) aktivite planın gerisinde")
+                                        .font(.caption).foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.caption).foregroundColor(.secondary)
+                            }
+                            .padding(Spacing.card)
+                            .background(Color.hakedisCard)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(delayedActivities.count) geciken aktivite")
+                    }
+
+                    // Deprem Risk Uyarısı
+                    if !highRiskBuildings.isEmpty {
+                        NavigationLink(destination: SeismicAssessmentListView()) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "waveform.path.ecg.rectangle.fill")
+                                    .font(.title2).foregroundColor(.hakedisDanger).frame(width: 44)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text("Yüksek Deprem Riski")
+                                        .font(.subheadline.bold())
+                                    Text("\(highRiskBuildings.count) bina yüksek/göçme riski taşıyor")
+                                        .font(.caption).foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.caption).foregroundColor(.secondary)
+                            }
+                            .padding(Spacing.card)
+                            .background(Color.hakedisCard)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.hakedisDanger.opacity(0.3), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(highRiskBuildings.count) yüksek deprem riskli bina")
                     }
 
                     // Pending Hakedis
