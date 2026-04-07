@@ -175,6 +175,48 @@ struct MoreTabView: View {
                     }
                 }
 
+                Section("Fiyat & Maliyet") {
+                    NavigationLink(destination: PriceTrackerDashboardView()) {
+                        Label("Fiyat Takibi", systemImage: "chart.line.uptrend.xyaxis")
+                            .accessibilityLabel("Fiyat Takibi")
+                    }
+                    NavigationLink(destination: PriceAlertView()) {
+                        Label("Fiyat Uyarıları", systemImage: "exclamationmark.triangle.fill")
+                            .accessibilityLabel("Fiyat Uyarıları")
+                    }
+                    NavigationLink(destination: MonthlyDeclarationsView()) {
+                        Label("Beyannameler", systemImage: "doc.badge.checkmark")
+                            .accessibilityLabel("Beyannameler")
+                    }
+                }
+
+                Section("Özel Modüller") {
+                    NavigationLink(destination: UrbanRenewalListView()) {
+                        Label("Kentsel Dönüşüm", systemImage: "building.2.fill")
+                            .accessibilityLabel("Kentsel Dönüşüm")
+                    }
+                    NavigationLink(destination: SeismicAssessmentListView()) {
+                        Label("Deprem Risk", systemImage: "waveform.path.ecg.rectangle.fill")
+                            .accessibilityLabel("Deprem Risk Değerlendirme")
+                    }
+                    NavigationLink(destination: ProjectMapView()) {
+                        Label("Proje Haritası", systemImage: "map.fill")
+                            .accessibilityLabel("Proje Haritası")
+                    }
+                    NavigationLink(destination: WeatherDashboardView()) {
+                        Label("Hava Durumu", systemImage: "cloud.sun.fill")
+                            .accessibilityLabel("Hava Durumu")
+                    }
+                    NavigationLink(destination: AttendanceQRListView()) {
+                        Label("QR Yoklama", systemImage: "qrcode.viewfinder")
+                            .accessibilityLabel("QR Yoklama")
+                    }
+                    NavigationLink(destination: DisputeManagementView()) {
+                        Label("Taşeron İtirazları", systemImage: "exclamationmark.bubble.fill")
+                            .accessibilityLabel("Taşeron İtirazları")
+                    }
+                }
+
                 Section("Sistem") {
                     NavigationLink(destination: SettingsView()) {
                         Label("Ayarlar", systemImage: "gear")

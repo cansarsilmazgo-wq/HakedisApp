@@ -54,7 +54,25 @@ struct HakedisApp: App {
             WorkerCertificate.self,
             UserAccount.self,
             Company.self,
-            JoinRequest.self
+            JoinRequest.self,
+            // Modül 1 — Taşeron Portal
+            SubcontractorDispute.self,
+            SubcontractorWorkOrder.self,
+            SubcontractorMaterialRequest.self,
+            SubcontractorAdditionalWork.self,
+            // Modül 2 — Fiyat Takip
+            PriceTracker.self,
+            MarketPriceEntry.self,
+            BayindirlikFiyat.self,
+            // Modül 3 — Hava Durumu
+            WeatherRecord.self,
+            // Modül 5 — Kentsel Dönüşüm
+            UrbanRenewalProject.self,
+            Stakeholder.self,
+            UnitDistribution.self,
+            // Modül 8 — Deprem Risk
+            SeismicAssessment.self,
+            SeismicChecklistItem.self
         ])
 
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

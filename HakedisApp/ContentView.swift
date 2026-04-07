@@ -42,6 +42,16 @@ struct ContentView: View {
     private var role: UserRole { authManager.currentRole }
 
     var body: some View {
+        // Taşeron rolü → özel portal
+        if role == .subcontractor {
+            SubcontractorPortalView()
+        } else {
+            mainTabView
+        }
+    }
+
+    @ViewBuilder
+    private var mainTabView: some View {
         ZStack(alignment: .top) {
             TabView {
                 // Tab 1 — Ana Ekran (herkese)
@@ -113,3 +123,4 @@ struct ContentView: View {
         }
     }
 }
+

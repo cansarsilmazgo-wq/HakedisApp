@@ -195,6 +195,32 @@
 		TM009 /* UserAccountModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM009 /* UserAccountModel.swift */; };
 		WB001 /* HakedisWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = W001 /* HakedisWidget.swift */; };
 		WB002 /* HakedisWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = PROD2 /* HakedisWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		SM011 /* SubcontractorModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM011 /* SubcontractorModels.swift */; };
+		SM012 /* PriceTrackingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM012 /* PriceTrackingModels.swift */; };
+		SM013 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM013 /* WeatherModels.swift */; };
+		SM014 /* UrbanRenewalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM014 /* UrbanRenewalModels.swift */; };
+		SM015 /* SeismicModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM015 /* SeismicModels.swift */; };
+		TM011 /* SubcontractorModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM011 /* SubcontractorModels.swift */; };
+		TM012 /* PriceTrackingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM012 /* PriceTrackingModels.swift */; };
+		TM013 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM013 /* WeatherModels.swift */; };
+		TM014 /* UrbanRenewalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM014 /* UrbanRenewalModels.swift */; };
+		TM015 /* SeismicModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM015 /* SeismicModels.swift */; };
+		NB070 /* SubcontractorPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N070 /* SubcontractorPortalView.swift */; };
+		NB071 /* PriceTrackerViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N071 /* PriceTrackerViews.swift */; };
+		NB072 /* WeatherViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N072 /* WeatherViews.swift */; };
+		NB073 /* QRCodeViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N073 /* QRCodeViews.swift */; };
+		NB074 /* UrbanRenewalViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N074 /* UrbanRenewalViews.swift */; };
+		NB075 /* MonthlyDeclarationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N075 /* MonthlyDeclarationsView.swift */; };
+		NB076 /* ProjectMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N076 /* ProjectMapView.swift */; };
+		NB077 /* SeismicViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N077 /* SeismicViews.swift */; };
+		TB039 /* Module1SubcontractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T031 /* Module1SubcontractorTests.swift */; };
+		TB040 /* Module2PriceTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T032 /* Module2PriceTrackerTests.swift */; };
+		TB041 /* Module3WeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T033 /* Module3WeatherTests.swift */; };
+		TB042 /* Module4QRCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T034 /* Module4QRCodeTests.swift */; };
+		TB043 /* Module5UrbanRenewalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T035 /* Module5UrbanRenewalTests.swift */; };
+		TB044 /* Module6SGKTaxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T036 /* Module6SGKTaxTests.swift */; };
+		TB045 /* Module7MapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T037 /* Module7MapTests.swift */; };
+		TB046 /* Module8SeismicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T038 /* Module8SeismicTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -348,6 +374,27 @@
 		N068 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AuthManager.swift; path = HakedisApp/Views/Shared/AuthManager.swift; sourceTree = "<group>"; };
 		N069 /* JoinRequestManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = JoinRequestManagementView.swift; path = HakedisApp/Views/Auth/JoinRequestManagementView.swift; sourceTree = "<group>"; };
 		NM010 /* CompanyModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CompanyModel.swift; path = HakedisApp/Models/CompanyModel.swift; sourceTree = "<group>"; };
+		NM011 /* SubcontractorModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubcontractorModels.swift; path = HakedisApp/Models/SubcontractorModels.swift; sourceTree = "<group>"; };
+		NM012 /* PriceTrackingModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PriceTrackingModels.swift; path = HakedisApp/Models/PriceTrackingModels.swift; sourceTree = "<group>"; };
+		NM013 /* WeatherModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeatherModels.swift; path = HakedisApp/Models/WeatherModels.swift; sourceTree = "<group>"; };
+		NM014 /* UrbanRenewalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UrbanRenewalModels.swift; path = HakedisApp/Models/UrbanRenewalModels.swift; sourceTree = "<group>"; };
+		NM015 /* SeismicModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SeismicModels.swift; path = HakedisApp/Models/SeismicModels.swift; sourceTree = "<group>"; };
+		N070 /* SubcontractorPortalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubcontractorPortalView.swift; path = HakedisApp/Views/Subcontractor/SubcontractorPortalView.swift; sourceTree = "<group>"; };
+		N071 /* PriceTrackerViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PriceTrackerViews.swift; path = HakedisApp/Views/Finans/PriceTrackerViews.swift; sourceTree = "<group>"; };
+		N072 /* WeatherViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeatherViews.swift; path = HakedisApp/Views/Santiye/WeatherViews.swift; sourceTree = "<group>"; };
+		N073 /* QRCodeViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = QRCodeViews.swift; path = HakedisApp/Views/Santiye/QRCodeViews.swift; sourceTree = "<group>"; };
+		N074 /* UrbanRenewalViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UrbanRenewalViews.swift; path = HakedisApp/Views/Projects/UrbanRenewalViews.swift; sourceTree = "<group>"; };
+		N075 /* MonthlyDeclarationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MonthlyDeclarationsView.swift; path = HakedisApp/Views/Finans/MonthlyDeclarationsView.swift; sourceTree = "<group>"; };
+		N076 /* ProjectMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectMapView.swift; path = HakedisApp/Views/Projects/ProjectMapView.swift; sourceTree = "<group>"; };
+		N077 /* SeismicViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SeismicViews.swift; path = HakedisApp/Views/Projects/SeismicViews.swift; sourceTree = "<group>"; };
+		T031 /* Module1SubcontractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module1SubcontractorTests.swift; sourceTree = "<group>"; };
+		T032 /* Module2PriceTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module2PriceTrackerTests.swift; sourceTree = "<group>"; };
+		T033 /* Module3WeatherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module3WeatherTests.swift; sourceTree = "<group>"; };
+		T034 /* Module4QRCodeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module4QRCodeTests.swift; sourceTree = "<group>"; };
+		T035 /* Module5UrbanRenewalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module5UrbanRenewalTests.swift; sourceTree = "<group>"; };
+		T036 /* Module6SGKTaxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module6SGKTaxTests.swift; sourceTree = "<group>"; };
+		T037 /* Module7MapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module7MapTests.swift; sourceTree = "<group>"; };
+		T038 /* Module8SeismicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module8SeismicTests.swift; sourceTree = "<group>"; };
 		NM009 /* UserAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserAccountModel.swift; path = HakedisApp/Models/UserAccountModel.swift; sourceTree = "<group>"; };
 		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
 		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
@@ -550,6 +597,19 @@
 			N069 /* JoinRequestManagementView.swift */,
 			NM010 /* CompanyModel.swift */,
 				NM009 /* UserAccountModel.swift */,
+			NM011 /* SubcontractorModels.swift */,
+			NM012 /* PriceTrackingModels.swift */,
+			NM013 /* WeatherModels.swift */,
+			NM014 /* UrbanRenewalModels.swift */,
+			NM015 /* SeismicModels.swift */,
+			N070 /* SubcontractorPortalView.swift */,
+			N071 /* PriceTrackerViews.swift */,
+			N072 /* WeatherViews.swift */,
+			N073 /* QRCodeViews.swift */,
+			N074 /* UrbanRenewalViews.swift */,
+			N075 /* MonthlyDeclarationsView.swift */,
+			N076 /* ProjectMapView.swift */,
+			N077 /* SeismicViews.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -606,6 +666,14 @@
 				T028 /* FazC2Tests.swift */,
 				T029 /* FazC3Tests.swift */,
 				T030 /* AuthAndRoleTests.swift */,
+				T031 /* Module1SubcontractorTests.swift */,
+				T032 /* Module2PriceTrackerTests.swift */,
+				T033 /* Module3WeatherTests.swift */,
+				T034 /* Module4QRCodeTests.swift */,
+				T035 /* Module5UrbanRenewalTests.swift */,
+				T036 /* Module6SGKTaxTests.swift */,
+				T037 /* Module7MapTests.swift */,
+				T038 /* Module8SeismicTests.swift */,
 			);
 			path = HakedisAppTests;
 			sourceTree = "<group>";
@@ -866,6 +934,19 @@
 					NB069 /* JoinRequestManagementView.swift in Sources */,
 					SM010 /* CompanyModel.swift in Sources */,
 				SM009 /* UserAccountModel.swift in Sources */,
+				SM011 /* SubcontractorModels.swift in Sources */,
+				SM012 /* PriceTrackingModels.swift in Sources */,
+				SM013 /* WeatherModels.swift in Sources */,
+				SM014 /* UrbanRenewalModels.swift in Sources */,
+				SM015 /* SeismicModels.swift in Sources */,
+				NB070 /* SubcontractorPortalView.swift in Sources */,
+				NB071 /* PriceTrackerViews.swift in Sources */,
+				NB072 /* WeatherViews.swift in Sources */,
+				NB073 /* QRCodeViews.swift in Sources */,
+				NB074 /* UrbanRenewalViews.swift in Sources */,
+				NB075 /* MonthlyDeclarationsView.swift in Sources */,
+				NB076 /* ProjectMapView.swift in Sources */,
+				NB077 /* SeismicViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -920,6 +1001,19 @@
 				TB036 /* FazC3Tests.swift in Sources */,
 				TB037 /* BackupViews.swift in Sources */,
 				TB038 /* AuthAndRoleTests.swift in Sources */,
+				TM011 /* SubcontractorModels.swift in Sources */,
+				TM012 /* PriceTrackingModels.swift in Sources */,
+				TM013 /* WeatherModels.swift in Sources */,
+				TM014 /* UrbanRenewalModels.swift in Sources */,
+				TM015 /* SeismicModels.swift in Sources */,
+				TB039 /* Module1SubcontractorTests.swift in Sources */,
+				TB040 /* Module2PriceTrackerTests.swift in Sources */,
+				TB041 /* Module3WeatherTests.swift in Sources */,
+				TB042 /* Module4QRCodeTests.swift in Sources */,
+				TB043 /* Module5UrbanRenewalTests.swift in Sources */,
+				TB044 /* Module6SGKTaxTests.swift in Sources */,
+				TB045 /* Module7MapTests.swift in Sources */,
+				TB046 /* Module8SeismicTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -977,6 +1071,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = ZFKJZD96B7;
+				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = x86_64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Saha girişlerinde GPS konumu kaydetmek için gerekli";
