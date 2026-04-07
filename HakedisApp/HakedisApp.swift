@@ -72,7 +72,9 @@ struct HakedisApp: App {
             UnitDistribution.self,
             // Modül 8 — Deprem Risk
             SeismicAssessment.self,
-            SeismicChecklistItem.self
+            SeismicChecklistItem.self,
+            // Fotoğraf GPS
+            GeoTaggedPhoto.self
         ])
 
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

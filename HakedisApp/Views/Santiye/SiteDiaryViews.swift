@@ -604,7 +604,31 @@ struct AddSiteDiaryView: View {
         diary.signedByChief = signedByChief.isEmpty ? nil : signedByChief
         diary.signedByController = signedByController.isEmpty ? nil : signedByController
         if editingDiary == nil { modelContext.insert(diary) }
-        do { try modelContext.save() } catch { print("Kayıt hatası: \(error)") }
+        do {
+            try modelContext.save()
+            extractAndSaveGPSPhotos(for: diary)
+        } catch { print("Kayıt hatası: \(error)") }
         dismiss()
+    }
+
+    private func extractAndSaveGPSPhotos(for diary: SiteDiary) {
+        for photoData in diary.photoData {
+            guard let coord = PhotoLocationService.extractGPSLocation(from: photoData) else { continue }
+            let thumb = PhotoLocationService.makeThumbnail(from: photoData)
+            let geoPhoto = GeoTaggedPhoto(
+                photoDate: diary.date,
+                latitude: coord.latitude,
+                longitude: coord.longitude,
+                caption: diary.workDescription.prefix(80).description,
+                sourceModule: "SiteDiary",
+                sourceId: diary.id.uuidString,
+                thumbnailData: thumb
+            )
+            geoPhoto.project = diary.project
+            modelContext.insert(geoPhoto)
+        }
+        if !diary.photoData.isEmpty {
+            do { try modelContext.save() } catch { }
+        }
     }
 }

@@ -52,12 +52,14 @@ struct SubcontractorHakedisListView: View {
                     List {
                         Section("Hakediş Listesi") {
                             ForEach(filtered, id: \.id) { h in
-                                SubHakedisRow(hakedis: h)
-                                    .swipeActions(edge: .trailing) {
-                                        Button(role: .destructive) {
-                                            modelContext.delete(h)
-                                        } label: { Label("Sil", systemImage: "trash") }
-                                    }
+                                NavigationLink(destination: SubHakedisDetailView(hakedis: h)) {
+                                    SubHakedisRow(hakedis: h)
+                                }
+                                .swipeActions(edge: .trailing) {
+                                    Button(role: .destructive) {
+                                        modelContext.delete(h)
+                                    } label: { Label("Sil", systemImage: "trash") }
+                                }
                             }
                         }
 

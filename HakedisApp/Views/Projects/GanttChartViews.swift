@@ -9,6 +9,7 @@ struct ActivityListView: View {
     @State private var showAdd = false
     @State private var showGantt = false
     @State private var showCriticalPath = false
+    @State private var showSCurve = false
 
     var body: some View {
         NavigationStack {
@@ -34,20 +35,28 @@ struct ActivityListView: View {
             .navigationTitle("İş Programı")
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
+                    Button { showSCurve = true } label: {
+                        Image(systemName: "chart.xyaxis.line")
+                    }
+                    .accessibilityLabel("S-Eğrisi")
                     Button { showGantt = true } label: {
                         Image(systemName: "chart.bar.xaxis")
                     }
+                    .accessibilityLabel("Gantt Şeması")
                     Button { showCriticalPath = true } label: {
                         Image(systemName: "arrow.triangle.branch")
                     }
+                    .accessibilityLabel("Kritik Yol")
                     Button { showAdd = true } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Aktivite Ekle")
                 }
             }
             .sheet(isPresented: $showAdd) { AddActivityView() }
             .sheet(isPresented: $showGantt) { GanttChartView(activities: activities) }
             .sheet(isPresented: $showCriticalPath) { CriticalPathAnalysisView(activities: activities) }
+            .sheet(isPresented: $showSCurve) { SCurveChartView(activities: activities) }
             .overlay {
                 if activities.isEmpty {
                     EmptyStateView(icon: "chart.bar.xaxis", title: "Aktivite Yok",

@@ -55,6 +55,7 @@ struct MaterialListView: View {
     @Environment(\.modelContext) private var modelContext
 
     @State private var showingAdd = false
+    @State private var showingQRScanner = false
     @State private var searchText = ""
 
     private var filtered: [Material] {
@@ -155,10 +156,21 @@ struct MaterialListView: View {
         .sheet(isPresented: $showingAdd) {
             AddMaterialView()
         }
+        .sheet(isPresented: $showingQRScanner) {
+            MaterialQRScannerView()
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
-                    .accessibilityLabel("Yeni malzeme")
+                HStack {
+                    Button {
+                        showingQRScanner = true
+                    } label: {
+                        Image(systemName: "qrcode.viewfinder")
+                    }
+                    .accessibilityLabel("QR Tarama")
+                    Button { showingAdd = true } label: { Image(systemName: "plus") }
+                        .accessibilityLabel("Yeni malzeme")
+                }
             }
         }
     }
@@ -212,6 +224,7 @@ struct MaterialDetailView: View {
     let material: Material
     @Environment(\.modelContext) private var modelContext
     @State private var showingAddEntry = false
+    @State private var showingQR = false
 
     private var sortedEntries: [StockEntry] {
         material.entries.sorted { $0.date > $1.date }
@@ -339,16 +352,27 @@ struct MaterialDetailView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingAddEntry = true
-                } label: {
-                    Label("Giriş/Çıkış", systemImage: "arrow.up.arrow.down")
+                HStack {
+                    Button {
+                        showingQR = true
+                    } label: {
+                        Image(systemName: "qrcode")
+                    }
+                    .accessibilityLabel("QR kodu göster")
+                    Button {
+                        showingAddEntry = true
+                    } label: {
+                        Label("Giriş/Çıkış", systemImage: "arrow.up.arrow.down")
+                    }
+                    .accessibilityLabel("Stok girişi veya çıkışı ekle")
                 }
-                .accessibilityLabel("Stok girişi veya çıkışı ekle")
             }
         }
         .sheet(isPresented: $showingAddEntry) {
             StockEntryView(material: material)
+        }
+        .sheet(isPresented: $showingQR) {
+            MaterialQRDisplayView(material: material)
         }
     }
 }

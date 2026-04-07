@@ -799,6 +799,7 @@ final class Material {
     var unitPrice: Double
     var wastageRate: Double?
     var theoreticalConsumption: Double?
+    var qrCodeData: Data?
     var project: Project?
     var createdAt: Date
     @Relationship(deleteRule: .cascade) var entries: [StockEntry]

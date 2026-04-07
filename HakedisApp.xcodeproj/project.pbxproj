@@ -213,6 +213,16 @@
 		NB075 /* MonthlyDeclarationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N075 /* MonthlyDeclarationsView.swift */; };
 		NB076 /* ProjectMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N076 /* ProjectMapView.swift */; };
 		NB077 /* SeismicViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N077 /* SeismicViews.swift */; };
+		NB078 /* MaterialQRViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N078 /* MaterialQRViews.swift */; };
+		NB079 /* GeoTaggedPhotoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = N079 /* GeoTaggedPhotoModel.swift */; };
+		NB080 /* PhotoMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N080 /* PhotoMapView.swift */; };
+		NB081 /* SubcontractorHakedisPDFViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = N081 /* SubcontractorHakedisPDFViews.swift */; };
+		NB082 /* SCurveChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = N082 /* SCurveChartView.swift */; };
+		NB083 /* MaterialQRManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = N083 /* MaterialQRManager.swift */; };
+		NB084 /* SCurveCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N084 /* SCurveCalculator.swift */; };
+		TC001 /* MaterialQRManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = N083 /* MaterialQRManager.swift */; };
+		TC002 /* SCurveCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = N084 /* SCurveCalculator.swift */; };
+		TC003 /* GeoTaggedPhotoModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = N079 /* GeoTaggedPhotoModel.swift */; };
 		TB039 /* Module1SubcontractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T031 /* Module1SubcontractorTests.swift */; };
 		TB040 /* Module2PriceTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T032 /* Module2PriceTrackerTests.swift */; };
 		TB041 /* Module3WeatherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T033 /* Module3WeatherTests.swift */; };
@@ -230,6 +240,10 @@
 		TB053 /* ReportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T045 /* ReportTests.swift */; };
 		TB054 /* BiometricTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T046 /* BiometricTests.swift */; };
 		TB055 /* BackupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T047 /* BackupTests.swift */; };
+		TB056 /* MaterialQRTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T048 /* MaterialQRTests.swift */; };
+		TB057 /* PhotoGPSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T049 /* PhotoGPSTests.swift */; };
+		TB058 /* SubcontractorHakedisPDFTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T050 /* SubcontractorHakedisPDFTests.swift */; };
+		TB059 /* SCurveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T051 /* SCurveTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -396,6 +410,13 @@
 		N075 /* MonthlyDeclarationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MonthlyDeclarationsView.swift; path = HakedisApp/Views/Finans/MonthlyDeclarationsView.swift; sourceTree = "<group>"; };
 		N076 /* ProjectMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProjectMapView.swift; path = HakedisApp/Views/Projects/ProjectMapView.swift; sourceTree = "<group>"; };
 		N077 /* SeismicViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SeismicViews.swift; path = HakedisApp/Views/Projects/SeismicViews.swift; sourceTree = "<group>"; };
+		N078 /* MaterialQRViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialQRViews.swift; path = HakedisApp/Views/Santiye/MaterialQRViews.swift; sourceTree = "<group>"; };
+		N079 /* GeoTaggedPhotoModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GeoTaggedPhotoModel.swift; path = HakedisApp/Models/GeoTaggedPhotoModel.swift; sourceTree = "<group>"; };
+		N080 /* PhotoMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoMapView.swift; path = HakedisApp/Views/Projects/PhotoMapView.swift; sourceTree = "<group>"; };
+		N081 /* SubcontractorHakedisPDFViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SubcontractorHakedisPDFViews.swift; path = HakedisApp/Views/Contracts/SubcontractorHakedisPDFViews.swift; sourceTree = "<group>"; };
+		N082 /* SCurveChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SCurveChartView.swift; path = HakedisApp/Views/Projects/SCurveChartView.swift; sourceTree = "<group>"; };
+		N083 /* MaterialQRManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialQRManager.swift; path = HakedisApp/Views/Santiye/MaterialQRManager.swift; sourceTree = "<group>"; };
+		N084 /* SCurveCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SCurveCalculator.swift; path = HakedisApp/Views/Projects/SCurveCalculator.swift; sourceTree = "<group>"; };
 		T031 /* Module1SubcontractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module1SubcontractorTests.swift; sourceTree = "<group>"; };
 		T032 /* Module2PriceTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module2PriceTrackerTests.swift; sourceTree = "<group>"; };
 		T033 /* Module3WeatherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Module3WeatherTests.swift; sourceTree = "<group>"; };
@@ -413,6 +434,10 @@
 		T045 /* ReportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportTests.swift; sourceTree = "<group>"; };
 		T046 /* BiometricTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricTests.swift; sourceTree = "<group>"; };
 		T047 /* BackupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupTests.swift; sourceTree = "<group>"; };
+		T048 /* MaterialQRTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialQRTests.swift; sourceTree = "<group>"; };
+		T049 /* PhotoGPSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGPSTests.swift; sourceTree = "<group>"; };
+		T050 /* SubcontractorHakedisPDFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubcontractorHakedisPDFTests.swift; sourceTree = "<group>"; };
+		T051 /* SCurveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCurveTests.swift; sourceTree = "<group>"; };
 		NM009 /* UserAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserAccountModel.swift; path = HakedisApp/Models/UserAccountModel.swift; sourceTree = "<group>"; };
 		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
 		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
@@ -628,6 +653,13 @@
 			N075 /* MonthlyDeclarationsView.swift */,
 			N076 /* ProjectMapView.swift */,
 			N077 /* SeismicViews.swift */,
+			N078 /* MaterialQRViews.swift */,
+			N079 /* GeoTaggedPhotoModel.swift */,
+			N080 /* PhotoMapView.swift */,
+			N081 /* SubcontractorHakedisPDFViews.swift */,
+			N082 /* SCurveChartView.swift */,
+			N083 /* MaterialQRManager.swift */,
+			N084 /* SCurveCalculator.swift */,
 			);
 			name = HakedisApp;
 			sourceTree = "<group>";
@@ -701,6 +733,10 @@
 				T045 /* ReportTests.swift */,
 				T046 /* BiometricTests.swift */,
 				T047 /* BackupTests.swift */,
+				T048 /* MaterialQRTests.swift */,
+				T049 /* PhotoGPSTests.swift */,
+				T050 /* SubcontractorHakedisPDFTests.swift */,
+				T051 /* SCurveTests.swift */,
 			);
 			path = HakedisAppTests;
 			sourceTree = "<group>";
@@ -974,6 +1010,13 @@
 				NB075 /* MonthlyDeclarationsView.swift in Sources */,
 				NB076 /* ProjectMapView.swift in Sources */,
 				NB077 /* SeismicViews.swift in Sources */,
+			NB078 /* MaterialQRViews.swift in Sources */,
+			NB079 /* GeoTaggedPhotoModel.swift in Sources */,
+			NB080 /* PhotoMapView.swift in Sources */,
+			NB081 /* SubcontractorHakedisPDFViews.swift in Sources */,
+			NB082 /* SCurveChartView.swift in Sources */,
+			NB083 /* MaterialQRManager.swift in Sources */,
+			NB084 /* SCurveCalculator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1050,6 +1093,13 @@
 				TB053 /* ReportTests.swift in Sources */,
 				TB054 /* BiometricTests.swift in Sources */,
 				TB055 /* BackupTests.swift in Sources */,
+			TB056 /* MaterialQRTests.swift in Sources */,
+			TB057 /* PhotoGPSTests.swift in Sources */,
+			TB058 /* SubcontractorHakedisPDFTests.swift in Sources */,
+			TB059 /* SCurveTests.swift in Sources */,
+			TC001 /* MaterialQRManager.swift in Sources */,
+			TC002 /* SCurveCalculator.swift in Sources */,
+			TC003 /* GeoTaggedPhotoModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
