@@ -314,7 +314,7 @@ struct OfficialNotificationListView: View {
     @State private var showingAdd = false
 
     private var filtered: [OfficialNotification] {
-        allItems.filter { contract.map { c in $0.contract?.id == c.id } ?? true }
+        allItems.filter { item in contract.map { item.contract?.id == $0.id } ?? true }
     }
 
     var body: some View {
