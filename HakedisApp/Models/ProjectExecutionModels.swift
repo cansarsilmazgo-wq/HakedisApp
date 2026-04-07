@@ -186,6 +186,8 @@ final class Worker {
     var isActive: Bool
     var createdAt: Date
 
+    var qrCodeData: Data?
+
     init(fullName: String, profession: WorkerProfession = .laborer, dailyCost: Double = 0, hourlyCost: Double = 0) {
         self.id = UUID()
         self.fullName = fullName

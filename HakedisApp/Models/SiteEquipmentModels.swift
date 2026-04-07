@@ -409,22 +409,48 @@ enum DelayReason: String, Codable, CaseIterable {
 }
 
 enum WeatherCondition: String, Codable, CaseIterable {
-    case sunny = "Güneşli"
-    case cloudy = "Bulutlu"
-    case rainy = "Yağmurlu"
-    case snowy = "Karlı"
-    case stormy = "Fırtınalı"
+    case sunny        = "Güneşli"
+    case partlyCloudy = "Parçalı Bulutlu"
+    case cloudy       = "Bulutlu"
+    case rainy        = "Yağmurlu"
+    case heavyRain    = "Şiddetli Yağmur"
+    case snowy        = "Karlı"
+    case stormy       = "Fırtınalı"
+    case foggy        = "Sisli"
+    case windy        = "Rüzgarlı"
 
     var icon: String {
         switch self {
-        case .sunny: return "sun.max.fill"
-        case .cloudy: return "cloud.fill"
-        case .rainy: return "cloud.rain.fill"
-        case .snowy: return "cloud.snow.fill"
-        case .stormy: return "cloud.bolt.fill"
+        case .sunny:        return "sun.max.fill"
+        case .partlyCloudy: return "cloud.sun.fill"
+        case .cloudy:       return "cloud.fill"
+        case .rainy:        return "cloud.rain.fill"
+        case .heavyRain:    return "cloud.heavyrain.fill"
+        case .snowy:        return "cloud.snow.fill"
+        case .stormy:       return "cloud.bolt.fill"
+        case .foggy:        return "cloud.fog.fill"
+        case .windy:        return "wind"
         }
     }
 
+    var workSuitability: String {
+        switch self {
+        case .sunny, .partlyCloudy, .cloudy:
+            return "Çalışmaya Uygun"
+        case .rainy, .windy, .foggy:
+            return "Dikkatli Çalışılabilir"
+        case .heavyRain, .snowy, .stormy:
+            return "Çalışma Önerilmez"
+        }
+    }
+
+    var isWorkSuitable: Bool {
+        switch self {
+        case .sunny, .partlyCloudy, .cloudy: return true
+        case .rainy, .windy, .foggy: return true
+        case .heavyRain, .snowy, .stormy: return false
+        }
+    }
 }
 
 @Model

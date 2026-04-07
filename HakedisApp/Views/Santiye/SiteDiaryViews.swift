@@ -11,6 +11,10 @@ extension WeatherCondition {
         case .rainy: return .hakedisInfo
         case .snowy: return Color(UIColor.systemCyan)
         case .stormy: return .hakedisDanger
+        case .partlyCloudy: return .secondary
+        case .heavyRain: return .hakedisInfo
+        case .foggy: return .secondary
+        case .windy: return .hakedisInfo
         }
     }
 }
