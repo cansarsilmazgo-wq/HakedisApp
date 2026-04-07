@@ -11,6 +11,7 @@ enum LoginResult {
     case pendingApproval
     case rejected(reason: String?)
     case suspended
+    case locked(until: Date)
 }
 
 // MARK: - InviteCodeResult
@@ -32,6 +33,10 @@ class AuthManager: ObservableObject {
 
     @Published var currentUser: UserAccount?
     @Published var isLoggedIn: Bool = false
+
+    // Brute force protection for login
+    @Published var loginAttemptCount: Int = 0
+    @Published var loginLockUntil: Date? = nil
 
     var rememberMe: Bool {
         get { UserDefaults.standard.bool(forKey: "rememberMe") }
@@ -73,6 +78,16 @@ class AuthManager: ObservableObject {
     // MARK: - Login
 
     func login(emailOrPhone: String, password: String, context: ModelContext) -> LoginResult {
+        // Check login lock
+        if let lockUntil = loginLockUntil {
+            if Date() < lockUntil { return .locked(until: lockUntil) }
+            // Lock expired — reset
+            DispatchQueue.main.async {
+                self.loginLockUntil = nil
+                self.loginAttemptCount = 0
+            }
+        }
+
         let hash = hashPassword(password)
         let descriptor = FetchDescriptor<UserAccount>()
         guard let users = try? context.fetch(descriptor) else { return .invalidCredentials }
@@ -80,7 +95,16 @@ class AuthManager: ObservableObject {
         guard let user = users.first(where: {
             ($0.email.lowercased() == normalized || $0.phone == normalized)
             && $0.passwordHash == hash
-        }) else { return .invalidCredentials }
+        }) else {
+            DispatchQueue.main.async {
+                self.loginAttemptCount += 1
+                if self.loginAttemptCount >= 5 {
+                    self.loginLockUntil = Date().addingTimeInterval(15 * 60)
+                    self.loginAttemptCount = 0
+                }
+            }
+            return .invalidCredentials
+        }
 
         switch user.accountStatus {
         case .pendingApproval:
@@ -96,6 +120,8 @@ class AuthManager: ObservableObject {
             user.lastLoginDate = Date()
             try? context.save()
             DispatchQueue.main.async {
+                self.loginAttemptCount = 0
+                self.loginLockUntil = nil
                 self.currentUser = user
                 self.isLoggedIn = true
                 if self.rememberMe { self.lastUserId = user.id.uuidString }
@@ -115,10 +141,22 @@ class AuthManager: ObservableObject {
     // MARK: - Register
 
     func register(user: UserAccount, context: ModelContext) -> Bool {
+        // Boş alan validasyonu
+        guard !user.fullName.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        guard !user.email.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        guard user.email.contains("@") && user.email.contains(".") else { return false }
+
         let descriptor = FetchDescriptor<UserAccount>()
         guard let existing = try? context.fetch(descriptor) else { return false }
         let emailExists = existing.contains { $0.email.lowercased() == user.email.lowercased() }
         guard !emailExists else { return false }
+
+        // Bir şirkette birden fazla owner engeli
+        if user.role == .owner, let company = user.company {
+            let existingOwners = company.members.filter { $0.role == .owner && $0.id != user.id }
+            guard existingOwners.isEmpty else { return false }
+        }
+
         context.insert(user)
         do {
             try context.save()

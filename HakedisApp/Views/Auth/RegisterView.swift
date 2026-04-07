@@ -331,8 +331,8 @@ private struct OwnerRegisterView: View {
             guard !fullName.trimmingCharacters(in: .whitespaces).isEmpty else {
                 errorMessage = "Ad soyad zorunludur."; return false
             }
-            guard email.contains("@") else {
-                errorMessage = "Geçerli bir e-posta girin."; return false
+            guard isValidEmail(email) else {
+                errorMessage = "Geçerli bir e-posta adresi girin."; return false
             }
         case 1:
             guard !companyName.trimmingCharacters(in: .whitespaces).isEmpty else {
@@ -367,6 +367,17 @@ private struct OwnerRegisterView: View {
         company.address = address.isEmpty ? nil : address
         company.phone = companyPhone.isEmpty ? nil : companyPhone
         company.logoData = logoData
+
+        // Fix 6: Davet kodu uniqueness kontrolü
+        let companyDescriptor = FetchDescriptor<Company>()
+        if let existingCompanies = try? modelContext.fetch(companyDescriptor) {
+            var attempts = 0
+            while existingCompanies.contains(where: { $0.inviteCode == company.inviteCode }) && attempts < 10 {
+                company.regenerateInviteCode()
+                attempts += 1
+            }
+        }
+
         company.members.append(user)
         user.company = company
         user.companyName = companyName
@@ -733,8 +744,8 @@ private struct EmployeeRegisterView: View {
             guard !fullName.trimmingCharacters(in: .whitespaces).isEmpty else {
                 errorMessage = "Ad soyad zorunludur."; return false
             }
-            guard email.contains("@") else {
-                errorMessage = "Geçerli bir e-posta girin."; return false
+            guard isValidEmail(email) else {
+                errorMessage = "Geçerli bir e-posta adresi girin."; return false
             }
         default: break
         }
@@ -753,6 +764,41 @@ private struct EmployeeRegisterView: View {
         guard let company = foundCompany else { return }
 
         isCreating = true
+
+        // Fix 1: Email uniqueness kontrolü (authManager.register() atlandığı için burada yapılmalı)
+        let userDescriptor = FetchDescriptor<UserAccount>()
+        if let existingUsers = try? modelContext.fetch(userDescriptor),
+           existingUsers.contains(where: { $0.email.lowercased() == email.lowercased() }) {
+            isCreating = false
+            errorMessage = "Bu e-posta adresi zaten kayıtlı."
+            return
+        }
+
+        // Fix 4: Duplicate JoinRequest kontrolü
+        let reqDescriptor = FetchDescriptor<JoinRequest>()
+        if let existingRequests = try? modelContext.fetch(reqDescriptor) {
+            let normalizedEmail = email.lowercased()
+            let duplicate = existingRequests.first(where: {
+                $0.company?.id == company.id
+                && ($0.user?.email.lowercased() == normalizedEmail)
+                && ($0.status == .pending || $0.status == .approved)
+            })
+            if duplicate != nil {
+                isCreating = false
+                errorMessage = "Bu şirkete zaten bir talebiniz bulunuyor."
+                return
+            }
+            // Reddedilen talep varsa uyar ama devam ettir (confirmationDialog yerine bilgi mesajı)
+            let rejected = existingRequests.first(where: {
+                $0.company?.id == company.id
+                && ($0.user?.email.lowercased() == normalizedEmail)
+                && $0.status == .rejected
+            })
+            if rejected != nil {
+                // Önceki red kaydı var — yeni talep oluşturulabilir, mevcut talep geçersiz kalır
+            }
+        }
+
         let hash = authManager.hashPassword(password)
 
         let user = UserAccount(fullName: fullName, email: email, role: selectedRole, passwordHash: hash)
@@ -962,6 +1008,13 @@ private func passwordStrengthInfo(_ pw: String) -> (label: String, color: Color,
     case 3:    return ("İyi", Color.hakedisSuccess.opacity(0.8), 0.75)
     default:   return ("Güçlü", .hakedisSuccess, 1.0)
     }
+}
+
+// MARK: - Email Validation (Fix 7)
+
+private func isValidEmail(_ email: String) -> Bool {
+    let pattern = #"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$"#
+    return email.range(of: pattern, options: .regularExpression) != nil
 }
 
 // MARK: - UserRole shortDescription

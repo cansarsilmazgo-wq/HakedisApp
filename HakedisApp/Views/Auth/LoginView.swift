@@ -18,6 +18,10 @@ struct LoginView: View {
     @State private var showPendingScreen = false
     @State private var showRejectedScreen = false
 
+    // Brute force geri sayım
+    @State private var lockCountdownTimer: Timer? = nil
+    @State private var lockRemainingSeconds: Int = 0
+
     var body: some View {
         NavigationStack {
             Group {
@@ -180,7 +184,14 @@ struct LoginView: View {
                 case .success:
                     break // RootView handles navigation
                 case .invalidCredentials:
-                    errorMessage = "E-posta veya şifre hatalı. Lütfen tekrar deneyin."
+                    let remaining = 5 - self.authManager.loginAttemptCount
+                    if remaining > 0 {
+                        errorMessage = "E-posta veya şifre hatalı. \(remaining) deneme hakkınız kaldı."
+                    } else {
+                        errorMessage = "E-posta veya şifre hatalı. Lütfen tekrar deneyin."
+                    }
+                case .locked(let until):
+                    self.startLockCountdown(until: until)
                 case .pendingApproval:
                     // Fetch user to show name
                     let descriptor = FetchDescriptor<UserAccount>()
@@ -207,6 +218,25 @@ struct LoginView: View {
         rejectedReason = nil
         emailOrPhone = ""
         password = ""
+    }
+
+    private func startLockCountdown(until lockUntil: Date) {
+        lockCountdownTimer?.invalidate()
+        lockRemainingSeconds = max(0, Int(lockUntil.timeIntervalSinceNow))
+        let mins = (lockRemainingSeconds + 59) / 60
+        errorMessage = "Çok fazla hatalı deneme. \(mins) dakika sonra tekrar deneyin."
+        lockCountdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            lockRemainingSeconds = max(0, Int(lockUntil.timeIntervalSinceNow))
+            if lockRemainingSeconds <= 0 {
+                lockCountdownTimer?.invalidate()
+                lockCountdownTimer = nil
+                errorMessage = ""
+            } else {
+                let m = lockRemainingSeconds / 60
+                let s = lockRemainingSeconds % 60
+                errorMessage = "Çok fazla hatalı deneme. \(m):\(String(format: "%02d", s)) sonra tekrar deneyin."
+            }
+        }
     }
 }
 

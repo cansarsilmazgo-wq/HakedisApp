@@ -8,7 +8,7 @@ import CryptoKit
 final class UserAccount {
     var id: UUID
     var fullName: String
-    var email: String
+    @Attribute(.unique) var email: String
     var phone: String?
     var companyName: String?
     var companyLogoData: Data?
