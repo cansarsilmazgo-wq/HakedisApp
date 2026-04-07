@@ -125,6 +125,9 @@ final class Project {
     @Relationship(deleteRule: .cascade) var milestones: [Milestone]
     @Relationship(deleteRule: .cascade) var siteReports: [SiteReport]
 
+    var latitude: Double?
+    var longitude: Double?
+
     init(name: String, projectDescription: String = "", location: String = "", startDate: Date = Date()) {
         self.id = UUID()
         self.name = name
@@ -137,6 +140,8 @@ final class Project {
         self.milestones = []
         self.siteReports = []
     }
+
+    var hasCoordinates: Bool { latitude != nil && longitude != nil }
 }
 
 enum ProjectStatus: String, Codable, CaseIterable {
