@@ -1100,6 +1100,8 @@ enum PinPriority: String, Codable, CaseIterable {
     var resolvedDate: Date?
     var createdBy: String
     var createdAt: Date
+    // FAZ 17.12 — Fotoğraf desteği
+    var photoData: Data?
 
     init(pinNumber: Int, drawingName: String, title: String, xPosition: Double, yPosition: Double) {
         self.id = UUID()

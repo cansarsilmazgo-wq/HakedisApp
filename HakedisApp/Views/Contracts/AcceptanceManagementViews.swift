@@ -137,6 +137,26 @@ struct ProvisionalAcceptanceDetailView: View {
                     Button { showAddDeficiency = true } label: { Image(systemName: "plus.circle") }
                 }
             }
+            // FAZ 17.10 — Komisyon üyeleri
+            if !acceptance.commissionMembers.isEmpty {
+                Section("Komisyon Üyeleri") {
+                    ForEach(acceptance.commissionMembers) { member in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(member.name).font(.subheadline)
+                                Text("\(member.title) — \(member.affiliation)")
+                                    .font(.caption).foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            if member.isSigned {
+                                Image(systemName: "signature")
+                                    .foregroundColor(.hakedisSuccess)
+                                    .accessibilityLabel("İmzalandı")
+                            }
+                        }
+                    }
+                }
+            }
             if !acceptance.acceptanceNotes.isEmpty {
                 Section("Notlar") { Text(acceptance.acceptanceNotes) }
             }
@@ -317,6 +337,14 @@ struct AddProvisionalAcceptanceView: View {
     @State private var scheduledDate = Date()
     @State private var warrantyMonths = 12
     @State private var notes = ""
+    // FAZ 17.10 — Komisyon üyeleri
+    struct MemberEntry: Identifiable {
+        var id = UUID()
+        var name = ""
+        var title = ""
+        var affiliation = ""
+    }
+    @State private var memberEntries: [MemberEntry] = []
 
     var body: some View {
         NavigationStack {
@@ -326,6 +354,23 @@ struct AddProvisionalAcceptanceView: View {
                     TextField("Sözleşme No", text: $contractNo)
                     DatePicker("Planlanan Tarih", selection: $scheduledDate, displayedComponents: .date)
                     Stepper("Garanti Süresi: \(warrantyMonths) ay", value: $warrantyMonths, in: 1...60)
+                }
+                // FAZ 17.10 — Komisyon üyeleri
+                Section {
+                    ForEach($memberEntries) { $m in
+                        VStack(spacing: 4) {
+                            TextField("Ad Soyad", text: $m.name)
+                            TextField("Unvan", text: $m.title)
+                            TextField("Kurum", text: $m.affiliation)
+                        }
+                    }
+                    .onDelete { memberEntries.remove(atOffsets: $0) }
+                    Button { memberEntries.append(MemberEntry()) } label: {
+                        Label("Komisyon Üyesi Ekle", systemImage: "plus.circle")
+                            .foregroundColor(.hakedisOrange)
+                    }
+                } header: {
+                    Text("Kabul Komisyonu")
                 }
                 Section("Notlar") {
                     TextField("Notlar", text: $notes, axis: .vertical).lineLimit(2...4)
@@ -350,6 +395,12 @@ struct AddProvisionalAcceptanceView: View {
         acc.warrantyPeriodMonths = warrantyMonths
         acc.acceptanceNotes = notes
         acc.warrantyEndDate = Calendar.current.date(byAdding: .month, value: warrantyMonths, to: scheduledDate)
+        // FAZ 17.10 — Komisyon üyeleri kaydet
+        let members = memberEntries.filter { !$0.name.isEmpty }.map { entry in
+            CommissionMember(id: UUID(), name: entry.name, title: entry.title,
+                             affiliation: entry.affiliation, isSigned: false)
+        }
+        acc.commissionMembers = members
         context.insert(acc)
         do { try context.save() } catch { print("AddProvisionalAcceptanceView save error: \(error)") }
         dismiss()

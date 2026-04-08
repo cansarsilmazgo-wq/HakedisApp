@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 // MARK: - Drawing Pin List View
 
@@ -218,6 +219,15 @@ struct DrawingPinDetailView: View {
             if !pin.pinDetails.isEmpty {
                 Section("Detay") { Text(pin.pinDetails) }
             }
+            // FAZ 17.12 — Fotoğraf gösterimi
+            if let data = pin.photoData, let img = UIImage(data: data) {
+                Section("Fotoğraf") {
+                    Image(uiImage: img)
+                        .resizable().scaledToFit()
+                        .frame(maxHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
         }
         .navigationTitle(pin.title)
         .navigationBarTitleDisplayMode(.inline)
@@ -248,6 +258,9 @@ struct AddDrawingPinView: View {
     @State private var createdBy = ""
     @State private var xStr = "0.5"
     @State private var yStr = "0.5"
+    // FAZ 17.12 — Fotoğraf
+    @State private var photoItem: PhotosPickerItem? = nil
+    @State private var photoData: Data? = nil
 
     var body: some View {
         NavigationStack {
@@ -287,6 +300,23 @@ struct AddDrawingPinView: View {
                 Section("Detay") {
                     TextField("Açıklama", text: $pinDetails, axis: .vertical).lineLimit(3...6)
                 }
+                // FAZ 17.12 — Fotoğraf
+                Section("Fotoğraf") {
+                    PhotosPicker(selection: $photoItem, matching: .images) {
+                        if let data = photoData, let img = UIImage(data: data) {
+                            Image(uiImage: img)
+                                .resizable().scaledToFit().frame(maxHeight: 120)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            Label("Fotoğraf Ekle", systemImage: "photo.badge.plus")
+                        }
+                    }
+                    .onChange(of: photoItem) { _, item in
+                        Task {
+                            photoData = try? await item?.loadTransferable(type: Data.self)
+                        }
+                    }
+                }
             }
             .navigationTitle("Yeni Pin")
             .navigationBarTitleDisplayMode(.inline)
@@ -311,6 +341,7 @@ struct AddDrawingPinView: View {
         pin.assignedTo = assignedTo
         pin.createdBy = createdBy
         if hasDueDate { pin.dueDate = dueDate }
+        pin.photoData = photoData
         context.insert(pin)
         do { try context.save() } catch { print("AddDrawingPinView save error: \(error)") }
         dismiss()
