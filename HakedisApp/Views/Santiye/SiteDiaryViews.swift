@@ -411,6 +411,10 @@ struct AddSiteDiaryView: View {
     @State private var humidityValue: Double = 50
     @State private var signedByChief = ""
     @State private var signedByController = ""
+    // FAZ 17.1
+    @State private var tomorrowPlan = ""
+    @State private var securityNote = ""
+    @State private var visitorLog = ""
 
     private let windOptions = ["Sakin", "Hafif", "Orta", "Kuvvetli"]
 
@@ -422,6 +426,7 @@ struct AddSiteDiaryView: View {
                 havedaSection
                 gecikmeSection
                 icerikSection
+                planSection
                 fotografSection
                 imzaSection
             }
@@ -502,8 +507,28 @@ struct AddSiteDiaryView: View {
             }
         }
         Section("Sorunlar") { TextEditor(text: $problems).frame(minHeight: 60).accessibilityLabel("Sorunlar") }
-        Section("Ziyaretçiler") { TextField("Ziyaretçi adları", text: $visitors).accessibilityLabel("Ziyaretçi adları") }
+        Section("Ziyaretçi Kaydı") { TextEditor(text: $visitorLog).frame(minHeight: 60).accessibilityLabel("Ziyaretçi kaydı") }
         Section("Notlar") { TextEditor(text: $notes).frame(minHeight: 60).accessibilityLabel("Notlar") }
+    }
+
+    @ViewBuilder private var planSection: some View {
+        Section("Güvenlik & Yarınki Plan") {
+            TextEditor(text: $securityNote).frame(minHeight: 60)
+                .overlay(alignment: .topLeading) {
+                    if securityNote.isEmpty {
+                        Text("Güvenlik notu...").font(.body).foregroundColor(.secondary.opacity(0.5)).padding(4)
+                    }
+                }
+                .accessibilityLabel("Güvenlik notu")
+            Divider()
+            TextEditor(text: $tomorrowPlan).frame(minHeight: 60)
+                .overlay(alignment: .topLeading) {
+                    if tomorrowPlan.isEmpty {
+                        Text("Yarınki plan...").font(.body).foregroundColor(.secondary.opacity(0.5)).padding(4)
+                    }
+                }
+                .accessibilityLabel("Yarınki plan")
+        }
     }
 
     @ViewBuilder private var fotografSection: some View {
@@ -552,6 +577,9 @@ struct AddSiteDiaryView: View {
         humidityValue = diary.humidity ?? 50
         signedByChief = diary.signedByChief ?? ""
         signedByController = diary.signedByController ?? ""
+        tomorrowPlan = diary.tomorrowPlan
+        securityNote = diary.securityNote
+        visitorLog = diary.visitorLog
     }
 
     private func copyYesterday() {
@@ -603,6 +631,9 @@ struct AddSiteDiaryView: View {
         diary.delayHours = hasDelay ? Double(delayHoursText) : nil
         diary.signedByChief = signedByChief.isEmpty ? nil : signedByChief
         diary.signedByController = signedByController.isEmpty ? nil : signedByController
+        diary.tomorrowPlan = tomorrowPlan
+        diary.securityNote = securityNote
+        diary.visitorLog = visitorLog
         if editingDiary == nil { modelContext.insert(diary) }
         do {
             try modelContext.save()

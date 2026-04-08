@@ -124,8 +124,8 @@ struct MoreTabView: View {
                             .accessibilityLabel("Poz Kütüphanesi")
                     }
                     NavigationLink(destination: LegalReferenceView()) {
-                        Label("4734 / 4735 Kanun Referansı", systemImage: "book.closed")
-                            .accessibilityLabel("Mevzuat referansı")
+                        Label("Mevzuat Referansı", systemImage: "book.closed")
+                            .accessibilityLabel("Mevzuat referansı (4734, 4735, 6331, 4857, 5510, 3194, 6306, 4708, YIGS, TBDY)")
                     }
                 }
 

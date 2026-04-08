@@ -374,6 +374,15 @@ struct AddEquipmentItemView: View {
     @State private var dailyRentalCostText = "0"
     @State private var fuelType = ""
     @State private var maintenanceIntervalText = "250"
+    // FAZ 17.4
+    @State private var category: EquipmentCategory = .diger
+    @State private var brandText = ""
+    @State private var modelText = ""
+    @State private var yearText = ""
+    @State private var hourlyCostText = "0"
+    @State private var operatorName = ""
+    @State private var insuranceExpiry: Date = Date().addingTimeInterval(365 * 24 * 3600)
+    @State private var hasInsuranceExpiry = false
 
     var body: some View {
         NavigationStack {
@@ -381,37 +390,45 @@ struct AddEquipmentItemView: View {
                 Section("Ekipman Bilgileri") {
                     TextField("Ekipman adı (Vinç, Ekskavatör...)", text: $name)
                         .accessibilityLabel("Ekipman adı")
-                    TextField("Plaka (opsiyonel)", text: $plateNumber)
-                        .accessibilityLabel("Plaka numarası")
-                    Picker("Sahiplik", selection: $ownershipType) {
-                        ForEach(OwnershipType.allCases, id: \.self) { t in
-                            Text(t.rawValue).tag(t)
+                    Picker("Kategori", selection: $category) {
+                        ForEach(EquipmentCategory.allCases, id: \.self) { c in
+                            Text(c.rawValue).tag(c)
                         }
                     }
-                    .accessibilityLabel("Sahiplik türü")
+                    TextField("Marka", text: $brandText)
+                    TextField("Model", text: $modelText)
+                    TextField("Üretim Yılı", text: $yearText)
+                        .keyboardType(.numberPad)
+                    TextField("Plaka / Seri No", text: $plateNumber)
+                    Picker("Sahiplik", selection: $ownershipType) {
+                        ForEach(OwnershipType.allCases, id: \.self) { t in Text(t.rawValue).tag(t) }
+                    }
                     if ownershipType == .rented {
                         HStack {
-                            Text("Günlük Kira (₺)")
-                            Spacer()
+                            Text("Günlük Kira (₺)"); Spacer()
                             TextField("0", text: $dailyRentalCostText)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 100)
-                                .accessibilityLabel("Günlük kira bedeli")
+                                .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 100)
+                        }
+                        HStack {
+                            Text("Saatlik Maliyet (₺)"); Spacer()
+                            TextField("0", text: $hourlyCostText)
+                                .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 100)
                         }
                     }
                     TextField("Yakıt türü (Dizel, Benzin...)", text: $fuelType)
-                        .accessibilityLabel("Yakıt türü")
+                }
+                Section("Operatör & Sigorta") {
+                    TextField("Atanan Operatör", text: $operatorName)
+                    Toggle("Sigorta bitiş tarihi belirle", isOn: $hasInsuranceExpiry)
+                    if hasInsuranceExpiry {
+                        DatePicker("Sigorta Bitiş", selection: $insuranceExpiry, displayedComponents: .date)
+                    }
                 }
                 Section("Bakım") {
                     HStack {
-                        Text("Bakım Aralığı (saat)")
-                        Spacer()
+                        Text("Bakım Aralığı (saat)"); Spacer()
                         TextField("250", text: $maintenanceIntervalText)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                            .accessibilityLabel("Bakım aralığı saat")
+                            .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 80)
                     }
                 }
             }
@@ -437,7 +454,14 @@ struct AddEquipmentItemView: View {
         )
         item.plateNumber = plateNumber.isEmpty ? nil : plateNumber
         item.dailyRentalCost = Double(dailyRentalCostText) ?? 0
+        item.hourlyCost = Double(hourlyCostText) ?? 0
         item.fuelType = fuelType.isEmpty ? nil : fuelType
+        item.equipmentCategory = category
+        item.brand = brandText.isEmpty ? nil : brandText
+        item.modelName = modelText.isEmpty ? nil : modelText
+        item.yearOfManufacture = Int(yearText)
+        item.assignedOperatorName = operatorName
+        if hasInsuranceExpiry { item.insuranceExpiryDate = insuranceExpiry }
         modelContext.insert(item)
         do {
             try modelContext.save()

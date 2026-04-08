@@ -5,7 +5,7 @@ struct PozLibraryView: View {
     let onSelect: (PozItem, Double?) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
-    @State private var selectedCategory: PozCategory? = nil
+    @State private var selectedCategory: String? = nil
 
     @Query private var workItems: [WorkItem]
     @Query private var analyses: [UnitPriceAnalysis]
@@ -23,6 +23,8 @@ struct PozLibraryView: View {
             return matchesSearch && matchesCategory
         }
     }
+
+    private var allCategories: [String] { PozLibrary.allCategories }
 
     /// Verilen poz kodu için önerilen birim fiyat.
     /// Önce UnitPriceAnalysis'ten contractUnitPrice ortalaması,
@@ -51,8 +53,8 @@ struct PozLibraryView: View {
                         CategoryChip(title: "Tümü", isSelected: selectedCategory == nil) {
                             selectedCategory = nil
                         }
-                        ForEach(PozCategory.allCases, id: \.self) { cat in
-                            CategoryChip(title: cat.rawValue, isSelected: selectedCategory == cat) {
+                        ForEach(allCategories, id: \.self) { cat in
+                            CategoryChip(title: cat, isSelected: selectedCategory == cat) {
                                 selectedCategory = (selectedCategory == cat) ? nil : cat
                             }
                         }
@@ -81,7 +83,7 @@ struct PozLibraryView: View {
                                     .frame(width: 60, alignment: .leading)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(item.name).font(.subheadline).foregroundColor(.primary)
-                                    Text(item.category.rawValue).font(.caption2).foregroundColor(.secondary)
+                                    Text(item.category).font(.caption2).foregroundColor(.secondary)
                                     if let price = suggestion {
                                         Text("Önerilen fiyat: \(price.currencyFormatted)")
                                             .font(.caption2.bold())

@@ -140,6 +140,27 @@ private struct HelpTopic: Identifiable {
             "Uygulama arka plana geçtiğinde 30 saniye içinde kilitlenir.",
             "Face ID veya Touch ID ile kilit açılır.",
             "Biyometrik kimlik doğrulama başarısız olursa şifre ile giriş yapılabilir."
+        ]),
+        HelpTopic(icon: "wrench.and.screwdriver.fill", title: "Taşeron Sistemi", steps: [
+            "Kayıt ekranında 'Taşeron Olarak Katıl' seçeneğini kullanın.",
+            "Ana firmanın davet kodunu girerek sisteme katılın.",
+            "Taşeron portalından hakedişlerinizi, iş emirlerinizi ve taleplerinizi takip edin.",
+            "Firmalar sekmesinden çalıştığınız firmaları görüntüleyin.",
+            "İtiraz oluşturmak için İtirazlar sekmesini kullanın."
+        ]),
+        HelpTopic(icon: "person.crop.circle.badge.questionmark", title: "Sık Sorulan Sorular", steps: [
+            "S: Birden fazla proje takip edebilir miyim? E: Evet, sınırsız proje oluşturabilirsiniz.",
+            "S: Verilerim nerede saklanır? A: Tüm veriler cihazınızda yerel olarak saklanır.",
+            "S: iCloud yedekleme nasıl çalışır? A: Ayarlar > İCloud bölümünden senkronizasyonu etkinleştirin.",
+            "S: Şifremi unutursam ne yapmalıyım? A: Giriş ekranında 'Şifremi Unuttum' seçeneğini kullanın.",
+            "S: PDF çıktısı alabilir miyim? A: Evet, hakediş, günlük ve raporlar için PDF oluşturabilirsiniz."
+        ]),
+        HelpTopic(icon: "envelope.fill", title: "İletişim ve Destek", steps: [
+            "Uygulama: HakedisApp — İnşaat Proje Yönetimi",
+            "Geliştirici: Alphabi Systems",
+            "Destek: GitHub Issues üzerinden hata bildirebilirsiniz.",
+            "Versiyon: 1.0 | Minimum iOS 17+",
+            "Kullanım kılavuzu bu yardım ekranında yer almaktadır."
         ])
     ]
 }

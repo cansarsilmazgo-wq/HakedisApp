@@ -172,6 +172,109 @@ private struct OnboardingPageView: View {
     }
 }
 
+// MARK: - First Login Guided Walkthrough
+
+struct GuidedWalkthroughView: View {
+    @AppStorage("hasSeenFirstLoginGuide") private var hasSeenGuide = false
+    @Environment(\.dismiss) private var dismiss
+    @State private var currentStep = 0
+
+    private let steps: [(icon: String, color: Color, title: String, description: String)] = [
+        ("folder.badge.plus", .hakedisOrange,
+         "1. Proje Oluştur",
+         "Ana Ekran'dan \"Projeler\" sekmesine gidin ve \"+\" butonuna basarak ilk projenizi ekleyin."),
+        ("doc.badge.plus", .hakedisSuccess,
+         "2. Sözleşme Ekle",
+         "Proje detayına girin, \"Sözleşmeler\" bölümünden taşeron ve sözleşme bilgilerini girin."),
+        ("list.bullet.rectangle.portrait", .blue,
+         "3. İş Kalemleri Gir",
+         "Sözleşme detayında \"İş Kalemi Ekle\" ile poz no, miktar ve birim fiyat tanımlayın."),
+        ("hammer", .hakedisWarning,
+         "4. Şantiyeyi Başlat",
+         "\"Şantiye\" sekmesinden günlük iş girişi yapın. Her gün yapılan işleri kaydedin."),
+        ("banknote", .hakedisPaid,
+         "5. Hakediş Oluştur",
+         "Proje detayından \"Yeni Hakediş\" oluşturun. Dönem girişleri otomatik toplanır.")
+    ]
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                TabView(selection: $currentStep) {
+                    ForEach(steps.indices, id: \.self) { i in
+                        let step = steps[i]
+                        VStack(spacing: 24) {
+                            Spacer()
+                            Image(systemName: step.icon)
+                                .font(.system(size: 72))
+                                .foregroundColor(step.color)
+                            Text(step.title)
+                                .font(.title2.bold())
+                                .multilineTextAlignment(.center)
+                            Text(step.description)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                            Spacer()
+                        }
+                        .tag(i)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .always))
+                .indexViewStyle(.page(backgroundDisplayMode: .always))
+
+                VStack(spacing: 12) {
+                    if currentStep < steps.count - 1 {
+                        Button {
+                            withAnimation { currentStep += 1 }
+                        } label: {
+                            Text("İleri")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.hakedisOrange)
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                        }
+                    } else {
+                        Button {
+                            hasSeenGuide = true
+                            dismiss()
+                        } label: {
+                            Text("Başlayalım!")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Color.hakedisOrange)
+                                .foregroundColor(.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                        }
+                    }
+                    Button("Atla") {
+                        hasSeenGuide = true
+                        dismiss()
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 32)
+            }
+            .navigationTitle("Nasıl Kullanılır?")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Atla") {
+                        hasSeenGuide = true
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Last Page View
 
 private struct OnboardingLastPageView: View {

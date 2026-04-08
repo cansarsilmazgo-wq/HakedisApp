@@ -5,8 +5,17 @@ import SwiftData
 
 struct RootView: View {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @AppStorage("colorScheme") private var colorSchemeRaw = "auto"
     @StateObject private var authManager = AuthManager.shared
     @Environment(\.modelContext) private var modelContext
+
+    private var preferredColorScheme: ColorScheme? {
+        switch colorSchemeRaw {
+        case "light": return .light
+        case "dark":  return .dark
+        default:      return nil
+        }
+    }
 
     var body: some View {
         Group {
@@ -18,6 +27,7 @@ struct RootView: View {
                 ContentView()
             }
         }
+        .preferredColorScheme(preferredColorScheme)
         .onAppear {
             if hasSeenOnboarding && !authManager.isLoggedIn {
                 authManager.tryAutoLogin(context: modelContext)
@@ -38,6 +48,7 @@ struct ContentView: View {
     @Query private var materials: [Material]
 
     @AppStorage("appLockEnabled") private var appLockEnabled = false
+    @AppStorage("hasSeenFirstLoginGuide") private var hasSeenGuide = false
 
     private var role: UserRole { authManager.currentRole }
 
@@ -120,6 +131,12 @@ struct ContentView: View {
             set: { if !$0 { biometricAuth.isLocked = false } }
         )) {
             LockScreenView()
+        }
+        .sheet(isPresented: Binding(
+            get: { !hasSeenGuide },
+            set: { if !$0 { hasSeenGuide = true } }
+        )) {
+            GuidedWalkthroughView()
         }
     }
 }

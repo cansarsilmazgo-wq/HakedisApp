@@ -52,6 +52,7 @@ struct HakedisApp: App {
             ProgressReport.self,
             Worker.self,
             WorkerCertificate.self,
+            Objection.self,
             UserAccount.self,
             Company.self,
             JoinRequest.self,

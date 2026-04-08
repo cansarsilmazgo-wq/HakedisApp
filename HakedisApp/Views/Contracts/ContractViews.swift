@@ -71,13 +71,22 @@ struct AddContractView: View {
     @AppStorage("defaultKDVRate")       private var defaultKDVRate       = 0.0
 
     @State private var title = ""
+    @State private var contractNumber = ""
+    @State private var employerName = ""
+    @State private var contractType: ContractType = .unitPrice
     @State private var contractDate = Date()
     @State private var retentionRate = 10.0
     @State private var advanceRate = 0.0
     @State private var kdvRate = 0.0
+    @State private var stopajRate = 0.0
+    @State private var damgaVergisiRate = 0.0
+    @State private var kdvTevkifatRate = "0"
     @State private var selectedContractor: Contractor?
     @State private var hasDeadline = false
     @State private var completionDeadline = Date()
+    @State private var contractStartDate = Date()
+    @State private var hasContractEndDate = false
+    @State private var contractEndDate = Calendar.current.date(byAdding: .year, value: 1, to: Date())!
     @State private var dailyPenaltyRate = 0.1
     @State private var maxPenaltyRate = 20.0
 
@@ -85,12 +94,36 @@ struct AddContractView: View {
         !title.trimmingCharacters(in: .whitespaces).isEmpty && selectedContractor != nil
     }
 
+    private var isKamuIhalesi: Bool { project.projectType == .kamuIhalesi }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Sözleşme Bilgileri") {
                     TextField("Sözleşme Başlığı *", text: $title)
+                    TextField("Sözleşme No", text: $contractNumber)
+                    TextField(isKamuIhalesi ? "İşveren / İdare Adı *" : "İşveren / İdare Adı", text: $employerName)
+                    Picker("Sözleşme Türü", selection: $contractType) {
+                        ForEach(ContractType.allCases, id: \.self) { ct in
+                            Text(ct.rawValue).tag(ct)
+                        }
+                    }
                     DatePicker("Sözleşme Tarihi", selection: $contractDate, displayedComponents: .date)
+                }
+
+                Section("Süre Bilgileri") {
+                    DatePicker("Başlangıç Tarihi", selection: $contractStartDate, displayedComponents: .date)
+                    Toggle("Bitiş tarihi belirle", isOn: $hasContractEndDate)
+                    if hasContractEndDate {
+                        DatePicker("Bitiş Tarihi", selection: $contractEndDate, in: contractStartDate..., displayedComponents: .date)
+                        HStack {
+                            Text("İş Süresi")
+                            Spacer()
+                            let days = Calendar.current.dateComponents([.day], from: contractStartDate, to: contractEndDate).day ?? 0
+                            Text("\(max(0, days)) gün")
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
 
                 Section("Taşeron *") {
@@ -137,6 +170,32 @@ struct AddContractView: View {
                         }
                         .pickerStyle(.menu)
                     }
+                    HStack {
+                        Text("Stopaj Oranı")
+                        Spacer()
+                        TextField("0", value: $stopajRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                        Text("%")
+                    }
+                    HStack {
+                        Text("Damga Vergisi")
+                        Spacer()
+                        TextField("0.948", value: $damgaVergisiRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                        Text("%")
+                    }
+                    Picker("KDV Tevkifat Oranı", selection: $kdvTevkifatRate) {
+                        Text("Yok").tag("0")
+                        Text("2/10").tag("2/10")
+                        Text("4/10").tag("4/10")
+                        Text("5/10").tag("5/10")
+                        Text("7/10").tag("7/10")
+                        Text("9/10").tag("9/10")
+                    }
                 } header: {
                     Text("Kesinti ve Vergi Oranları")
                 } footer: {
@@ -172,9 +231,12 @@ struct AddContractView: View {
             .navigationTitle("Yeni Sözleşme")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
-                retentionRate = defaultRetentionRate
+                let pType = project.projectType
+                retentionRate = pType.defaultTeminatRate > 0 ? pType.defaultTeminatRate : defaultRetentionRate
                 advanceRate   = defaultAdvanceRate
                 kdvRate       = defaultKDVRate
+                stopajRate    = pType.defaultStopajRate
+                damgaVergisiRate = pType.damgaVergisiRequired ? 0.948 : 0.0
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -193,6 +255,14 @@ struct AddContractView: View {
         let contract = Contract(title: title, contractDate: contractDate,
                                 retentionRate: retentionRate, advanceRate: advanceRate)
         contract.kdvRate = kdvRate
+        contract.contractNumber = contractNumber
+        contract.employerName = employerName
+        contract.contractType = contractType
+        contract.stopajRate = stopajRate
+        contract.damgaVergisiRate = damgaVergisiRate
+        contract.kdvTevkifatRate = kdvTevkifatRate
+        contract.contractStartDate = contractStartDate
+        contract.contractEndDate = hasContractEndDate ? contractEndDate : nil
         contract.project = project
         contract.contractor = selectedContractor
         if hasDeadline {

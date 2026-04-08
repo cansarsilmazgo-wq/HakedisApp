@@ -419,6 +419,15 @@ struct AddMaterialView: View {
     @State private var unit = "adet"
     @State private var minimumStockText = "0"
     @State private var unitPriceText = "0"
+    // FAZ 17.3
+    @State private var category: MaterialCategory = .diger
+    @State private var brand = ""
+    @State private var modelName = ""
+    @State private var storageLocation = ""
+    @State private var supplierName = ""
+    @State private var isCritical = false
+
+    private let units = ["adet", "ton", "kg", "m³", "m²", "m", "lt", "çuval", "paket", "rulo"]
 
     var body: some View {
         NavigationStack {
@@ -426,25 +435,32 @@ struct AddMaterialView: View {
                 Section("Malzeme Bilgileri") {
                     TextField("Malzeme adı (Demir, Beton...)", text: $name)
                         .accessibilityLabel("Malzeme adı")
-                    TextField("Birim (ton, m³, adet...)", text: $unit)
-                        .accessibilityLabel("Ölçü birimi")
+                    Picker("Kategori", selection: $category) {
+                        ForEach(MaterialCategory.allCases, id: \.self) { c in
+                            Label(c.rawValue, systemImage: c.icon).tag(c)
+                        }
+                    }
+                    Picker("Birim", selection: $unit) {
+                        ForEach(units, id: \.self) { Text($0) }
+                    }
+                    Toggle("Kritik Malzeme", isOn: $isCritical)
+                }
+                Section("Detaylar") {
+                    TextField("Marka", text: $brand)
+                    TextField("Model / Tip", text: $modelName)
+                    TextField("Depo / Lokasyon", text: $storageLocation)
+                    TextField("Tedarikçi", text: $supplierName)
+                }
+                Section("Stok") {
                     HStack {
-                        Text("Min. Stok")
-                        Spacer()
+                        Text("Min. Stok"); Spacer()
                         TextField("0", text: $minimumStockText)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 80)
-                            .accessibilityLabel("Minimum stok miktarı")
+                            .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 80)
                     }
                     HStack {
-                        Text("Birim Fiyat (₺)")
-                        Spacer()
+                        Text("Birim Fiyat (₺)"); Spacer()
                         TextField("0", text: $unitPriceText)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                            .accessibilityLabel("Birim fiyat")
+                            .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 100)
                     }
                 }
             }
@@ -469,6 +485,12 @@ struct AddMaterialView: View {
             minimumStock: Double(minimumStockText) ?? 0,
             unitPrice: Double(unitPriceText) ?? 0
         )
+        material.materialCategory = category
+        material.brand = brand
+        material.modelName = modelName
+        material.storageLocation = storageLocation
+        material.supplierName = supplierName
+        material.isCritical = isCritical
         modelContext.insert(material)
         do { try modelContext.save() } catch { print("Kayıt: \(error)") }
         dismiss()

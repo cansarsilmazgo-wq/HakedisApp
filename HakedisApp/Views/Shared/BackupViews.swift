@@ -264,6 +264,31 @@ final class BackupManager: ObservableObject {
             if let e = error { print("BackupManager schedule error: \(e)") }
         }
     }
+
+    // FAZ 17.21 — Veri Silme (çift onaylı)
+    func deleteAllData(context: ModelContext) {
+        func deleteAll<T: PersistentModel>(_ type: T.Type) {
+            if let items = try? context.fetch(FetchDescriptor<T>()) {
+                for item in items { context.delete(item) }
+            }
+        }
+        deleteAll(Project.self)
+        deleteAll(Contract.self)
+        deleteAll(WorkItem.self)
+        deleteAll(DailyEntry.self)
+        deleteAll(Hakedis.self)
+        deleteAll(HakedisItem.self)
+        deleteAll(Payment.self)
+        deleteAll(Contractor.self)
+        deleteAll(Worker.self)
+        deleteAll(Attendance.self)
+        deleteAll(Material.self)
+        deleteAll(Equipment.self)
+        deleteAll(SafetyIncident.self)
+        try? context.save()
+        lastBackupDate = nil
+        UserDefaults.standard.removeObject(forKey: "lastBackupDate")
+    }
 }
 
 // MARK: - Backup View
@@ -272,10 +297,14 @@ struct BackupView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var manager = BackupManager.shared
     @State private var exportItem: URL? = nil
+    @State private var showExportSheet = false
     @State private var showImport = false
     @State private var showSuccess = false
 
     @State private var showToast = false
+    @AppStorage("autoBackupEnabled") private var autoBackupEnabled = false
+    @State private var showDeleteConfirm1 = false
+    @State private var showDeleteConfirm2 = false
 
     var body: some View {
         NavigationStack {
@@ -289,11 +318,16 @@ struct BackupView: View {
                         Label("Hiç yedekleme yapılmadı", systemImage: "exclamationmark.circle")
                             .foregroundColor(.hakedisWarning)
                     }
+                    Toggle("Otomatik Haftalık Yedekleme", isOn: $autoBackupEnabled)
+                        .onChange(of: autoBackupEnabled) { _, enabled in
+                            if enabled { manager.scheduleWeeklyReminder() }
+                        }
                 }
                 Section("Dışa Aktar") {
                     Button {
                         if let url = manager.exportToJSON(context: context) {
                             exportItem = url
+                            showExportSheet = true
                             withAnimation { showToast = true }
                         }
                     } label: {
@@ -303,6 +337,7 @@ struct BackupView: View {
                     Button {
                         if let url = manager.exportToZip(context: context) {
                             exportItem = url
+                            showExportSheet = true
                         }
                     } label: {
                         Label("ZIP Olarak Dışa Aktar", systemImage: "archivebox")
@@ -326,6 +361,37 @@ struct BackupView: View {
                         Label("Haftalık Hatırlatma Ayarla", systemImage: "bell.badge")
                     }
                 }
+
+                // FAZ 17.21 — KVKK & Veri Silme
+                Section {
+                    DisclosureGroup("Gizlilik Politikası (KVKK)") {
+                        Text("""
+Kişisel Verileriniz: Uygulamada girdiğiniz tüm veriler (proje bilgileri, çalışan bilgileri, finansal veriler) yalnızca cihazınızda yerel olarak saklanır. Herhangi bir sunucuya gönderilmez.
+
+İCloud Kullanımı: iCloud senkronizasyonunu etkinleştirirseniz verileriniz Apple'ın iCloud altyapısı üzerinden senkronize edilir ve Apple'ın gizlilik politikasına tabidir.
+
+Veri Silme Hakkı: Uygulamayı sildiğinizde tüm yerel veriler otomatik olarak silinir. iCloud verilerini silmek için Ayarlar > iCloud > Depolama'yı kullanabilirsiniz.
+
+6698 Sayılı KVKK kapsamında verileriniz üzerinde tam hakimiyete sahipsiniz.
+""")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                } header: {
+                    Text("Gizlilik")
+                }
+
+                Section {
+                    Button(role: .destructive) {
+                        showDeleteConfirm1 = true
+                    } label: {
+                        Label("Tüm Uygulama Verilerini Sil", systemImage: "trash.fill")
+                    }
+                } footer: {
+                    Text("Bu işlem geri alınamaz. Tüm proje, hakediş, işçi ve diğer veriler silinir.")
+                        .font(.caption)
+                }
+
                 if let error = manager.errorMessage {
                     Section {
                         Text(error).foregroundColor(.hakedisDanger).font(.caption)
@@ -334,8 +400,10 @@ struct BackupView: View {
             }
               .navigationTitle("Yedekleme")
               .navigationBarTitleDisplayMode(.large)
-              .sheet(item: $exportItem) { url in
-                  BackupShareSheet(items: [url])
+              .sheet(isPresented: $showExportSheet) {
+                  if let url = exportItem {
+                      BackupShareSheet(items: [url])
+                  }
               }
             .fileImporter(isPresented: $showImport,
                           allowedContentTypes: [.json, .zip],
@@ -353,6 +421,26 @@ struct BackupView: View {
                   Button("Tamam", role: .cancel) {}
               } message: {
                   Text("Haftalık yedekleme hatırlatması ayarlandı.")
+              }
+              .confirmationDialog("Tüm Veriler Silinecek",
+                                  isPresented: $showDeleteConfirm1,
+                                  titleVisibility: .visible) {
+                  Button("Evet, Silmek İstiyorum", role: .destructive) {
+                      showDeleteConfirm2 = true
+                  }
+                  Button("İptal", role: .cancel) {}
+              } message: {
+                  Text("Bu işlem geri alınamaz. Yedek almak ister misiniz?")
+              }
+              .confirmationDialog("Son Onay — Emin misiniz?",
+                                  isPresented: $showDeleteConfirm2,
+                                  titleVisibility: .visible) {
+                  Button("Tüm Verileri Kalıcı Olarak Sil", role: .destructive) {
+                      manager.deleteAllData(context: context)
+                  }
+                  Button("İptal", role: .cancel) {}
+              } message: {
+                  Text("Tüm proje, hakediş, işçi ve sözleşme verileri kalıcı olarak silinecektir.")
               }
               if manager.isExporting {
                   Color.black.opacity(0.25).ignoresSafeArea()
@@ -377,6 +465,3 @@ private struct BackupShareSheet: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
-extension URL: @retroactive Identifiable {
-    public var id: String { absoluteString }
-}

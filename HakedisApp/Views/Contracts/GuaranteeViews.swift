@@ -139,7 +139,19 @@ struct AddGuaranteeSheet: View {
                             Text(t.rawValue).tag(t)
                         }
                     }
-                    TextField("Tutar (₺)", text: $amount).keyboardType(.decimalPad)
+                    HStack {
+                        TextField("Tutar (₺)", text: $amount).keyboardType(.decimalPad)
+                        if contract.totalContractAmount > 0 {
+                            Button("Otomatik") {
+                                let pct = guaranteeType == .permanent ? 0.06 :
+                                          guaranteeType == .temporary ? 0.03 : contract.retentionRate / 100
+                                let calc = contract.totalContractAmount * pct
+                                amount = String(format: "%.2f", calc)
+                            }
+                            .font(.caption)
+                            .foregroundColor(.hakedisOrange)
+                        }
+                    }
                     TextField("Banka Adı", text: $bankName)
                     TextField("Referans No", text: $referenceNumber)
                 }

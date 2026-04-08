@@ -121,6 +121,38 @@ enum WorkerProfession: String, Codable, CaseIterable {
     }
 }
 
+// MARK: - FAZ 15: İşçi İstihdam Türü (#94-101)
+
+enum WorkerEmploymentType: String, Codable, CaseIterable {
+    case firmaPersoneli = "Firma Personeli"
+    case taseronIscisi  = "Taşeron İşçisi"
+    case gunubirlik     = "Günübirlik İşçi"
+
+    var sgkResponsibility: String {
+        switch self {
+        case .firmaPersoneli: return "Firma SGK'sı"
+        case .taseronIscisi:  return "Taşeron SGK'sı"
+        case .gunubirlik:     return "Günlük SGK Bildirge"
+        }
+    }
+
+    var costType: String {
+        switch self {
+        case .firmaPersoneli: return "Aylık Maaş"
+        case .taseronIscisi:  return "Hakediş Bazlı"
+        case .gunubirlik:     return "Günlük Yevmiye"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .firmaPersoneli: return "building.2"
+        case .taseronIscisi:  return "person.2.badge.gearshape"
+        case .gunubirlik:     return "calendar.day.timeline.leading"
+        }
+    }
+}
+
 enum BloodType: String, Codable, CaseIterable {
     case aPlus  = "A Rh+"
     case aMinus = "A Rh-"
@@ -185,6 +217,8 @@ final class Worker {
     @Relationship(deleteRule: .cascade) var attendances: [Attendance]
     var isActive: Bool
     var createdAt: Date
+    var workerEmploymentTypeRaw: String = WorkerEmploymentType.firmaPersoneli.rawValue
+    var linkedAccountId: UUID?   // firma personeli → UserAccount.id
 
     var qrCodeData: Data?
 
@@ -207,6 +241,10 @@ final class Worker {
     var bloodType: BloodType? {
         get { bloodTypeRaw.flatMap { BloodType(rawValue: $0) } }
         set { bloodTypeRaw = newValue?.rawValue }
+    }
+    var workerEmploymentType: WorkerEmploymentType {
+        get { WorkerEmploymentType(rawValue: workerEmploymentTypeRaw) ?? .firmaPersoneli }
+        set { workerEmploymentTypeRaw = newValue.rawValue }
     }
 
     // 4857 Md.53 yıllık izin hakkı

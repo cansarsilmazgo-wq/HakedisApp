@@ -2,6 +2,20 @@ import Foundation
 import SwiftData
 import os
 
+// MARK: - Ekipman Kategorisi (FAZ 17.4)
+
+enum EquipmentCategory: String, Codable, CaseIterable {
+    case vinc       = "Vinç"
+    case forklift   = "Forklift"
+    case kazici     = "Kazıcı/Ekskavatör"
+    case kamyon     = "Kamyon/Nakliye"
+    case beton      = "Beton Mikseri/Pompası"
+    case jenerator  = "Jeneratör"
+    case kompresor  = "Kompresör"
+    case iskele     = "İskele/Platform"
+    case diger      = "Diğer"
+}
+
 // MARK: - Ekipman Takibi (Equipment + EquipmentUsage)
 
 enum EquipmentStatus: String, Codable, CaseIterable {
@@ -28,6 +42,14 @@ final class Equipment {
     var muayenePeriodDays: Int     // muayene periyodu gün (ör: 365)
     var lastInspectionDate: Date?  // son muayene tarihi
     var malfunctionNotes: String?  // arıza kayıtları (gecikme gerekçesi için)
+    // FAZ 17.4 — Ekipman Eksikleri
+    var brand: String = ""
+    var modelName: String = ""
+    var yearManufactured: Int = 0
+    var hourlyRentalCost: Double = 0.0
+    var insuranceExpiryDate: Date?
+    var assignedOperatorName: String = ""
+    var equipmentCategoryRaw: String = "Diğer"
 
     init(name: String, plateOrSerial: String = "", equipmentType: String = "",
          dailyRentalCost: Double = 0, maintenancePeriodDays: Int = 90,
@@ -46,6 +68,17 @@ final class Equipment {
 
     var totalUsageDays: Int { usageRecords.reduce(0) { $0 + $1.durationDays } }
     var totalRentalCost: Double { Double(totalUsageDays) * dailyRentalCost }
+
+    var equipmentCategory: EquipmentCategory {
+        get { EquipmentCategory(rawValue: equipmentCategoryRaw) ?? .diger }
+        set { equipmentCategoryRaw = newValue.rawValue }
+    }
+
+    var isInsuranceExpiringSoon: Bool {
+        guard let expiry = insuranceExpiryDate else { return false }
+        let days = Calendar.current.dateComponents([.day], from: Date(), to: expiry).day ?? 0
+        return days <= 30
+    }
 
     var isMaintenanceDue: Bool {
         guard maintenancePeriodDays > 0, let last = lastMaintenanceDate else { return true }
@@ -474,6 +507,10 @@ final class SiteDiary {
     var signedByController: String?
     var windSpeed: String?
     var humidity: Double?
+    // FAZ 17.1 — Şantiye Günlüğü Eksikleri
+    var tomorrowPlan: String = ""
+    var securityNote: String = ""
+    var visitorLog: String = ""   // Ziyaretçi kaydı (ayrı alan)
 
     init(date: Date = Date(), weatherCondition: WeatherCondition = .sunny, workDescription: String = "") {
         self.id = UUID()
@@ -802,6 +839,13 @@ final class Material {
     var qrCodeData: Data?
     var project: Project?
     var createdAt: Date
+    // FAZ 17.3 — Malzeme Eksikleri
+    var categoryRaw: String = "Diğer"
+    var brand: String = ""
+    var modelName: String = ""
+    var storageLocation: String = ""
+    var supplierName: String = ""
+    var isCritical: Bool = false
     @Relationship(deleteRule: .cascade) var entries: [StockEntry]
     @Relationship(deleteRule: .cascade) var testResults: [MaterialTestResult]
     @Relationship(deleteRule: .nullify) var orders: [MaterialOrder]
@@ -819,6 +863,11 @@ final class Material {
         self.orders = []
         self.requests = []
         self.createdAt = Date()
+    }
+
+    var materialCategory: MaterialCategory {
+        get { MaterialCategory(rawValue: categoryRaw) ?? .diger }
+        set { categoryRaw = newValue.rawValue }
     }
 
     var isLowStock: Bool { currentStock < minimumStock }

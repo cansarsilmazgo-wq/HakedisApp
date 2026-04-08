@@ -101,7 +101,11 @@ private struct WorkerRow: View {
                         StatusBadge(text: "Pasif", color: .secondary)
                     }
                 }
-                Text(worker.profession.rawValue).font(.caption).foregroundColor(.secondary)
+                HStack(spacing: 4) {
+                    Text(worker.profession.rawValue).font(.caption).foregroundColor(.secondary)
+                    Text("·").font(.caption2).foregroundColor(.secondary)
+                    Text(worker.workerEmploymentType.rawValue).font(.caption2).foregroundColor(.hakedisOrange)
+                }
                 if let cname = worker.contractor?.name {
                     Text(cname).font(.caption2).foregroundColor(.secondary)
                 }
@@ -147,6 +151,9 @@ struct WorkerDetailView: View {
             // Kişisel Bilgiler
             Section("Kişisel Bilgiler") {
                 LabeledContent("Ad Soyad", value: worker.fullName)
+                LabeledContent("İstihdam Türü", value: worker.workerEmploymentType.rawValue)
+                LabeledContent("SGK Sorumluluğu", value: worker.workerEmploymentType.sgkResponsibility)
+                LabeledContent("Maliyet Türü", value: worker.workerEmploymentType.costType)
                 LabeledContent("Meslek", value: worker.profession.rawValue)
                 if let cname = worker.contractor?.name { LabeledContent("Taşeron", value: cname) }
                 if let bt = worker.bloodType { LabeledContent("Kan Grubu", value: bt.rawValue) }
@@ -284,6 +291,7 @@ struct AddWorkerView: View {
     @State private var hourlyCostText = ""
     @State private var selectedContractor: Contractor? = nil
     @State private var showValidation = false
+    @State private var employmentType: WorkerEmploymentType = .firmaPersoneli
 
     var body: some View {
         NavigationStack {
@@ -293,6 +301,11 @@ struct AddWorkerView: View {
                     if showValidation && fullName.isEmpty {
                         Text("Ad Soyad zorunludur").font(.caption).foregroundColor(.hakedisDanger)
                     }
+                    Picker("İstihdam Türü", selection: $employmentType) {
+                        ForEach(WorkerEmploymentType.allCases, id: \.self) { t in
+                            Label(t.rawValue, systemImage: t.icon).tag(t)
+                        }
+                    }.accessibilityLabel("İstihdam türü")
                     Picker("Meslek", selection: $profession) {
                         ForEach(WorkerProfession.allCases, id: \.rawValue) { p in
                             Label(p.rawValue, systemImage: p.icon).tag(p)
@@ -342,6 +355,7 @@ struct AddWorkerView: View {
             dailyCost: Double(dailyCostText) ?? 0,
             hourlyCost: Double(hourlyCostText) ?? 0
         )
+        w.workerEmploymentType = employmentType
         w.bloodType = bloodType
         w.sgkSicilNo = sgkSicilNo.isEmpty ? nil : sgkSicilNo
         w.emergencyContactName = emergencyContactName.isEmpty ? nil : emergencyContactName

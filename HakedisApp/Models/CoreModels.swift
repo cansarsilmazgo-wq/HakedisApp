@@ -51,6 +51,7 @@ enum WorkIncreaseStatus: String, Codable {
 enum ContractType: String, Codable, CaseIterable {
     case unitPrice = "Birim Fiyat"
     case lumpSum = "Götürü Bedel"
+    case anahtarTeslim = "Anahtar Teslim"
     case mixed = "Karma"
 }
 
@@ -127,13 +128,25 @@ final class Project {
 
     var latitude: Double?
     var longitude: Double?
+    var projectType: ProjectType = ProjectType.ozelSektor
 
-    init(name: String, projectDescription: String = "", location: String = "", startDate: Date = Date()) {
+    // FAZ 7 — Proje Formu Eksikleri
+    var city: String = ""
+    var district: String = ""
+    var buildingPermitNo: String = ""
+    var blockNo: String = ""
+    var parcelNo: String = ""
+    var employerName: String = ""
+    var buildingType: BuildingType = BuildingType.residential
+    var totalConstructionArea: Double = 0.0
+
+    init(name: String, projectDescription: String = "", location: String = "", startDate: Date = Date(), projectType: ProjectType = .ozelSektor) {
         self.id = UUID()
         self.name = name
         self.projectDescription = projectDescription
         self.location = location
         self.startDate = startDate
+        self.projectType = projectType
         self.status = .active
         self.createdAt = Date()
         self.contracts = []
@@ -150,6 +163,67 @@ enum ProjectStatus: String, Codable, CaseIterable {
     case paused = "Askıda"
 }
 
+
+enum ProjectType: String, Codable, CaseIterable {
+    case kamuIhalesi  = "Kamu İhalesi"
+    case ozelSektor   = "Özel Sektör"
+    case katKarsiligi = "Kat Karşılığı"
+    case yapSat       = "Yap-Sat"
+
+    var displayName: String { rawValue }
+
+    var stopajRequired: Bool {
+        switch self {
+        case .kamuIhalesi: return true
+        default: return false
+        }
+    }
+
+    var defaultStopajRate: Double {
+        switch self {
+        case .kamuIhalesi: return 3.0
+        default: return 0.0
+        }
+    }
+
+    var defaultTeminatRate: Double {
+        switch self {
+        case .kamuIhalesi: return 6.0
+        default: return 0.0
+        }
+    }
+
+    var bayindirlikPozRequired: Bool {
+        switch self {
+        case .kamuIhalesi: return true
+        default: return false
+        }
+    }
+
+    var fiyatFarkiEnabled: Bool {
+        switch self {
+        case .kamuIhalesi: return true
+        default: return false
+        }
+    }
+
+    var damgaVergisiRequired: Bool {
+        switch self {
+        case .kamuIhalesi, .ozelSektor: return true
+        default: return false
+        }
+    }
+
+    var infoText: String {
+        switch self {
+        case .kamuIhalesi:  return "Stopaj %3, Kesin Teminat %6, Bayındırlık Pozları"
+        case .ozelSektor:   return "Stopaj ve teminat oranları sözleşmeye göre belirlenir"
+        case .katKarsiligi: return "Pursantaj takibi aktif, stopaj ve teminat yok"
+        case .yapSat:       return "Maliyet takibi aktif, stopaj ve teminat yok"
+        }
+    }
+}
+
 @Model
 final class Contractor {
     var id: UUID
@@ -160,6 +234,15 @@ final class Contractor {
     var taxNumber: String
     var portalPassword: String
     var createdAt: Date
+    // FAZ 16 — #119 Taşeron performans değerlendirmesi
+    var qualityScore: Double = 0.0       // 0-10 iş kalitesi
+    var onTimeScore: Double = 0.0        // 0-10 zamanında teslim
+    var safetyScore: Double = 0.0        // 0-10 İSG puanı
+    var performanceNotes: String = ""
+    // FAZ 16 — #31 Taşeron firma profili
+    var activityArea: String = ""        // Faaliyet alanı
+    // FAZ 16 — #32 Subcontractor invite code (patron onayında kullanılacak)
+    var subcontractorInviteCode: String = ""
     @Relationship(deleteRule: .cascade) var contracts: [Contract]
 
     init(name: String, contactPerson: String = "", phone: String = "", email: String = "", taxNumber: String = "") {
@@ -190,6 +273,23 @@ final class Contractor {
     }
 
     var hasPortalPassword: Bool { !keychainPortalPassword.isEmpty }
+
+    var overallPerformanceScore: Double {
+        let scores = [qualityScore, onTimeScore, safetyScore].filter { $0 > 0 }
+        guard !scores.isEmpty else { return 0 }
+        return scores.reduce(0, +) / Double(scores.count)
+    }
+
+    var performanceRating: String {
+        let s = overallPerformanceScore
+        switch s {
+        case 0:        return "Değerlendirilmedi"
+        case ..<4:     return "Zayıf"
+        case ..<6:     return "Orta"
+        case ..<8:     return "İyi"
+        default:       return "Mükemmel"
+        }
+    }
 }
 
 @Model
@@ -227,6 +327,20 @@ final class Contract {
     var objectionPeriodDays: Int = 30
     var overdueInterestRate: Double = 9.0
     @Relationship(deleteRule: .cascade) var guarantees: [Guarantee] = []
+
+    // FAZ 4 — Sözleşme Formu Eksikleri
+    var contractNumber: String = ""
+    var employerName: String = ""
+    var stopajRate: Double = 0.0
+    var damgaVergisiRate: Double = 0.0
+    var contractStartDate: Date? = nil
+    var contractEndDate: Date? = nil
+    var kdvTevkifatRate: String = "0"
+
+    var workDuration: Int {
+        guard let start = contractStartDate, let end = contractEndDate else { return 0 }
+        return max(0, Calendar.current.dateComponents([.day], from: start, to: end).day ?? 0)
+    }
 
     init(title: String, contractDate: Date = Date(), retentionRate: Double = 10.0, advanceRate: Double = 0.0) {
         self.id = UUID()
@@ -525,7 +639,9 @@ final class HakedisItem {
     var currentQuantity: Double
     var hakedis: Hakedis?
 
-    init(workItemName: String, workItemCode: String, unit: String, unitPrice: Double, previousQuantity: Double, currentQuantity: Double) {
+    var contractedQuantity: Double = 0.0
+
+    init(workItemName: String, workItemCode: String, unit: String, unitPrice: Double, previousQuantity: Double, currentQuantity: Double, contractedQuantity: Double = 0.0) {
         self.id = UUID()
         self.workItemName = workItemName
         self.workItemCode = workItemCode
@@ -533,11 +649,90 @@ final class HakedisItem {
         self.unitPrice = unitPrice
         self.previousQuantity = previousQuantity
         self.currentQuantity = currentQuantity
+        self.contractedQuantity = contractedQuantity
     }
 
     var cumulativeQuantity: Double { previousQuantity + currentQuantity }
     var periodAmount: Double { currentQuantity * unitPrice }
     var cumulativeAmount: Double { cumulativeQuantity * unitPrice }
+    var completionRate: Double {
+        guard contractedQuantity > 0 else { return 0 }
+        return min((cumulativeQuantity / contractedQuantity) * 100, 100)
+    }
+}
+
+// MARK: - FAZ 11: Objection (İtiraz) Model
+
+enum ObjectionCategory: String, Codable, CaseIterable {
+    case miktar     = "Miktar İtirazı"
+    case fiyat      = "Fiyat İtirazı"
+    case kesinti    = "Kesinti İtirazı"
+    case sureBitis  = "Süre/Bitiş İtirazı"
+    case diger      = "Diğer"
+}
+
+enum ObjectionStatus: String, Codable, CaseIterable {
+    case acik       = "Açık"
+    case incelemede = "İncelemede"
+    case kabul      = "Kabul Edildi"
+    case kismiKabul = "Kısmi Kabul"
+    case red        = "Reddedildi"
+
+    var color: String {
+        switch self {
+        case .acik:       return "warning"
+        case .incelemede: return "orange"
+        case .kabul:      return "success"
+        case .kismiKabul: return "success"
+        case .red:        return "danger"
+        }
+    }
+}
+
+@Model
+final class Objection {
+    var id: UUID
+    var objectionNumber: String
+    var objectionDate: Date
+    var reason: String
+    var categoryRaw: String
+    var claimedAmount: Double
+    var approvedAmount: Double
+    var statusRaw: String
+    var responseDate: Date?
+    var responseNote: String?
+    var createdAt: Date
+    @Relationship var relatedHakedis: Hakedis?
+
+    var category: ObjectionCategory {
+        get { ObjectionCategory(rawValue: categoryRaw) ?? .diger }
+        set { categoryRaw = newValue.rawValue }
+    }
+    var status: ObjectionStatus {
+        get { ObjectionStatus(rawValue: statusRaw) ?? .acik }
+        set { statusRaw = newValue.rawValue }
+    }
+    var deadlineDate: Date { Calendar.current.date(byAdding: .day, value: 30, to: objectionDate) ?? objectionDate }
+    var daysUntilDeadline: Int { Calendar.current.dateComponents([.day], from: Date(), to: deadlineDate).day ?? 0 }
+    var isDeadlineApproaching: Bool { daysUntilDeadline <= 7 && status == .acik }
+
+    init(objectionNumber: String, objectionDate: Date = Date(), reason: String, category: ObjectionCategory, claimedAmount: Double) {
+        self.id = UUID()
+        self.objectionNumber = objectionNumber
+        self.objectionDate = objectionDate
+        self.reason = reason
+        self.categoryRaw = category.rawValue
+        self.claimedAmount = claimedAmount
+        self.approvedAmount = 0
+        self.statusRaw = ObjectionStatus.acik.rawValue
+        self.createdAt = Date()
+    }
+
+    static func generateNumber(existing: [Objection]) -> String {
+        let year = Calendar.current.component(.year, from: Date())
+        let next = existing.filter { $0.objectionNumber.contains("\(year)") }.count + 1
+        return String(format: "ITR-%d-%03d", year, next)
+    }
 }
 
 @Model

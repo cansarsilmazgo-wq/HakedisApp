@@ -127,8 +127,23 @@ struct AddProjectView: View {
     @State private var location = ""
     @State private var startDate = Date()
     @State private var status: ProjectStatus = .active
+    @State private var projectType: ProjectType = .ozelSektor
+
+    // FAZ 7
+    @State private var city = ""
+    @State private var district = ""
+    @State private var buildingPermitNo = ""
+    @State private var blockNo = ""
+    @State private var parcelNo = ""
+    @State private var employerName = ""
+    @State private var buildingType: BuildingType = .residential
+    @State private var totalConstructionArea = ""
 
     var isValid: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    private var availableDistricts: [String] {
+        TurkiyeIller.districts(for: city)
+    }
 
     var body: some View {
         NavigationStack {
@@ -138,6 +153,55 @@ struct AddProjectView: View {
                     TextField("Açıklama", text: $projectDescription, axis: .vertical)
                         .lineLimit(3)
                     TextField("Lokasyon", text: $location)
+                }
+                Section("Proje Türü") {
+                    Picker("İş Tipi", selection: $projectType) {
+                        ForEach(ProjectType.allCases, id: \.self) { type in
+                            Text(type.displayName).tag(type)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    Text(projectType.infoText)
+                        .font(.caption)
+                        .foregroundColor(projectType == .kamuIhalesi ? .hakedisOrange : .secondary)
+                }
+                Section("Konum Bilgileri") {
+                    Picker("İl", selection: $city) {
+                        Text("Seçiniz").tag("")
+                        ForEach(TurkiyeIller.iller, id: \.self) { il in
+                            Text(il).tag(il)
+                        }
+                    }
+                    .onChange(of: city) { district = "" }
+                    if !city.isEmpty {
+                        Picker("İlçe", selection: $district) {
+                            Text("Seçiniz").tag("")
+                            ForEach(availableDistricts, id: \.self) { ilce in
+                                Text(ilce).tag(ilce)
+                            }
+                        }
+                    }
+                }
+                Section("Tapu / Ruhsat Bilgileri") {
+                    TextField("Ada No", text: $blockNo)
+                        .keyboardType(.numberPad)
+                    TextField("Parsel No", text: $parcelNo)
+                        .keyboardType(.numberPad)
+                    TextField("Yapı Ruhsat No", text: $buildingPermitNo)
+                }
+                Section("Yapı Bilgileri") {
+                    Picker("Yapı Türü", selection: $buildingType) {
+                        ForEach(BuildingType.allCases, id: \.self) { t in
+                            Text(t.rawValue).tag(t)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    HStack {
+                        TextField("Toplam İnşaat Alanı", text: $totalConstructionArea)
+                            .keyboardType(.decimalPad)
+                        Text("m²").foregroundColor(.secondary)
+                    }
+                    TextField("İşveren / İdare Adı", text: $employerName)
                 }
                 Section("Detaylar") {
                     DatePicker("Başlangıç Tarihi", selection: $startDate, displayedComponents: .date)
@@ -168,9 +232,18 @@ struct AddProjectView: View {
             name: name.trimmingCharacters(in: .whitespaces),
             projectDescription: projectDescription,
             location: location,
-            startDate: startDate
+            startDate: startDate,
+            projectType: projectType
         )
         project.status = status
+        project.city = city
+        project.district = district
+        project.buildingPermitNo = buildingPermitNo
+        project.blockNo = blockNo
+        project.parcelNo = parcelNo
+        project.employerName = employerName
+        project.buildingType = buildingType
+        project.totalConstructionArea = Double(totalConstructionArea) ?? 0.0
         modelContext.insert(project)
         dismiss()
     }

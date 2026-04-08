@@ -7,6 +7,7 @@ import PhotosUI
 private enum RegisterPath {
     case owner
     case employee
+    case subcontractor
 }
 
 // MARK: - RegisterView
@@ -25,6 +26,8 @@ struct RegisterView: View {
                     PathSelectionView(path: $path)
                 } else if path == .owner {
                     OwnerRegisterView()
+                } else if path == .subcontractor {
+                    SubcontractorRegisterView()
                 } else {
                     EmployeeRegisterView()
                 }
@@ -77,6 +80,14 @@ private struct PathSelectionView: View {
                         subtitle: "Davet kodu ile mevcut bir şirkete katılın",
                         role: "Çalışan"
                     ) { path = .employee }
+
+                    pathCard(
+                        icon: "wrench.and.screwdriver.fill",
+                        iconColor: .blue,
+                        title: "Taşeron Olarak Katıl",
+                        subtitle: "Taşeron firma olarak sisteme kaydolun",
+                        role: "Taşeron"
+                    ) { path = .subcontractor }
                 }
                 .padding(.horizontal)
 
@@ -874,7 +885,246 @@ private struct EmployeeRegisterView: View {
     }
 }
 
+// MARK: - SubcontractorRegisterView (#30-#36)
+
+private struct SubcontractorRegisterView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss)      private var dismiss
+    @StateObject private var authManager = AuthManager.shared
+
+    @State private var step = 0
+
+    // Step 0 — Davet kodu
+    @State private var inviteCodeRaw = ""
+    @State private var codeValidated = false
+    @State private var foundCompany: Company? = nil
+    @State private var codeError = ""
+    @State private var isValidating = false
+
+    // Step 1 — Firma bilgileri
+    @State private var companyName = ""
+    @State private var taxNumber = ""
+    @State private var activityArea = ""
+    @State private var contactPhone = ""
+    @State private var contactEmail = ""
+
+    // Step 2 — Kişisel & Şifre
+    @State private var fullName = ""
+    @State private var email = ""
+    @State private var phone = ""
+    @State private var password = ""
+    @State private var passwordConfirm = ""
+    @State private var showPassword = false
+
+    @State private var errorMessage = ""
+    @State private var isCreating = false
+    @State private var isDone = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if step < 3 {
+                progressBar(steps: 3, current: step)
+            }
+            ScrollView {
+                VStack(spacing: 24) {
+                    switch step {
+                    case 0: subStep0
+                    case 1: subStep1
+                    case 2: subStep2
+                    case 3: subDoneView
+                    default: EmptyView()
+                    }
+                }
+                .padding()
+            }
+            if step < 3 {
+                navButtons(
+                    isLast: step == 2,
+                    isCreating: isCreating,
+                    onNext: {
+                        if step == 0 {
+                            if codeValidated { withAnimation { step = 1 } }
+                            else { validateCode() }
+                        } else if step == 1 {
+                            if validateStep1() { withAnimation { step = 2 } }
+                        } else {
+                            doRegister()
+                        }
+                    },
+                    nextLabel: step == 0 ? (codeValidated ? "Devam" : "Doğrula") : nil
+                )
+                .padding()
+            }
+        }
+        .background(Color.hakedisBackground.ignoresSafeArea())
+        .navigationTitle(["Davet Kodu", "Firma Bilgileri", "Hesap Oluştur", "Başarılı"][min(step, 3)])
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: Step 0 — Davet Kodu
+    private var subStep0: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "wrench.and.screwdriver.fill")
+                .font(.system(size: 48)).foregroundColor(.blue)
+            Text("Taşeron Olarak Katıl").font(.title2.bold())
+            Text("Ana firmanın davet kodunu girin.\nYeni bir projeye taşeron olarak kaydolabilirsiniz.")
+                .font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Davet Kodu").font(.caption).foregroundColor(.secondary)
+                TextField("XXX-YYYY-XXXX-XX", text: $inviteCodeRaw)
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .padding(14)
+                    .background(Color.hakedisCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .onChange(of: inviteCodeRaw) { _, v in
+                        inviteCodeRaw = formatInviteCodeInput(v)
+                    }
+            }
+            if codeValidated, let company = foundCompany {
+                Label("\(company.companyName) — Doğrulandı", systemImage: "checkmark.circle.fill")
+                    .foregroundColor(.hakedisSuccess).font(.subheadline)
+            }
+            if !codeError.isEmpty {
+                errorBanner(codeError)
+            }
+        }
+    }
+
+    // MARK: Step 1 — Firma Bilgileri
+    private var subStep1: some View {
+        VStack(spacing: 16) {
+            formField("Firma Adı *", "ABC Yapı Taahhüt", $companyName)
+            formField("Vergi No *", "1234567890", $taxNumber, keyboard: .numberPad)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Faaliyet Alanı").font(.caption).foregroundColor(.secondary)
+                TextField("Beton, demir, kalıp, elektrik...", text: $activityArea)
+                    .padding(12)
+                    .background(Color.hakedisCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            formField("Telefon", "+90 5xx xxx xx xx", $contactPhone, keyboard: .phonePad)
+            formField("E-posta", "info@firma.com", $contactEmail, keyboard: .emailAddress)
+            if !errorMessage.isEmpty { errorBanner(errorMessage) }
+        }
+    }
+
+    // MARK: Step 2 — Kişisel & Şifre
+    private var subStep2: some View {
+        VStack(spacing: 16) {
+            formField("Yetkili Ad Soyad *", "Ad Soyad", $fullName)
+            formField("E-posta *", "ad@firma.com", $email, keyboard: .emailAddress)
+            formField("Telefon", "+90 5xx", $phone, keyboard: .phonePad)
+            passwordFields(password: $password, confirm: $passwordConfirm, showPassword: $showPassword)
+            if !errorMessage.isEmpty { errorBanner(errorMessage) }
+        }
+    }
+
+    // MARK: Step 3 — Done
+    private var subDoneView: some View {
+        VStack(spacing: 24) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 60)).foregroundColor(.hakedisSuccess)
+            Text("Kaydınız Alındı!").font(.title2.bold())
+            Text("Yönetici onayından sonra sisteme erişebileceksiniz.")
+                .font(.subheadline).foregroundColor(.secondary).multilineTextAlignment(.center)
+            Button("Giriş Ekranına Git") { dismiss() }
+                .font(.headline).foregroundColor(.white)
+                .frame(maxWidth: .infinity).padding(.vertical, 14)
+                .background(Color.hakedisOrange).clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private func validateCode() {
+        codeError = ""
+        isValidating = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = authManager.validateInviteCode(inviteCodeRaw, context: modelContext)
+            DispatchQueue.main.async {
+                isValidating = false
+                switch result {
+                case .success(let company):
+                    codeValidated = true; foundCompany = company
+                case .invalidFormat: codeError = "Kod formatı geçersiz."
+                case .invalidChecksum: codeError = "Geçersiz davet kodu."
+                case .notFound: codeError = "Bu davet kodu bulunamadı."
+                case .inactive: codeError = "Bu kod devre dışı."
+                case .expired: codeError = "Bu kodun süresi dolmuş."
+                case .locked(let until):
+                    let f = DateFormatter(); f.dateFormat = "HH:mm"
+                    codeError = "Çok fazla deneme. \(f.string(from: until)) bekleyin."
+                }
+            }
+        }
+    }
+
+    private func validateStep1() -> Bool {
+        errorMessage = ""
+        guard !companyName.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Firma adı zorunludur."; return false
+        }
+        guard !taxNumber.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Vergi no zorunludur."; return false
+        }
+        return true
+    }
+
+    private func doRegister() {
+        errorMessage = ""
+        guard !fullName.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Ad soyad zorunludur."; return
+        }
+        guard isValidEmail(email) else { errorMessage = "Geçerli e-posta girin."; return }
+        guard password.count >= 6 else { errorMessage = "Şifre en az 6 karakter."; return }
+        guard password == passwordConfirm else { errorMessage = "Şifreler eşleşmiyor."; return }
+        guard let company = foundCompany else { return }
+
+        isCreating = true
+        let userDescriptor = FetchDescriptor<UserAccount>()
+        if let existing = try? modelContext.fetch(userDescriptor),
+           existing.contains(where: { $0.email.lowercased() == email.lowercased() }) {
+            isCreating = false; errorMessage = "Bu e-posta zaten kayıtlı."; return
+        }
+
+        let hash = authManager.hashPassword(password)
+        let user = UserAccount(fullName: fullName, email: email, role: .subcontractor, passwordHash: hash)
+        user.phone = phone.isEmpty ? nil : phone
+        user.companyName = companyName
+        user.accountStatus = .pendingApproval
+        user.company = company
+
+        let joinRequest = JoinRequest(user: user, company: company,
+                                      requestedRole: .subcontractor,
+                                      message: "Taşeron firma: \(companyName), Vergi No: \(taxNumber)" +
+                                               (activityArea.isEmpty ? "" : ", Faaliyet: \(activityArea)"))
+        modelContext.insert(user); modelContext.insert(joinRequest)
+        do {
+            try modelContext.save()
+            NotificationManager.shared.scheduleJoinRequestNotification(for: user, company: company)
+            isCreating = false
+            withAnimation { step = 3 }
+        } catch {
+            modelContext.delete(user); modelContext.delete(joinRequest)
+            isCreating = false
+            errorMessage = "Kayıt sırasında hata oluştu."
+        }
+    }
+}
+
 // MARK: - Shared Helpers (file-private)
+
+private func formatInviteCodeInput(_ raw: String) -> String {
+    let cleaned = raw.replacingOccurrences(of: "-", with: "")
+        .uppercased()
+        .filter { $0.isLetter || $0.isNumber }
+    var result = ""
+    for (i, char) in cleaned.prefix(13).enumerated() {
+        if i == 3 || i == 7 || i == 11 { result += "-" }
+        result.append(char)
+    }
+    return result
+}
 
 private func progressBar(steps: Int, current: Int) -> some View {
     HStack(spacing: 4) {

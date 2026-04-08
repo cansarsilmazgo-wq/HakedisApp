@@ -281,9 +281,39 @@ struct ContractorPerformanceView: View {
                 }
                 .padding(.vertical, 4)
             }
+
+            if contractor.overallPerformanceScore > 0 {
+                Section("Manuel Değerlendirme") {
+                    LabeledContent("İş Kalitesi") {
+                        Text("\(Int(contractor.qualityScore))/10").bold()
+                            .foregroundColor(scoreColor(contractor.qualityScore))
+                    }
+                    LabeledContent("Zamanında Teslim") {
+                        Text("\(Int(contractor.onTimeScore))/10").bold()
+                            .foregroundColor(scoreColor(contractor.onTimeScore))
+                    }
+                    LabeledContent("İSG Uyumu") {
+                        Text("\(Int(contractor.safetyScore))/10").bold()
+                            .foregroundColor(scoreColor(contractor.safetyScore))
+                    }
+                    LabeledContent("Genel Puan") {
+                        Text(String(format: "%.1f/10", contractor.overallPerformanceScore))
+                            .font(.headline).bold()
+                            .foregroundColor(scoreColor(contractor.overallPerformanceScore))
+                    }
+                    if !contractor.performanceNotes.isEmpty {
+                        Text(contractor.performanceNotes)
+                            .font(.caption).foregroundColor(.secondary)
+                    }
+                }
+            }
         }
         .navigationTitle("Performans Analizi")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func scoreColor(_ score: Double) -> Color {
+        score >= 8 ? .hakedisSuccess : score >= 5 ? .hakedisWarning : .hakedisDanger
     }
 
     private var evaluationNotes: [String] {

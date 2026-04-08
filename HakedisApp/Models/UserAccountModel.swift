@@ -22,6 +22,7 @@ final class UserAccount {
     var lastLoginDate: Date?
     var passwordHash: String
     var createdAt: Date
+    var title: String = ""   // FAZ 14.3 — Unvan (Genel Müdür, Şantiye Şefi, vb.)
     @Relationship var company: Company?
 
     init(fullName: String, email: String, role: UserRole, passwordHash: String) {

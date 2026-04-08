@@ -1,6 +1,16 @@
 import Foundation
 import SwiftData
 
+// MARK: - CompanyType
+
+enum CompanyType: String, Codable, CaseIterable {
+    case sahis        = "Şahıs"
+    case limited      = "Limited Şirket"
+    case anonim       = "Anonim Şirket"
+    case adiOrtaklik  = "Adi Ortaklık"
+    case isOrtakligi  = "İş Ortaklığı"
+}
+
 // MARK: - AccountStatus
 
 enum AccountStatus: String, Codable {

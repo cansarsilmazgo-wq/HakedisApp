@@ -28,6 +28,12 @@ struct SubcontractorPortalView: View {
                 .tabItem { Label("Taleplerim", systemImage: "tray.and.arrow.up.fill") }
                 .tag(3)
                 .accessibilityLabel("Taleplerim")
+
+            // FAZ 16 — #34 Çalıştığım Firmalar
+            SubcontractorCompaniesView()
+                .tabItem { Label("Firmalar", systemImage: "building.2.fill") }
+                .tag(4)
+                .accessibilityLabel("Çalıştığım firmalar")
         }
         .tint(.hakedisOrange)
     }
@@ -984,5 +990,104 @@ extension NotificationManager {
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(identifier: "wo_\(UUID().uuidString)", content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request)
+    }
+}
+
+// MARK: - SubcontractorCompaniesView (FAZ 16 — #34 Çalıştığım Firmalar)
+
+struct SubcontractorCompaniesView: View {
+    @StateObject private var authManager = AuthManager.shared
+    @Query private var companies: [Company]
+
+    private var myCompanies: [Company] {
+        guard let user = authManager.currentUser else { return [] }
+        return companies.filter { company in
+            company.members.contains(where: { $0.id == user.id })
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if myCompanies.isEmpty {
+                    Section {
+                        EmptyStateView(
+                            icon: "building.2",
+                            title: "Henüz firma yok",
+                            subtitle: "Bir firmaya katılmak için davet kodu kullanın."
+                        )
+                    }
+                } else {
+                    ForEach(myCompanies) { company in
+                        Section {
+                            LabeledContent("Firma Adı", value: company.companyName)
+                            if let phone = company.phone { LabeledContent("Telefon", value: phone) }
+                            if let email = company.email { LabeledContent("E-posta", value: email) }
+                            LabeledContent("Üye Sayısı", value: "\(company.members.count) kişi")
+                        } header: {
+                            Label(company.companyName, systemImage: "building.2")
+                        }
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle("Çalıştığım Firmalar")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+// MARK: - ContractorPerformanceEditView (FAZ 16 — #119)
+
+struct ContractorPerformanceEditView: View {
+    @Bindable var contractor: Contractor
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Performans Puanları (0–10)") {
+                    LabeledContent("Genel Puan", value: String(format: "%.1f", contractor.overallPerformanceScore))
+                    VStack(alignment: .leading) {
+                        Text("İş Kalitesi: \(Int(contractor.qualityScore))/10").font(.subheadline)
+                        Slider(value: $contractor.qualityScore, in: 0...10, step: 1)
+                            .tint(.hakedisOrange)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("Zamanında Teslim: \(Int(contractor.onTimeScore))/10").font(.subheadline)
+                        Slider(value: $contractor.onTimeScore, in: 0...10, step: 1)
+                            .tint(.hakedisSuccess)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("İSG Uyumu: \(Int(contractor.safetyScore))/10").font(.subheadline)
+                        Slider(value: $contractor.safetyScore, in: 0...10, step: 1)
+                            .tint(.blue)
+                    }
+                }
+                Section("Değerlendirme Notu") {
+                    TextEditor(text: $contractor.performanceNotes)
+                        .frame(minHeight: 80)
+                }
+                Section {
+                    LabeledContent("Genel Değerlendirme", value: contractor.performanceRating)
+                        .foregroundColor(
+                            contractor.overallPerformanceScore >= 8 ? .hakedisSuccess :
+                            contractor.overallPerformanceScore >= 6 ? .hakedisWarning : .hakedisDanger
+                        )
+                }
+            }
+            .navigationTitle("Performans Değerlendirmesi")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") {
+                        try? modelContext.save()
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }

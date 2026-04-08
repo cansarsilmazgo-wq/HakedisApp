@@ -74,6 +74,19 @@ struct ContractorRow: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            // FAZ 13 — #296: firma detayı
+            HStack(spacing: 12) {
+                if !contractor.taxNumber.isEmpty {
+                    Label(contractor.taxNumber, systemImage: "number")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                if !contractor.phone.isEmpty {
+                    Label(contractor.phone, systemImage: "phone")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
             HStack {
                 Text("\(contractor.contracts.count) sözleşme")
                     .font(.caption)

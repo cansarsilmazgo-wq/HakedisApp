@@ -29,6 +29,10 @@ final class EquipmentItem {
     var purchasePrice: Double?
     var purchaseDate: Date?
     var project: Project?
+    // FAZ 17.4
+    var equipmentCategoryRaw: String = EquipmentCategory.diger.rawValue
+    var assignedOperatorName: String = ""
+    var hourlyCost: Double = 0.0
     var maintenanceIntervalHours: Double
     var totalOperatingHours: Double
     var createdAt: Date
@@ -49,6 +53,11 @@ final class EquipmentItem {
         self.maintenancePlans = []
         self.rentalContracts = []
         self.createdAt = Date()
+    }
+
+    var equipmentCategory: EquipmentCategory {
+        get { EquipmentCategory(rawValue: equipmentCategoryRaw) ?? .diger }
+        set { equipmentCategoryRaw = newValue.rawValue }
     }
 
     var completedMaintenanceCount: Int { logs.filter { $0.isMaintenanceDay }.count }

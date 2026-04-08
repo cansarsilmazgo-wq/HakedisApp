@@ -3,10 +3,30 @@ import SwiftData
 
 struct SettingsView: View {
     // Şirket bilgileri (PDF başlığında kullanılır)
-    @AppStorage("companyName")    private var companyName    = ""
-    @AppStorage("companyPhone")   private var companyPhone   = ""
-    @AppStorage("companyEmail")   private var companyEmail   = ""
-    @AppStorage("companyAddress") private var companyAddress = ""
+    @AppStorage("companyName")         private var companyName         = ""
+    @AppStorage("companyPhone")        private var companyPhone        = ""
+    @AppStorage("companyEmail")        private var companyEmail        = ""
+    @AppStorage("companyAddress")      private var companyAddress      = ""
+    // FAZ 8 — Şirket Bilgileri Eksikleri
+    @AppStorage("companyCity")         private var companyCity         = ""
+    @AppStorage("companyDistrict")     private var companyDistrict     = ""
+    @AppStorage("tradeRegistryNo")     private var tradeRegistryNo     = ""
+    @AppStorage("iban")                private var iban                = ""
+    @AppStorage("taxOffice")           private var taxOffice           = ""
+    @AppStorage("companyType")         private var companyTypeRaw      = CompanyType.limited.rawValue
+    @AppStorage("contractorClass")     private var contractorClass     = ""
+    @AppStorage("activityAreas")       private var activityAreasRaw    = ""
+
+    private var companyType: CompanyType {
+        get { CompanyType(rawValue: companyTypeRaw) ?? .limited }
+        set { companyTypeRaw = newValue.rawValue }
+    }
+    private var activityAreas: Set<String> {
+        get { Set(activityAreasRaw.split(separator: ",").map(String.init)) }
+        set { activityAreasRaw = newValue.joined(separator: ",") }
+    }
+    private let allActivityAreas = ["Konut", "Altyapı", "Sanayi", "Enerji", "Yol", "Köprü", "Tünel", "Baraj", "Restorasyon"]
+    private let contractorClasses = ["A", "B", "C", "D", "E", "F", "G"]
 
     // Varsayılan değerler
     @AppStorage("defaultRetentionRate") private var defaultRetentionRate = 10.0
@@ -15,6 +35,8 @@ struct SettingsView: View {
 
     // Para birimi
     @AppStorage("selectedCurrency") private var selectedCurrency = "TRY"
+    // FAZ 14.1 — Tema
+    @AppStorage("colorScheme") private var colorSchemeRaw = "auto"
 
     // Dashboard kartları
     @AppStorage("dashboard_showFinancialSummary") private var showFinancialSummary = true
@@ -49,6 +71,58 @@ struct SettingsView: View {
                         Text("Şirket / Firma Adı").font(.caption).foregroundColor(.secondary)
                         TextField("PDF başlığında görünür", text: $companyName)
                     }
+                    Picker("Şirket Türü", selection: Binding(
+                        get: { companyType },
+                        set: { companyTypeRaw = $0.rawValue }
+                    )) {
+                        ForEach(CompanyType.allCases, id: \.self) { t in
+                            Text(t.rawValue).tag(t)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Ticaret Sicil No").font(.caption).foregroundColor(.secondary)
+                        TextField("Ticaret sicil numarası", text: $tradeRegistryNo)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Vergi Dairesi Adı").font(.caption).foregroundColor(.secondary)
+                        TextField("Vergi dairesi adı", text: $taxOffice)
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("IBAN").font(.caption).foregroundColor(.secondary)
+                        TextField("TR00 0000 0000 0000 0000 0000 00", text: $iban)
+                            .keyboardType(.asciiCapable)
+                            .textInputAutocapitalization(.characters)
+                    }
+                    Picker("Yetki Belgesi Sınıfı", selection: $contractorClass) {
+                        Text("Seçiniz").tag("")
+                        ForEach(contractorClasses, id: \.self) { cls in
+                            Text("\(cls) Grubu").tag(cls)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                } header: {
+                    Text("Şirket Bilgileri")
+                } footer: {
+                    Text("Bu bilgiler PDF hakedişlerin başlığında görünür.")
+                }
+
+                Section("Konum & İletişim") {
+                    Picker("İl", selection: $companyCity) {
+                        Text("Seçiniz").tag("")
+                        ForEach(TurkiyeIller.iller, id: \.self) { il in
+                            Text(il).tag(il)
+                        }
+                    }
+                    .onChange(of: companyCity) { companyDistrict = "" }
+                    if !companyCity.isEmpty {
+                        Picker("İlçe", selection: $companyDistrict) {
+                            Text("Seçiniz").tag("")
+                            ForEach(TurkiyeIller.districts(for: companyCity), id: \.self) { ilce in
+                                Text(ilce).tag(ilce)
+                            }
+                        }
+                    }
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Telefon").font(.caption).foregroundColor(.secondary)
                         TextField("+90 5xx xxx xx xx", text: $companyPhone)
@@ -65,10 +139,25 @@ struct SettingsView: View {
                         TextField("Şirket adresi", text: $companyAddress, axis: .vertical)
                             .lineLimit(2)
                     }
-                } header: {
-                    Text("Şirket Bilgileri")
-                } footer: {
-                    Text("Bu bilgiler PDF hakedişlerin başlığında görünür.")
+                }
+
+                Section("Faaliyet Alanları") {
+                    ForEach(allActivityAreas, id: \.self) { area in
+                        let isSelected = activityAreas.contains(area)
+                        Button {
+                            var updated = activityAreas
+                            if isSelected { updated.remove(area) } else { updated.insert(area) }
+                            activityAreasRaw = updated.joined(separator: ",")
+                        } label: {
+                            HStack {
+                                Text(area).foregroundColor(.primary)
+                                Spacer()
+                                if isSelected {
+                                    Image(systemName: "checkmark").foregroundColor(.hakedisOrange)
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // MARK: Varsayılan Değerler
@@ -94,7 +183,7 @@ struct SettingsView: View {
                     HStack {
                         Text("KDV Oranı")
                         Spacer()
-                        Picker("KDV", selection: $defaultKDVRate) {
+                        Picker("", selection: $defaultKDVRate) {
                             Text("KDV Yok").tag(0.0)
                             Text("%1").tag(1.0)
                             Text("%10").tag(10.0)
@@ -151,6 +240,16 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                     .accessibilityLabel("Para birimi seç")
+                }
+
+                // MARK: Görünüm (FAZ 14.1)
+                Section("Görünüm") {
+                    Picker("Tema", selection: $colorSchemeRaw) {
+                        Text("Otomatik").tag("auto")
+                        Text("Açık").tag("light")
+                        Text("Koyu").tag("dark")
+                    }
+                    .pickerStyle(.segmented)
                 }
 
                 // MARK: Dashboard Özelleştirme
@@ -218,7 +317,7 @@ struct SettingsView: View {
                     LabeledContent("Versiyon",   value: "\(appVersion) (\(buildNumber))")
                     LabeledContent("Platform",   value: "iOS 17+")
                     LabeledContent("Teknoloji",  value: "SwiftUI + SwiftData")
-                    LabeledContent("Geliştirici",value: "HakedisApp")
+                    LabeledContent("Geliştirici", value: "Alphabi Systems")
 
                     Link(destination: URL(string: "https://github.com/cansarsilmazgo-wq/HakedisApp")!) {
                         HStack {

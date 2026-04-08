@@ -91,8 +91,8 @@ struct OfflineSyncSettingsView: View {
                     title: "Saha girişleri", subtitle: "Her zaman çalışır, offline kaydedilir")
                 InfoRow(icon: "checkmark.circle.fill", color: .hakedisSuccess,
                     title: "Proje görüntüleme", subtitle: "Cached veriler gösterilir")
-                InfoRow(icon: "exclamationmark.circle.fill", color: .hakedisWarning,
-                    title: "Hakediş oluşturma", subtitle: "İnternet bağlantısı önerilir")
+                InfoRow(icon: "checkmark.circle.fill", color: .hakedisSuccess,
+                    title: "Hakediş oluşturma", subtitle: "Offline çalışır, sync sonra yapılır")
                 InfoRow(icon: "checkmark.circle.fill", color: .hakedisSuccess,
                     title: "PDF paylaşma", subtitle: "Yerel olarak çalışır")
             }
@@ -106,13 +106,25 @@ struct OfflineSyncSettingsView: View {
 
     private func calculateCacheSize() {
         DispatchQueue.global(qos: .utility).async {
+            // Geçici klasör boyutu
             let tmp = FileManager.default.temporaryDirectory
-            let size = (try? FileManager.default.contentsOfDirectory(at: tmp, includingPropertiesForKeys: [.fileSizeKey])
+            let tmpSize = (try? FileManager.default.contentsOfDirectory(at: tmp, includingPropertiesForKeys: [.fileSizeKey])
                 .compactMap { try? $0.resourceValues(forKeys: [.fileSizeKey]).fileSize }
                 .reduce(0, +)) ?? 0
-            let mb = Double(size) / 1_048_576
+
+            // SwiftData store dosya boyutu
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let storeURL = appSupport.appendingPathComponent("hakedis.store")
+            var storeSize = 0
+            for suffix in ["", "-shm", "-wal"] {
+                let url = URL(fileURLWithPath: storeURL.path + suffix)
+                storeSize += (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+            }
+
+            let total = tmpSize + storeSize
+            let mb = Double(total) / 1_048_576
             DispatchQueue.main.async {
-                cacheSize = mb < 1 ? "\(size / 1024) KB" : String(format: "%.1f MB", mb)
+                cacheSize = mb < 1 ? "\(max(total / 1024, 1)) KB" : String(format: "%.1f MB", mb)
             }
         }
     }

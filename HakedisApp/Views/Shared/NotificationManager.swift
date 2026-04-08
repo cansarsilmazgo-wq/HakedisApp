@@ -504,14 +504,18 @@ class NotificationManager: ObservableObject {
 
 struct NotificationSettingsView: View {
     @StateObject private var manager = NotificationManager.shared
-    @AppStorage("overdueAlertsEnabled") private var overdueAlertsEnabled = false
+    // FAZ 10: Geciken ödeme + teminat mektubu default AÇIK (#291)
+    @AppStorage("overdueAlertsEnabled") private var overdueAlertsEnabled = true
     @AppStorage("approvalAlertsEnabled") private var approvalAlertsEnabled = false
     @AppStorage("budgetAlertsEnabled") private var budgetAlertsEnabled = false
-    // FIX-22: Teminat bildirimleri için ayrı AppStorage
-    @AppStorage("guaranteeAlertsEnabled") private var guaranteeAlertsEnabled = false
+    @AppStorage("guaranteeAlertsEnabled") private var guaranteeAlertsEnabled = true
     @AppStorage("certificateAlertsEnabled") private var certificateAlertsEnabled = false
     @AppStorage("materialOrderAlertsEnabled") private var materialOrderAlertsEnabled = false
     @AppStorage("correspondenceAlertsEnabled") private var correspondenceAlertsEnabled = false
+    // FAZ 10: Yeni bildirim türleri (#292, #293)
+    @AppStorage("isgCertAlertsEnabled") private var isgCertAlertsEnabled = false
+    @AppStorage("workAccidentAlertsEnabled") private var workAccidentAlertsEnabled = false
+    @AppStorage("sgkPrimAlertsEnabled") private var sgkPrimAlertsEnabled = false
 
     var body: some View {
         Form {
@@ -615,6 +619,14 @@ struct NotificationSettingsView: View {
                             }
                         }
                     }
+                // FAZ 10 — #292
+                Toggle("İSG Sertifika Süresi Uyarıları", isOn: $isgCertAlertsEnabled)
+                    .tint(.hakedisOrange)
+                Toggle("İş Kazası Bildirimi", isOn: $workAccidentAlertsEnabled)
+                    .tint(.hakedisOrange)
+                // FAZ 10 — #293
+                Toggle("SGK Prim Ödeme Son Gün Hatırlatıcısı", isOn: $sgkPrimAlertsEnabled)
+                    .tint(.hakedisOrange)
             }
 
             Section("Bilgi") {
@@ -634,6 +646,12 @@ struct NotificationSettingsView: View {
                 Text("Malzeme sipariş uyarıları; beklenen teslimat gününde sabah 08:00'de tetiklenir.")
                     .font(.caption).foregroundColor(.secondary)
                 Text("Yazışma cevap süresi uyarıları; son yanıt tarihinden 2 gün önce 09:00'da zamanlanır.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("İSG sertifika uyarıları; sertifika bitiş tarihinden 60, 30 ve 7 gün önce zamanlanır.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("İş kazası bildirimi; acil durumlarda anlık bildirim gönderir.")
+                    .font(.caption).foregroundColor(.secondary)
+                Text("SGK prim son gün hatırlatıcısı; her ayın 25'inde saat 10:00'da hatırlatır.")
                     .font(.caption).foregroundColor(.secondary)
             }
         }

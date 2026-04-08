@@ -267,7 +267,11 @@ extension Double {
     }
 
     func maskedCurrency(for role: UserRole) -> String {
-        guard role.canSeeFinancials else { return "₺***" }
+        guard role.canSeeFinancials else {
+            let code = UserDefaults.standard.string(forKey: "selectedCurrency") ?? "TRY"
+            let sym = (SupportedCurrency(rawValue: code) ?? .TRY).symbol
+            return "\(sym)***"
+        }
         return currencyFormatted
     }
 

@@ -132,6 +132,7 @@ struct ReportPreviewView: View {
     @State private var projectName = ""
     @State private var preparedBy = ""
     @State private var pdfShareURL: URL? = nil
+    @State private var showPDFShare = false
     @State private var isGeneratingPDF = false
 
     var body: some View {
@@ -163,7 +164,9 @@ struct ReportPreviewView: View {
             }
             .navigationTitle("Rapor Önizleme")
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(item: $pdfShareURL) { url in ShareSheet(items: [url]) }
+            .sheet(isPresented: $showPDFShare) {
+                if let url = pdfShareURL { ShareSheet(items: [url]) }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Kapat") { dismiss() }
@@ -181,6 +184,7 @@ struct ReportPreviewView: View {
                             DispatchQueue.main.async {
                                 isGeneratingPDF = false
                                 pdfShareURL = url
+                                showPDFShare = true
                             }
                         }
                     } label: {

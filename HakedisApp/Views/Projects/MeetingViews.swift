@@ -471,8 +471,18 @@ struct DecisionTrackingView: View {
                     Toggle("Sadece açık kararlar", isOn: $showOnlyOpen).tint(.hakedisOrange)
                     TextField("Sorumlu filtrele", text: $responsibleFilter)
                 }
-                ForEach(filtered, id: \.id) { decision in
-                    DecisionTrackingRow(decision: decision, modelContext: modelContext)
+                if filtered.isEmpty {
+                    Section {
+                        EmptyStateView(
+                            icon: "checkmark.circle",
+                            title: showOnlyOpen ? "Açık karar yok" : "Karar bulunamadı",
+                            subtitle: showOnlyOpen ? "Tüm kararlar tamamlandı." : "Filtre kriterlerini değiştirin."
+                        )
+                    }
+                } else {
+                    ForEach(filtered, id: \.id) { decision in
+                        DecisionTrackingRow(decision: decision, modelContext: modelContext)
+                    }
                 }
             }
             .listStyle(.insetGrouped)

@@ -6,6 +6,9 @@ import SwiftData
 enum BuildingType: String, Codable, CaseIterable {
     case residential = "Konut"
     case commercial  = "Ticari"
+    case altyapi     = "Altyapı"
+    case sanayi      = "Sanayi"
+    case kamusal     = "Kamusal (Okul, Hastane)"
     case mixed       = "Karma"
 }
 

@@ -22,6 +22,8 @@ struct ProfileView: View {
                             Label(user.role.displayName, systemImage: user.role.icon)
                                 .font(.caption)
                                 .foregroundColor(.hakedisOrange)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
                         }
                     }
                     .padding(.vertical, 4)
@@ -29,6 +31,9 @@ struct ProfileView: View {
 
                 Section("Kişisel Bilgiler") {
                     LabeledContent("Ad Soyad", value: user.fullName)
+                    if !user.title.isEmpty {
+                        LabeledContent("Unvan", value: user.title)
+                    }
                     LabeledContent("E-posta", value: user.email)
                     if let phone = user.phone { LabeledContent("Telefon", value: phone) }
                     if let prof = user.profession {

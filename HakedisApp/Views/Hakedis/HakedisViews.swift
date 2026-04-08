@@ -214,20 +214,18 @@ struct AddHakedisView: View {
                 currentQty = periodEntries.reduce(0) { $0 + $1.quantity }
             }
 
-            // Only add if there's work done in this period
-            if currentQty > 0 {
-                let item = HakedisItem(
-                    workItemName: workItem.name,
-                    workItemCode: workItem.code,
-                    unit: workItem.unit,
-                    unitPrice: workItem.unitPrice,
-                    previousQuantity: previousQty,
-                    currentQuantity: currentQty
-                )
-                item.hakedis = hakedis
-                hakedis.items.append(item)
-                modelContext.insert(item)
-            }
+            let item = HakedisItem(
+                workItemName: workItem.name,
+                workItemCode: workItem.code,
+                unit: workItem.unit,
+                unitPrice: workItem.unitPrice,
+                previousQuantity: previousQty,
+                currentQuantity: currentQty,
+                contractedQuantity: workItem.contractedQuantity
+            )
+            item.hakedis = hakedis
+            hakedis.items.append(item)
+            modelContext.insert(item)
         }
 
         contract.hakedisler.append(hakedis)
@@ -255,8 +253,25 @@ struct HakedisDetailView: View {
     @State private var paymentToDelete: Payment?
     @State private var showPaymentToast = false
     @State private var showingMailCompose = false
+    @State private var showingIcmal = false
     @State private var mailResult: Result<MFMailComposeResult, Error>? = nil
     @StateObject private var authManager = AuthManager.shared
+
+    private var hakedisNo: Int {
+        guard let c = hakedis.contract else { return 1 }
+        let sorted = c.hakedisler.sorted { $0.createdAt < $1.createdAt }
+        return (sorted.firstIndex(where: { $0.id == hakedis.id }) ?? 0) + 1
+    }
+
+    private var detailTitle: String { "\(hakedisNo). Hakediş — \(hakedis.periodName)" }
+
+    private var isLumpSum: Bool { hakedis.contract?.contractType == .lumpSum }
+    private var brutLabel: String {
+        isLumpSum ? "Efektif Brüt (Götürü %\(Int(hakedis.lumpSumCompletionPercentage)))" : "Brüt Tutar"
+    }
+    private var brutAmount: Double {
+        isLumpSum ? hakedis.effectiveGrossAmount : hakedis.grossAmount
+    }
 
     var statusColor: Color {
         switch hakedis.status {
@@ -275,11 +290,9 @@ struct HakedisDetailView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(hakedis.contract?.contractType == .lumpSum ? "Efektif Brüt (Götürü %\(Int(hakedis.lumpSumCompletionPercentage)))" : "Brüt Tutar")
+                            Text(brutLabel)
                                 .font(.caption).foregroundColor(.secondary)
-                            Text((hakedis.contract?.contractType == .lumpSum
-                                  ? hakedis.effectiveGrossAmount
-                                  : hakedis.grossAmount).currencyFormatted)
+                            Text(brutAmount.currencyFormatted)
                                 .font(.title3.bold())
                         }
                         Spacer()
@@ -548,6 +561,12 @@ struct HakedisDetailView: View {
                             Image(systemName: "doc.text")
                         }
                     }
+                    Button {
+                        showingIcmal = true
+                    } label: {
+                        Image(systemName: "tablecells")
+                    }
+                    .accessibilityLabel("İcmal tablosu")
                     NavigationLink(destination: HakedisApprovalAnalysisView(hakedis: hakedis)) {
                         Image(systemName: "chart.bar.doc.horizontal")
                     }
@@ -570,7 +589,17 @@ struct HakedisDetailView: View {
         .sheet(isPresented: $showingMailCompose) {
             HakedisMailComposeView(hakedis: hakedis, result: $mailResult)
         }
-        .navigationTitle(hakedis.periodName)
+        .sheet(isPresented: $showingIcmal) {
+            NavigationStack {
+                HakedisIcmalView(hakedis: hakedis)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Kapat") { showingIcmal = false }
+                        }
+                    }
+            }
+        }
+        .navigationTitle(detailTitle)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingKopyala) {
             HakedisKopyalaView(hakedis: hakedis)
@@ -836,6 +865,7 @@ struct HakedisItemRow: View {
                     Text("Kümülatif").font(.caption2).foregroundColor(.secondary)
                     Text("\(item.cumulativeQuantity.quantityFormatted) \(item.unit)")
                         .font(.caption)
+                        .foregroundColor(item.completionRate >= 100 ? .hakedisSuccess : .primary)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
@@ -843,6 +873,15 @@ struct HakedisItemRow: View {
                     Text(item.periodAmount.currencyFormatted)
                         .font(.caption.bold())
                         .foregroundColor(.primary)
+                }
+            }
+            if item.contractedQuantity > 0 {
+                HStack(spacing: 6) {
+                    ProgressBarView(progress: item.completionRate / 100, color: .hakedisOrange)
+                    Text("%\(Int(item.completionRate))")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(width: 36, alignment: .trailing)
                 }
             }
         }
