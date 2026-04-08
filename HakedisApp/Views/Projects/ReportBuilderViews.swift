@@ -128,18 +128,53 @@ private struct ReportSectionToggleRow: View {
 struct ReportPreviewView: View {
     let template: ReportTemplate
     @Environment(\.dismiss) private var dismiss
+    // FAZ 17.6 — Project picker + date range
+    @Query private var projects: [Project]
+    @State private var selectedProject: Project? = nil
+    @State private var reportStartDate = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+    @State private var reportEndDate = Date()
     @State private var reportDate = Date()
-    @State private var projectName = ""
     @State private var preparedBy = ""
     @State private var pdfShareURL: URL? = nil
     @State private var showPDFShare = false
     @State private var isGeneratingPDF = false
+
+    private var projectName: String { selectedProject?.name ?? "" }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
+                        // FAZ 17.6 — Proje seçimi ve tarih aralığı
+                        VStack(alignment: .leading, spacing: 8) {
+                            Picker("Proje", selection: $selectedProject) {
+                                Text("Tüm Projeler").tag(Optional<Project>.none)
+                                ForEach(projects, id: \.id) { p in
+                                    Text(p.name).tag(Optional(p))
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.hakedisCard)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                            HStack {
+                                DatePicker("", selection: $reportStartDate, displayedComponents: .date)
+                                    .labelsHidden()
+                                Text("—").foregroundColor(.secondary)
+                                DatePicker("", selection: $reportEndDate, displayedComponents: .date)
+                                    .labelsHidden()
+                            }
+
+                            TextField("Hazırlayan", text: $preparedBy)
+                                .padding(.horizontal, 12).padding(.vertical, 6)
+                                .background(Color.hakedisCard)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .padding(.horizontal)
+
                         ReportHeaderView(template: template, reportDate: reportDate,
                                          projectName: projectName, preparedBy: preparedBy)
                         ForEach(template.enabledSections) { section in

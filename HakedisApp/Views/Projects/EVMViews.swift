@@ -414,9 +414,11 @@ struct ProfitabilityAnalysisView: View {
 struct AddBudgetView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    // FAZ 17.13 — Proje picker
+    @Query private var projects: [Project]
 
     @State private var budgetName = ""
-    @State private var projectName = ""
+    @State private var selectedProject: Project? = nil
     @State private var totalBudgetStr = ""
 
     var body: some View {
@@ -424,7 +426,13 @@ struct AddBudgetView: View {
             Form {
                 Section {
                     TextField("Bütçe Adı", text: $budgetName)
-                    TextField("Proje Adı", text: $projectName)
+                    // FAZ 17.13 — Proje picker
+                    Picker("Proje", selection: $selectedProject) {
+                        Text("Seçilmedi").tag(Optional<Project>.none)
+                        ForEach(projects, id: \.id) { p in
+                            Text(p.name).tag(Optional(p))
+                        }
+                    }
                     TextField("Toplam Bütçe (₺)", text: $totalBudgetStr).keyboardType(.decimalPad)
                 }
             }
@@ -441,7 +449,9 @@ struct AddBudgetView: View {
 
     private func save() {
         let total = Double(totalBudgetStr.replacingOccurrences(of: ",", with: ".")) ?? 0
-        let b = ProjectBudget(budgetName: budgetName, projectName: projectName, totalBudget: total)
+        let pname = selectedProject?.name ?? ""
+        let b = ProjectBudget(budgetName: budgetName, projectName: pname, totalBudget: total)
+        b.linkedProject = selectedProject
         context.insert(b)
         do { try context.save() } catch { print("AddBudgetView save error: \(error)") }
         dismiss()

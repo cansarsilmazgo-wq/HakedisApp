@@ -40,6 +40,9 @@ final class ProgressReport {
     var summaryText: String
     @Relationship var project: Project?
     var createdAt: Date
+    // FAZ 17.9 — Planlanan vs Gerçekleşen, gecikme nedeni
+    var plannedPercentage: Double = 0.0
+    var delayReason: String = ""
 
     init(reportPeriod: String, completionPercentage: Double = 0, summaryText: String = "") {
         self.id = UUID()
@@ -50,6 +53,9 @@ final class ProgressReport {
         self.afterPhotoData = []
         self.createdAt = Date()
     }
+
+    var progressVariance: Double { completionPercentage - plannedPercentage }
+    var isDelayed: Bool { progressVariance < -5.0 }
 }
 
 // MARK: - İş Artışı / Eksilişi Emri

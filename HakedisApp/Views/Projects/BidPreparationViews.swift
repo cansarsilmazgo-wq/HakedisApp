@@ -384,6 +384,8 @@ struct AddBidView: View {
     @State private var overheadRate = 15.0
     @State private var profitRate = 10.0
     @State private var taxRate = 20.0
+    @State private var tenzilatRate = 0.0
+    @State private var bidType: BidType = .birimFiyat
     @State private var notes = ""
 
     var body: some View {
@@ -393,6 +395,10 @@ struct AddBidView: View {
                     TextField("Proje Başlığı", text: $projectTitle)
                     TextField("İşveren / İdare", text: $clientName)
                     DatePicker("Son Teklif Tarihi", selection: $bidDeadline, displayedComponents: .date)
+                    // FAZ 17.15 — İhale türü
+                    Picker("İhale Türü", selection: $bidType) {
+                        ForEach(BidType.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                    }
                 }
                 Section("Oranlar") {
                     HStack {
@@ -415,6 +421,15 @@ struct AddBidView: View {
                         Text("KDV (%)")
                         Spacer()
                         TextField("", value: $taxRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 60)
+                    }
+                    // FAZ 17.15 — Tenzilat
+                    HStack {
+                        Text("Tenzilat (%)")
+                        Spacer()
+                        TextField("0", value: $tenzilatRate, format: .number)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 60)
@@ -442,6 +457,8 @@ struct AddBidView: View {
         bid.overheadRate = overheadRate
         bid.profitRate = profitRate
         bid.taxRate = taxRate
+        bid.tenzilatRate = tenzilatRate
+        bid.bidType = bidType
         bid.notes = notes
         context.insert(bid)
         do { try context.save() } catch { print("AddBidView save error: \(error)") }

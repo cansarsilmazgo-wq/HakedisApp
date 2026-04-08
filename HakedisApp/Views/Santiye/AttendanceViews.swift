@@ -100,8 +100,14 @@ struct AttendanceListView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button { showingAdd = true } label: { Image(systemName: "plus") }
-                    .accessibilityLabel("Yeni kayıt ekle")
+                HStack {
+                    NavigationLink(destination: AttendanceGridView()) {
+                        Image(systemName: "tablecells")
+                    }
+                    .accessibilityLabel("Grid görünümü")
+                    Button { showingAdd = true } label: { Image(systemName: "plus") }
+                        .accessibilityLabel("Yeni kayıt ekle")
+                }
             }
         }
     }
@@ -178,6 +184,10 @@ struct AddAttendanceView: View {
     @State private var selectedContractor: Contractor? = nil
     @State private var workerEntries: [WorkerEntry] = [WorkerEntry()]
     @State private var allPresent = true
+    // FAZ 17.2 — Giriş/çıkış saati
+    @State private var checkInTime = Calendar.current.date(bySettingHour: 8, minute: 0, second: 0, of: Date()) ?? Date()
+    @State private var checkOutTime = Calendar.current.date(bySettingHour: 17, minute: 0, second: 0, of: Date()) ?? Date()
+    @State private var useCheckInOut = false
 
     struct WorkerEntry: Identifiable {
         var id = UUID()
@@ -194,6 +204,15 @@ struct AddAttendanceView: View {
                 Section("Genel") {
                     DatePicker("Tarih", selection: $date, displayedComponents: .date)
                         .accessibilityLabel("Tarih")
+                    // FAZ 17.2 — Giriş/çıkış saati
+                    Toggle("Giriş/Çıkış Saati Gir", isOn: $useCheckInOut)
+                        .tint(.hakedisOrange)
+                    if useCheckInOut {
+                        DatePicker("Giriş Saati", selection: $checkInTime, displayedComponents: .hourAndMinute)
+                            .accessibilityLabel("Giriş saati")
+                        DatePicker("Çıkış Saati", selection: $checkOutTime, displayedComponents: .hourAndMinute)
+                            .accessibilityLabel("Çıkış saati")
+                    }
 
                     Picker("Proje", selection: $selectedProject) {
                         Text("Seçilmedi").tag(Optional<Project>.none)
@@ -294,6 +313,10 @@ struct AddAttendanceView: View {
             attendance.overtimeHours = entry.overtimeHours
             attendance.contractor = selectedContractor
             attendance.project = selectedProject
+            if useCheckInOut {
+                attendance.checkInTime = checkInTime
+                attendance.checkOutTime = checkOutTime
+            }
             // Worker ilişkisi kur
             if let matchedWorker = workers.first(where: { $0.fullName == entry.name }) {
                 attendance.worker = matchedWorker
@@ -302,5 +325,124 @@ struct AddAttendanceView: View {
         }
         do { try modelContext.save() } catch { print("Kayıt hatası: \(error)") }
         dismiss()
+    }
+}
+
+// MARK: - FAZ 17.2 — Haftalık/Aylık Puantaj Grid
+
+struct AttendanceGridView: View {
+    @Query(sort: \Attendance.date, order: .reverse) private var records: [Attendance]
+    @State private var viewMode: GridMode = .weekly
+    @State private var referenceDate = Date()
+
+    enum GridMode: String, CaseIterable {
+        case weekly = "Haftalık"
+        case monthly = "Aylık"
+    }
+
+    private var workerNames: [String] {
+        Array(Set(records.map { $0.effectiveName })).sorted()
+    }
+
+    private var daysInRange: [Date] {
+        let cal = Calendar.current
+        if viewMode == .weekly {
+            guard let weekStart = cal.dateInterval(of: .weekOfYear, for: referenceDate)?.start else { return [] }
+            return (0..<7).compactMap { cal.date(byAdding: .day, value: $0, to: weekStart) }
+        } else {
+            guard let monthStart = cal.dateInterval(of: .month, for: referenceDate)?.start,
+                  let range = cal.range(of: .day, in: .month, for: referenceDate) else { return [] }
+            return (0..<range.count).compactMap { cal.date(byAdding: .day, value: $0, to: monthStart) }
+        }
+    }
+
+    private func isPresent(worker: String, date: Date) -> Bool? {
+        let cal = Calendar.current
+        guard let record = records.first(where: {
+            $0.effectiveName == worker && cal.isDate($0.date, inSameDayAs: date)
+        }) else { return nil }
+        return record.isPresent
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("Görünüm", selection: $viewMode) {
+                ForEach(GridMode.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, Spacing.card)
+            .padding(.vertical, 8)
+            .background(Color.hakedisCard)
+
+            HStack {
+                Button {
+                    referenceDate = Calendar.current.date(byAdding: viewMode == .weekly ? .weekOfYear : .month,
+                                                         value: -1, to: referenceDate) ?? referenceDate
+                } label: { Image(systemName: "chevron.left") }
+                Spacer()
+                Text(viewMode == .weekly
+                     ? "Hafta \(Calendar.current.component(.weekOfYear, from: referenceDate))"
+                     : referenceDate.formatted(.dateTime.year().month(.wide)))
+                    .font(.subheadline.bold())
+                Spacer()
+                Button {
+                    referenceDate = Calendar.current.date(byAdding: viewMode == .weekly ? .weekOfYear : .month,
+                                                         value: 1, to: referenceDate) ?? referenceDate
+                } label: { Image(systemName: "chevron.right") }
+            }
+            .padding(.horizontal, Spacing.card)
+            .padding(.vertical, 6)
+
+            if workerNames.isEmpty {
+                EmptyStateView(icon: "person.crop.rectangle.stack",
+                               title: "Veri Yok",
+                               subtitle: "Bu dönemde puantaj kaydı bulunamadı")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView([.horizontal, .vertical]) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        // Header row
+                        HStack(spacing: 0) {
+                            Text("İşçi").frame(width: 100, alignment: .leading)
+                                .font(.caption.bold()).padding(4)
+                                .background(Color.hakedisCard)
+                            ForEach(daysInRange, id: \.self) { day in
+                                Text(day.formatted(.dateTime.day()))
+                                    .frame(width: 32, alignment: .center)
+                                    .font(.caption.bold())
+                                    .padding(4)
+                                    .background(Calendar.current.isDateInToday(day) ? Color.hakedisOrange.opacity(0.2) : Color.hakedisCard)
+                            }
+                        }
+                        Divider()
+                        ForEach(workerNames, id: \.self) { name in
+                            HStack(spacing: 0) {
+                                Text(name).frame(width: 100, alignment: .leading)
+                                    .font(.caption).lineLimit(1).padding(4)
+                                    .background(Color.hakedisBackground)
+                                ForEach(daysInRange, id: \.self) { day in
+                                    let status = isPresent(worker: name, date: day)
+                                    ZStack {
+                                        Color.hakedisBackground
+                                        if let present = status {
+                                            Image(systemName: present ? "checkmark" : "xmark")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(present ? .hakedisSuccess : .hakedisDanger)
+                                        } else {
+                                            Text("-").font(.caption2).foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .frame(width: 32, height: 28)
+                                }
+                            }
+                            Divider()
+                        }
+                    }
+                }
+            }
+        }
+        .background(Color.hakedisBackground)
+        .navigationTitle("Puantaj Grid")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

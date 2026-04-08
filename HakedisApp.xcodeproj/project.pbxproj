@@ -115,6 +115,7 @@
 		S024 /* MaterialInventoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C024 /* MaterialInventoryViews.swift */; };
 		S025 /* SpecificationChecklistViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C025 /* SpecificationChecklistViews.swift */; };
 		S026 /* HakedisComparisonViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C026 /* HakedisComparisonViews.swift */; };
+		S042 /* HakedisIcmalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C042 /* HakedisIcmalView.swift */; };
 		S027 /* CashFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C027 /* CashFlowViews.swift */; };
 		S028 /* CashFlowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = C028 /* CashFlowEngine.swift */; };
 		S029 /* CorrespondenceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C029 /* CorrespondenceViews.swift */; };
@@ -136,6 +137,7 @@
 		S03F /* PozLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03F /* PozLibraryView.swift */; };
 		S040 /* PozLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = C040 /* PozLibrary.swift */; };
 		S041 /* HakedisKopyalaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C041 /* HakedisKopyalaView.swift */; };
+		S043 /* TurkiyeIller.swift in Sources */ = {isa = PBXBuildFile; fileRef = C043 /* TurkiyeIller.swift */; };
 		SM001 /* CoreModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM001 /* CoreModels.swift */; };
 		SM002 /* ContractApprovalModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM002 /* ContractApprovalModels.swift */; };
 		SM003 /* SiteWorkModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = NM003 /* SiteWorkModels.swift */; };
@@ -244,6 +246,18 @@
 		TB057 /* PhotoGPSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T049 /* PhotoGPSTests.swift */; };
 		TB058 /* SubcontractorHakedisPDFTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T050 /* SubcontractorHakedisPDFTests.swift */; };
 		TB059 /* SCurveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T051 /* SCurveTests.swift */; };
+		TB060 /* ProjectTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T052 /* ProjectTypeTests.swift */; };
+		TB061 /* CurrencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T053 /* CurrencyTests.swift */; };
+		TB062 /* HakedisItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T054 /* HakedisItemTests.swift */; };
+		TB063 /* ContractFormTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T055 /* ContractFormTests.swift */; };
+		TB064 /* PozLibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T056 /* PozLibraryTests.swift */; };
+		TB065 /* HakedisIcmalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T057 /* HakedisIcmalTests.swift */; };
+		TB066 /* ProjectFormTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T058 /* ProjectFormTests.swift */; };
+		TB067 /* TurkiyeIller.swift in Sources */ = {isa = PBXBuildFile; fileRef = C043 /* TurkiyeIller.swift */; };
+		TB068 /* CompanySettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T059 /* CompanySettingsTests.swift */; };
+		TB070 /* NotificationSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T060 /* NotificationSettingsTests.swift */; };
+		TB071 /* ObjectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T061 /* ObjectionTests.swift */; };
+		TB072 /* OfflineContractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T062 /* OfflineContractorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -306,6 +320,7 @@
 		C024 /* MaterialInventoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MaterialInventoryViews.swift; path = HakedisApp/Views/Contracts/MaterialInventoryViews.swift; sourceTree = "<group>"; };
 		C025 /* SpecificationChecklistViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SpecificationChecklistViews.swift; path = HakedisApp/Views/Contracts/SpecificationChecklistViews.swift; sourceTree = "<group>"; };
 		C026 /* HakedisComparisonViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisComparisonViews.swift; path = HakedisApp/Views/Hakedis/HakedisComparisonViews.swift; sourceTree = "<group>"; };
+		C042 /* HakedisIcmalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisIcmalView.swift; path = HakedisApp/Views/Hakedis/HakedisIcmalView.swift; sourceTree = "<group>"; };
 		C027 /* CashFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CashFlowViews.swift; path = HakedisApp/Views/Reports/CashFlowViews.swift; sourceTree = "<group>"; };
 		C028 /* CashFlowEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CashFlowEngine.swift; path = HakedisApp/Views/Reports/CashFlowEngine.swift; sourceTree = "<group>"; };
 		C029 /* CorrespondenceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CorrespondenceViews.swift; path = HakedisApp/Views/Contracts/CorrespondenceViews.swift; sourceTree = "<group>"; };
@@ -327,6 +342,7 @@
 		C03F /* PozLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PozLibraryView.swift; path = HakedisApp/Views/Shared/PozLibraryView.swift; sourceTree = "<group>"; };
 		C040 /* PozLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PozLibrary.swift; path = HakedisApp/Views/Shared/PozLibrary.swift; sourceTree = "<group>"; };
 		C041 /* HakedisKopyalaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisKopyalaView.swift; path = HakedisApp/Views/Hakedis/HakedisKopyalaView.swift; sourceTree = "<group>"; };
+		C043 /* TurkiyeIller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TurkiyeIller.swift; path = HakedisApp/Views/Shared/TurkiyeIller.swift; sourceTree = "<group>"; };
 		N001 /* SantiyeTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SantiyeTabView.swift; path = HakedisApp/Views/Santiye/SantiyeTabView.swift; sourceTree = "<group>"; };
 		N002 /* FinansTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FinansTabView.swift; path = HakedisApp/Views/Finans/FinansTabView.swift; sourceTree = "<group>"; };
 		N003 /* MoreTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MoreTabView.swift; path = HakedisApp/Views/Shared/MoreTabView.swift; sourceTree = "<group>"; };
@@ -438,6 +454,17 @@
 		T049 /* PhotoGPSTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGPSTests.swift; sourceTree = "<group>"; };
 		T050 /* SubcontractorHakedisPDFTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubcontractorHakedisPDFTests.swift; sourceTree = "<group>"; };
 		T051 /* SCurveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SCurveTests.swift; sourceTree = "<group>"; };
+		T052 /* ProjectTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectTypeTests.swift; sourceTree = "<group>"; };
+		T053 /* CurrencyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyTests.swift; sourceTree = "<group>"; };
+		T054 /* HakedisItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HakedisItemTests.swift; sourceTree = "<group>"; };
+		T055 /* ContractFormTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractFormTests.swift; sourceTree = "<group>"; };
+		T056 /* PozLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PozLibraryTests.swift; sourceTree = "<group>"; };
+		T057 /* HakedisIcmalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HakedisIcmalTests.swift; sourceTree = "<group>"; };
+		T058 /* ProjectFormTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectFormTests.swift; sourceTree = "<group>"; };
+		T059 /* CompanySettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanySettingsTests.swift; sourceTree = "<group>"; };
+		T060 /* NotificationSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsTests.swift; sourceTree = "<group>"; };
+		T061 /* ObjectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectionTests.swift; sourceTree = "<group>"; };
+		T062 /* OfflineContractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineContractorTests.swift; sourceTree = "<group>"; };
 		NM009 /* UserAccountModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = UserAccountModel.swift; path = HakedisApp/Models/UserAccountModel.swift; sourceTree = "<group>"; };
 		NM001 /* CoreModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CoreModels.swift; path = HakedisApp/Models/CoreModels.swift; sourceTree = "<group>"; };
 		NM002 /* ContractApprovalModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContractApprovalModels.swift; path = HakedisApp/Models/ContractApprovalModels.swift; sourceTree = "<group>"; };
@@ -547,6 +574,7 @@
 				C024 /* MaterialInventoryViews.swift */,
 				C025 /* SpecificationChecklistViews.swift */,
 				C026 /* HakedisComparisonViews.swift */,
+				C042 /* HakedisIcmalView.swift */,
 				C027 /* CashFlowViews.swift */,
 				C028 /* CashFlowEngine.swift */,
 				C018 /* UnitPriceAnalysisViews.swift */,
@@ -569,6 +597,7 @@
 				C03F /* PozLibraryView.swift */,
 				C040 /* PozLibrary.swift */,
 				C041 /* HakedisKopyalaView.swift */,
+				C043 /* TurkiyeIller.swift */,
 				N001 /* SantiyeTabView.swift */,
 				N002 /* FinansTabView.swift */,
 				N003 /* MoreTabView.swift */,
@@ -737,6 +766,17 @@
 				T049 /* PhotoGPSTests.swift */,
 				T050 /* SubcontractorHakedisPDFTests.swift */,
 				T051 /* SCurveTests.swift */,
+				T052 /* ProjectTypeTests.swift */,
+				T053 /* CurrencyTests.swift */,
+				T054 /* HakedisItemTests.swift */,
+				T055 /* ContractFormTests.swift */,
+				T056 /* PozLibraryTests.swift */,
+				T057 /* HakedisIcmalTests.swift */,
+				T058 /* ProjectFormTests.swift */,
+				T059 /* CompanySettingsTests.swift */,
+				T060 /* NotificationSettingsTests.swift */,
+				T061 /* ObjectionTests.swift */,
+				T062 /* OfflineContractorTests.swift */,
 			);
 			path = HakedisAppTests;
 			sourceTree = "<group>";
@@ -904,6 +944,7 @@
 				S024 /* MaterialInventoryViews.swift in Sources */,
 				S025 /* SpecificationChecklistViews.swift in Sources */,
 				S026 /* HakedisComparisonViews.swift in Sources */,
+				S042 /* HakedisIcmalView.swift in Sources */,
 				S027 /* CashFlowViews.swift in Sources */,
 				S028 /* CashFlowEngine.swift in Sources */,
 				S018 /* UnitPriceAnalysisViews.swift in Sources */,
@@ -926,6 +967,7 @@
 				S03F /* PozLibraryView.swift in Sources */,
 				S040 /* PozLibrary.swift in Sources */,
 				S041 /* HakedisKopyalaView.swift in Sources */,
+				S043 /* TurkiyeIller.swift in Sources */,
 				NB001 /* SantiyeTabView.swift in Sources */,
 				NB002 /* FinansTabView.swift in Sources */,
 				NB003 /* MoreTabView.swift in Sources */,
@@ -1097,6 +1139,18 @@
 			TB057 /* PhotoGPSTests.swift in Sources */,
 			TB058 /* SubcontractorHakedisPDFTests.swift in Sources */,
 			TB059 /* SCurveTests.swift in Sources */,
+				TB060 /* ProjectTypeTests.swift in Sources */,
+				TB061 /* CurrencyTests.swift in Sources */,
+				TB062 /* HakedisItemTests.swift in Sources */,
+				TB063 /* ContractFormTests.swift in Sources */,
+				TB064 /* PozLibraryTests.swift in Sources */,
+				TB065 /* HakedisIcmalTests.swift in Sources */,
+				TB066 /* ProjectFormTests.swift in Sources */,
+				TB067 /* TurkiyeIller.swift in Sources */,
+				TB068 /* CompanySettingsTests.swift in Sources */,
+				TB070 /* NotificationSettingsTests.swift in Sources */,
+				TB071 /* ObjectionTests.swift in Sources */,
+				TB072 /* OfflineContractorTests.swift in Sources */,
 			TC001 /* MaterialQRManager.swift in Sources */,
 			TC002 /* SCurveCalculator.swift in Sources */,
 			TC003 /* GeoTaggedPhotoModel.swift in Sources */,

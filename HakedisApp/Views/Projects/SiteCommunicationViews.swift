@@ -75,6 +75,17 @@ private struct WorkOrderRow: View {
                 if order.isOverdue {
                     Image(systemName: "exclamationmark.circle.fill").foregroundColor(.hakedisDanger).font(.caption)
                 }
+                // FAZ 17.11 — Öncelik badge
+                let priorityColor: Color = {
+                    switch order.priority {
+                    case .urgent: return .hakedisDanger
+                    case .high: return .hakedisWarning
+                    default: return .secondary
+                    }
+                }()
+                if order.priority != .normal {
+                    StatusBadge(text: order.priority.rawValue, color: priorityColor)
+                }
                 StatusBadge(text: order.status.rawValue, color: statusColor)
             }
             Text(order.orderTitle).font(.headline)
@@ -114,6 +125,12 @@ struct WorkOrderDetailView: View {
                 Picker("Durum", selection: $order.statusRaw) {
                     ForEach(WorkOrderStatus.allCases, id: \.rawValue) {
                         Label($0.rawValue, systemImage: $0.icon).tag($0.rawValue)
+                    }
+                }
+                // FAZ 17.11 — Öncelik
+                Picker("Öncelik", selection: $order.priorityRaw) {
+                    ForEach(WorkOrderPriority.allCases, id: \.rawValue) {
+                        Text($0.rawValue).tag($0.rawValue)
                     }
                 }
             }

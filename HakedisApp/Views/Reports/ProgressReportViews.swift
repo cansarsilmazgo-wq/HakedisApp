@@ -144,19 +144,63 @@ struct ProgressReportDetailView: View {
                         HStack {
                             Text("Tamamlanma")
                             Spacer()
-                            Text(String(format: "%%.1f%%", report.completionPercentage))
+                            Text(String(format: "%.1f%%", report.completionPercentage))
                                 .font(.subheadline.bold())
                                 .foregroundColor(.hakedisOrange)
                         }
                         .padding(Spacing.card)
+                        // FAZ 17.9 — Planlanan vs gerçekleşen
+                        if report.plannedPercentage > 0 {
+                            Divider()
+                            HStack {
+                                Text("Planlanan")
+                                Spacer()
+                                Text(String(format: "%.1f%%", report.plannedPercentage))
+                                    .font(.subheadline.bold()).foregroundColor(.hakedisInfo)
+                            }
+                            .padding(Spacing.card)
+                            Divider()
+                            HStack {
+                                Text("Sapma")
+                                Spacer()
+                                let variance = report.progressVariance
+                                Text(String(format: "%+.1f%%", variance))
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(variance >= 0 ? .hakedisSuccess : .hakedisDanger)
+                            }
+                            .padding(Spacing.card)
+                        }
                     }
                     .background(Color.hakedisCard)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .padding(.horizontal, Spacing.card)
 
-                    ProgressBarView(progress: report.completionPercentage, color: .hakedisOrange)
-                        .frame(height: 8)
+                    // S-Curve dual bar
+                    if report.plannedPercentage > 0 {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Planlanan").font(.caption2).foregroundColor(.hakedisInfo)
+                            ProgressBarView(progress: report.plannedPercentage, color: .hakedisInfo)
+                                .frame(height: 6)
+                            Text("Gerçekleşen").font(.caption2).foregroundColor(.hakedisOrange)
+                            ProgressBarView(progress: report.completionPercentage, color: .hakedisOrange)
+                                .frame(height: 8)
+                        }
                         .padding(.horizontal, Spacing.card)
+                    } else {
+                        ProgressBarView(progress: report.completionPercentage, color: .hakedisOrange)
+                            .frame(height: 8)
+                            .padding(.horizontal, Spacing.card)
+                    }
+                    // FAZ 17.9 — Gecikme nedeni
+                    if report.isDelayed && !report.delayReason.isEmpty {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.hakedisWarning).font(.caption)
+                            Text("Gecikme: \(report.delayReason)")
+                                .font(.caption).foregroundColor(.hakedisWarning)
+                        }
+                        .padding(.horizontal, Spacing.card)
+                    }
                 }
 
                 // Açıklama
@@ -230,6 +274,8 @@ struct AddProgressReportView: View {
 
     @State private var reportPeriod = ""
     @State private var completionPct = ""
+    @State private var plannedPct = ""
+    @State private var delayReason = ""
     @State private var summaryText = ""
     @State private var selectedProject: Project? = nil
     @State private var beforeItems: [PhotosPickerItem] = []
@@ -253,13 +299,24 @@ struct AddProgressReportView: View {
                 }
                 Section("Tamamlanma") {
                     HStack {
-                        Text("Tamamlanma (%)")
+                        Text("Gerçekleşen (%)")
                         Spacer()
                         TextField("0", text: $completionPct)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
                     }
+                    // FAZ 17.9 — Planlanan vs gerçekleşen
+                    HStack {
+                        Text("Planlanan (%)")
+                        Spacer()
+                        TextField("0", text: $plannedPct)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 80)
+                    }
+                    TextField("Gecikme Nedeni", text: $delayReason, axis: .vertical)
+                        .lineLimit(2...3)
                 }
                 Section("Açıklama") {
                     TextEditor(text: $summaryText).frame(minHeight: 80)
@@ -310,6 +367,8 @@ struct AddProgressReportView: View {
         r.project = selectedProject
         r.beforePhotoData = beforePhotos
         r.afterPhotoData = afterPhotos
+        r.plannedPercentage = Double(plannedPct) ?? 0
+        r.delayReason = delayReason
         modelContext.insert(r)
         do { try modelContext.save() } catch { print(error) }
         dismiss()

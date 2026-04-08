@@ -554,6 +554,14 @@ enum LocationType: String, Codable, CaseIterable {
     var estimatedTotal: Double { quantity * unitPrice }
 }
 
+// FAZ 17.15 — İhale türü
+enum BidType: String, Codable, CaseIterable {
+    case birimFiyat  = "Birim Fiyat"
+    case goturu      = "Götürü Bedel"
+    case maliyet     = "Maliyet Artı"
+    case tasarim     = "Tasarım & Yap"
+}
+
 enum BidStatus: String, Codable, CaseIterable {
     case preparation = "Hazırlanıyor"
     case submitted = "Teklif Verildi"
@@ -595,6 +603,9 @@ enum BidStatus: String, Codable, CaseIterable {
     var notes: String
     var analysisRecords: [AnalysisRecord]
     var createdAt: Date
+    // FAZ 17.15 — Tenzilat, ihale türü
+    var tenzilatRate: Double = 0.0
+    var bidTypeRaw: String = BidType.birimFiyat.rawValue
 
     init(bidNo: String, projectTitle: String, clientName: String, bidDeadline: Date) {
         self.id = UUID()
@@ -608,6 +619,8 @@ enum BidStatus: String, Codable, CaseIterable {
         self.overheadRate = 15.0
         self.profitRate = 10.0
         self.taxRate = 20.0
+        self.tenzilatRate = 0.0
+        self.bidTypeRaw = BidType.birimFiyat.rawValue
         self.notes = ""
         self.analysisRecords = []
         self.createdAt = Date()
@@ -616,6 +629,10 @@ enum BidStatus: String, Codable, CaseIterable {
     var status: BidStatus {
         get { BidStatus(rawValue: statusRaw) ?? .preparation }
         set { statusRaw = newValue.rawValue }
+    }
+    var bidType: BidType {
+        get { BidType(rawValue: bidTypeRaw) ?? .birimFiyat }
+        set { bidTypeRaw = newValue.rawValue }
     }
     var totalDirectCost: Double { analysisRecords.reduce(0.0) { $0 + $1.totalCost } }
     var overheadAmount: Double { totalDirectCost * overheadRate / 100 }
@@ -856,6 +873,8 @@ enum BudgetCategory: String, Codable, CaseIterable {
     var evmSnapshots: [EVMSnapshot]
     var overheadExpenses: [OverheadExpense]
     var createdAt: Date
+    // FAZ 17.13 — Proje bağlantısı
+    @Relationship var linkedProject: Project?
 
     init(budgetName: String, projectName: String, totalBudget: Double) {
         self.id = UUID()
@@ -1170,6 +1189,9 @@ enum WorkOrderType: String, Codable, CaseIterable {
     var workOrderDetails: String
     var completionNotes: String
     var createdAt: Date
+    // FAZ 17.11 — Öncelik ve fotoğraf
+    var priorityRaw: String = WorkOrderPriority.normal.rawValue
+    var photoData: Data?
 
     init(orderNo: String, orderTitle: String, type: WorkOrderType, issuedBy: String) {
         self.id = UUID()
@@ -1184,6 +1206,7 @@ enum WorkOrderType: String, Codable, CaseIterable {
         self.workOrderDetails = ""
         self.completionNotes = ""
         self.createdAt = Date()
+        self.priorityRaw = WorkOrderPriority.normal.rawValue
     }
 
     var status: WorkOrderStatus {
@@ -1193,6 +1216,10 @@ enum WorkOrderType: String, Codable, CaseIterable {
     var orderType: WorkOrderType {
         get { WorkOrderType(rawValue: typeRaw) ?? .other }
         set { typeRaw = newValue.rawValue }
+    }
+    var priority: WorkOrderPriority {
+        get { WorkOrderPriority(rawValue: priorityRaw) ?? .normal }
+        set { priorityRaw = newValue.rawValue }
     }
     var isOverdue: Bool {
         guard let due = dueDate, status != .completed && status != .cancelled else { return false }

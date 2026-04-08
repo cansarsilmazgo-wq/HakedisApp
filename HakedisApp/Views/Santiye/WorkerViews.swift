@@ -284,6 +284,7 @@ struct AddWorkerView: View {
     @State private var fullName = ""
     @State private var profession: WorkerProfession = .laborer
     @State private var bloodType: BloodType? = nil
+    @State private var tcKimlikNo = ""
     @State private var sgkSicilNo = ""
     @State private var emergencyContactName = ""
     @State private var emergencyContactPhone = ""
@@ -315,6 +316,9 @@ struct AddWorkerView: View {
                         Text("Belirtilmedi").tag(Optional<BloodType>.none)
                         ForEach(BloodType.allCases, id: \.rawValue) { bt in Text(bt.rawValue).tag(Optional(bt)) }
                     }.accessibilityLabel("Kan grubu")
+                    TextField("TC Kimlik No", text: $tcKimlikNo)
+                        .keyboardType(.numberPad)
+                        .accessibilityLabel("TC kimlik numarası")
                     TextField("SGK Sicil No", text: $sgkSicilNo).accessibilityLabel("SGK sicil no")
                 }
                 Section("Taşeron") {
@@ -357,6 +361,7 @@ struct AddWorkerView: View {
         )
         w.workerEmploymentType = employmentType
         w.bloodType = bloodType
+        w.tcKimlikNo = tcKimlikNo.isEmpty ? nil : tcKimlikNo
         w.sgkSicilNo = sgkSicilNo.isEmpty ? nil : sgkSicilNo
         w.emergencyContactName = emergencyContactName.isEmpty ? nil : emergencyContactName
         w.emergencyContactPhone = emergencyContactPhone.isEmpty ? nil : emergencyContactPhone
@@ -434,8 +439,12 @@ struct AddWorkerCertificateView: View {
 struct SGKReportView: View {
     @Query private var workers: [Worker]
     @Query private var attendances: [Attendance]
+    @Query private var contractors: [Contractor]
 
     @State private var selectedMonth = Date()
+    @State private var showTaşeronAyrimi = false
+    // 2024 asgari ücret günlük brüt (yaklaşık)
+    private let asgariUcretGunluk = 666.75
 
     private var monthComponents: DateComponents {
         Calendar.current.dateComponents([.year, .month], from: selectedMonth)
@@ -456,35 +465,67 @@ struct SGKReportView: View {
         }.reduce(0) { $0 + $1.totalDailyCost }
     }
 
+    private var firmaWorkers: [Worker] {
+        workers.filter { $0.isActive && $0.workerEmploymentType == .firmaPersoneli }
+    }
+
+    private var taseronWorkers: [Worker] {
+        workers.filter { $0.isActive && $0.workerEmploymentType == .taseronIscisi }
+    }
+
+    private func workerRows(_ list: [Worker]) -> some View {
+        ForEach(list, id: \.id) { w in
+            let days = sgkDays(for: w)
+            let cost = totalCost(for: w)
+            if days > 0 {
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(w.fullName).font(.subheadline)
+                        if let tc = w.tcKimlikNo {
+                            Text("TC: \(tc)").font(.caption2).foregroundColor(.secondary)
+                        }
+                        if let sgk = w.sgkSicilNo {
+                            Text("SGK: \(sgk)").font(.caption2).foregroundColor(.secondary)
+                        }
+                        Text(w.profession.rawValue).font(.caption2).foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text("\(days) gün").font(.subheadline.bold()).foregroundColor(.hakedisInfo)
+                        let matrah = cost
+                        let asgariCheck = asgariUcretGunluk * Double(days)
+                        Text(cost.shortFormatted).font(.caption.bold())
+                        if matrah < asgariCheck {
+                            Text("⚠️ Asgari ücret altı").font(.caption2).foregroundColor(.hakedisWarning)
+                        }
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            DatePicker("Ay", selection: $selectedMonth, displayedComponents: [.date])
-                .datePickerStyle(.compact)
-                .padding(Spacing.card)
-                .background(Color.hakedisBackground)
+            HStack {
+                DatePicker("Ay", selection: $selectedMonth, displayedComponents: [.date])
+                    .datePickerStyle(.compact)
+                Spacer()
+                Toggle("Taşeron Ayrımı", isOn: $showTaşeronAyrimi)
+                    .toggleStyle(.button)
+                    .tint(.hakedisOrange)
+                    .font(.caption)
+            }
+            .padding(Spacing.card)
+            .background(Color.hakedisBackground)
 
             List {
-                Section("SGK Prim Bildirim Tablosu") {
-                    HStack {
-                        Text("İşçi Adı").frame(maxWidth: .infinity, alignment: .leading).font(.caption.bold())
-                        Text("SGK Gün").frame(width: 60, alignment: .trailing).font(.caption.bold())
-                        Text("Maliyet").frame(width: 80, alignment: .trailing).font(.caption.bold())
-                    }
-                    .padding(.vertical, 2)
-                    ForEach(workers.filter { $0.isActive }, id: \.id) { w in
-                        let days = sgkDays(for: w)
-                        let cost = totalCost(for: w)
-                        if days > 0 {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(w.fullName).font(.subheadline)
-                                    Text(w.profession.rawValue).font(.caption2).foregroundColor(.secondary)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                Text("\(days)").frame(width: 60, alignment: .trailing).font(.subheadline.bold()).foregroundColor(.hakedisInfo)
-                                Text(cost.shortFormatted).frame(width: 80, alignment: .trailing).font(.caption.bold())
-                            }
-                        }
+                if showTaşeronAyrimi {
+                    Section("Firma Personeli") { workerRows(firmaWorkers) }
+                    Section("Taşeron İşçileri") { workerRows(taseronWorkers) }
+                } else {
+                    Section("SGK Prim Bildirim Tablosu") {
+                        workerRows(workers.filter { $0.isActive })
                     }
                 }
 
@@ -492,6 +533,8 @@ struct SGKReportView: View {
                     let totalDays = workers.filter { $0.isActive }.reduce(0) { $0 + sgkDays(for: $1) }
                     let totalCostAll = workers.filter { $0.isActive }.reduce(0) { $0 + totalCost(for: $1) }
                     LabeledContent("Toplam SGK Gün", value: "\(totalDays) gün")
+                    LabeledContent("2024 Asgari Ücret/Gün", value: asgariUcretGunluk.currencyFormatted)
+                        .font(.caption)
                     HStack {
                         Text("Toplam İşçilik").font(.subheadline.bold())
                         Spacer()

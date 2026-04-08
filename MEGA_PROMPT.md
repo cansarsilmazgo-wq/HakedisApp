@@ -1,0 +1,1 @@
+cd ~/Desktop/HakedisApp && pbpaste > MEGA_PROMPT.md

@@ -753,4 +753,66 @@ final class NewFeaturesTests: XCTestCase {
         let categories = Set(PozLibrary.items.map { $0.category })
         XCTAssertGreaterThanOrEqual(categories.count, 20)
     }
+
+    // MARK: - FAZ 17.2 — Puantaj Eksikleri
+
+    func testAttendance_checkInCheckOutFields() throws {
+        let att = Attendance(date: Date(), workerName: "Test İşçi")
+        XCTAssertNil(att.checkInTime, "checkInTime başlangıçta nil olmalı")
+        XCTAssertNil(att.checkOutTime, "checkOutTime başlangıçta nil olmalı")
+        let now = Date()
+        att.checkInTime = now
+        att.checkOutTime = now.addingTimeInterval(3600 * 8)
+        XCTAssertNotNil(att.checkInTime)
+        XCTAssertNotNil(att.checkOutTime)
+    }
+
+    // MARK: - FAZ 17.9 — İlerleme Raporu
+
+    func testProgressReport_plannedVsActual() throws {
+        let r = ProgressReport(reportPeriod: "Nisan 2026", completionPercentage: 55, summaryText: "")
+        r.plannedPercentage = 65
+        XCTAssertEqual(r.progressVariance, -10.0, accuracy: 0.001)
+        XCTAssertTrue(r.isDelayed)
+    }
+
+    func testProgressReport_noDelay() throws {
+        let r = ProgressReport(reportPeriod: "Nisan 2026", completionPercentage: 70, summaryText: "")
+        r.plannedPercentage = 65
+        XCTAssertFalse(r.isDelayed, "Gerçekleşen >= planlanan, gecikme yok")
+    }
+
+    // MARK: - FAZ 17.11 — İş Emri Öncelik
+
+    func testWorkOrderPriority_allCases() throws {
+        XCTAssertGreaterThanOrEqual(WorkOrderPriority.allCases.count, 4)
+        XCTAssertTrue(WorkOrderPriority.allCases.contains(.urgent))
+        XCTAssertTrue(WorkOrderPriority.allCases.contains(.high))
+    }
+
+    // MARK: - FAZ 17.15 — İhale Türü & Tenzilat
+
+    func testBidType_allCases() throws {
+        XCTAssertGreaterThanOrEqual(BidType.allCases.count, 3)
+        XCTAssertTrue(BidType.allCases.contains(.birimFiyat))
+        XCTAssertTrue(BidType.allCases.contains(.goturu))
+    }
+
+    func testBidPreparation_bidTypeAndTenzilat() throws {
+        let year = Calendar.current.component(.year, from: Date())
+        let bid = BidPreparation(bidNo: "IH-\(year)/001", projectTitle: "Test",
+                                  clientName: "İdare", bidDeadline: Date())
+        bid.bidType = .goturu
+        XCTAssertEqual(bid.bidType, .goturu)
+        bid.tenzilatRate = 5.0
+        XCTAssertEqual(bid.tenzilatRate, 5.0, accuracy: 0.001)
+    }
+
+    // MARK: - FAZ 17.7 — SGK Raporu
+
+    func testWorker_tcKimlikField() throws {
+        let w = Worker(fullName: "Ali Veli", profession: .laborer, dailyCost: 800, hourlyCost: 100)
+        w.tcKimlikNo = "12345678901"
+        XCTAssertEqual(w.tcKimlikNo, "12345678901")
+    }
 }

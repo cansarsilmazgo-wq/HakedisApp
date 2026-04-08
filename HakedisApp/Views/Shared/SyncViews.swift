@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CloudKit
 
 // MARK: - Sync Status
 
@@ -73,10 +74,37 @@ final class SyncManager: ObservableObject {
 
 struct SyncStatusView: View {
     @StateObject private var syncManager = SyncManager.shared
+    // FAZ 17.22 — iCloud hesap durumu
+    @State private var iCloudAccountStatus: CKAccountStatus = .couldNotDetermine
+    // FAZ 17.22 — Seçici sync toggles
+    @AppStorage("sync_hakedis") private var syncHakedis = true
+    @AppStorage("sync_santiye") private var syncSantiye = true
+    @AppStorage("sync_documents") private var syncDocuments = true
+    @AppStorage("sync_photos") private var syncPhotos = false
+    @AppStorage("sync_contracts") private var syncContracts = true
 
     var body: some View {
         NavigationStack {
             Form {
+                // FAZ 17.22 — iCloud hesap uyarısı
+                if iCloudAccountStatus != .available {
+                    Section {
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.icloud.fill")
+                                .font(.title2)
+                                .foregroundColor(.hakedisWarning)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("iCloud Hesabı Bulunamadı")
+                                    .font(.subheadline.bold())
+                                Text("Senkronizasyon için iPhone Ayarlar → iCloud'dan giriş yapın.")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+
                 Section("iCloud Durumu") {
                     HStack {
                         Image(systemName: syncManager.status.icon)
@@ -101,6 +129,7 @@ struct SyncStatusView: View {
                             else { syncManager.disableSync() }
                         }
                     ))
+                    .tint(.hakedisOrange)
                     if syncManager.isCloudKitEnabled {
                         Button {
                             syncManager.triggerSync()
@@ -110,6 +139,20 @@ struct SyncStatusView: View {
                         .disabled(syncManager.status == .syncing)
                     }
                 }
+
+                // FAZ 17.22 — Seçici sync
+                if syncManager.isCloudKitEnabled {
+                    Section("Veri Seçimi") {
+                        Toggle("Hakedişler", isOn: $syncHakedis).tint(.hakedisOrange)
+                        Toggle("Şantiye Verileri", isOn: $syncSantiye).tint(.hakedisOrange)
+                        Toggle("Sözleşmeler", isOn: $syncContracts).tint(.hakedisOrange)
+                        Toggle("Belgeler", isOn: $syncDocuments).tint(.hakedisOrange)
+                        Toggle("Fotoğraflar", isOn: $syncPhotos).tint(.hakedisOrange)
+                        Text("Not: Fotoğraflar iCloud depolama alanı tüketir.")
+                            .font(.caption).foregroundColor(.secondary)
+                    }
+                }
+
                 Section("Bilgi") {
                     Text("iCloud senkronizasyonu etkinleştirildiğinde verileriniz otomatik olarak tüm Apple cihazlarınızla paylaşılır.")
                         .font(.caption)
@@ -121,6 +164,14 @@ struct SyncStatusView: View {
             }
             .navigationTitle("iCloud Senkronizasyonu")
             .navigationBarTitleDisplayMode(.large)
+            .task {
+                // FAZ 17.22 — iCloud hesap durumunu kontrol et
+                do {
+                    iCloudAccountStatus = try await CKContainer.default().accountStatus()
+                } catch {
+                    iCloudAccountStatus = .couldNotDetermine
+                }
+            }
         }
     }
 }

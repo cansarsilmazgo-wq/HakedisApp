@@ -569,6 +569,9 @@ final class Attendance {
     var approvalStatusRaw: String
     var notes: String?
     var createdAt: Date
+    // FAZ 17.2 — Giriş/çıkış saati
+    var checkInTime: Date?
+    var checkOutTime: Date?
 
     init(date: Date = Date(), workerName: String, workerRole: String? = nil) {
         self.id = UUID()

@@ -18,6 +18,143 @@ extension NakitSenaryosu {
 
 // MARK: - CashFlowView
 
+// MARK: - CashFlowExpenseView (FAZ 17.8 — Gider Tarafı)
+
+struct CashFlowExpenseView: View {
+    @Environment(\.modelContext) private var context
+    @Query(sort: \OverheadExpense.expenseDate, order: .reverse) private var expenses: [OverheadExpense]
+    @State private var showAdd = false
+    @State private var selectedCategory: ExpenseCategory? = nil
+
+    private var filtered: [OverheadExpense] {
+        guard let cat = selectedCategory else { return expenses }
+        return expenses.filter { $0.category == cat }
+    }
+
+    private var totalFiltered: Double { filtered.reduce(0) { $0 + $1.amount } }
+
+    var body: some View {
+        List {
+            Section {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        FilterChip(title: "Tümü", isSelected: selectedCategory == nil) { selectedCategory = nil }
+                        ForEach(ExpenseCategory.allCases, id: \.self) { cat in
+                            FilterChip(title: cat.rawValue, isSelected: selectedCategory == cat) {
+                                selectedCategory = selectedCategory == cat ? nil : cat
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
+            Section {
+                HStack {
+                    Text("Toplam Gider").font(.subheadline.bold())
+                    Spacer()
+                    Text(totalFiltered.currencyFormatted).font(.subheadline.bold()).foregroundColor(.hakedisDanger)
+                }
+            }
+
+            Section("Gider Kalemleri") {
+                ForEach(filtered, id: \.id) { exp in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(exp.expenseName).font(.subheadline)
+                            Text(exp.category.rawValue).font(.caption).foregroundColor(.secondary)
+                            Text(exp.expenseDate.shortFormatted).font(.caption2).foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text(exp.amount.currencyFormatted).font(.subheadline.bold()).foregroundColor(.hakedisDanger)
+                    }
+                    .padding(.vertical, 2)
+                }
+                .onDelete { offsets in
+                    for i in offsets { context.delete(filtered[i]) }
+                    do { try context.save() } catch { print(error) }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
+        .navigationTitle("Gider Takibi")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { showAdd = true } label: { Image(systemName: "plus") }
+            }
+        }
+        .sheet(isPresented: $showAdd) { AddOverheadExpenseSheet() }
+        .overlay {
+            if expenses.isEmpty {
+                EmptyStateView(icon: "minus.circle.fill", title: "Gider Yok",
+                               subtitle: "Genel gider kalemi ekleyin")
+            }
+        }
+    }
+}
+
+struct AddOverheadExpenseSheet: View {
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var name = ""
+    @State private var category: ExpenseCategory = .other
+    @State private var amountText = ""
+    @State private var expenseDate = Date()
+    @State private var invoiceNo = ""
+    @State private var notes = ""
+
+    private var isValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        Double(amountText.replacingOccurrences(of: ",", with: ".")) != nil
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Gider Bilgileri") {
+                    TextField("Gider Adı *", text: $name)
+                    Picker("Kategori", selection: $category) {
+                        ForEach(ExpenseCategory.allCases, id: \.self) { c in
+                            Text(c.rawValue).tag(c)
+                        }
+                    }
+                    HStack {
+                        TextField("Tutar", text: $amountText).keyboardType(.decimalPad)
+                        Text("₺").foregroundColor(.secondary)
+                    }
+                    DatePicker("Tarih", selection: $expenseDate, displayedComponents: .date)
+                    TextField("Fatura No", text: $invoiceNo)
+                }
+                Section("Notlar") {
+                    TextEditor(text: $notes).frame(height: 60)
+                }
+            }
+            .navigationTitle("Gider Ekle")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("İptal") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Kaydet") { save() }.disabled(!isValid).bold()
+                }
+            }
+        }
+    }
+
+    private func save() {
+        guard let amt = Double(amountText.replacingOccurrences(of: ",", with: ".")) else { return }
+        let exp = OverheadExpense(expenseName: name, category: category, amount: amt, expenseDate: expenseDate)
+        exp.invoiceNo = invoiceNo
+        exp.notes = notes
+        context.insert(exp)
+        do { try context.save() } catch { print(error) }
+        dismiss()
+    }
+}
+
+// MARK: - CashFlowView
+
 struct CashFlowView: View {
     let hakedisler: [Hakedis]
 
@@ -64,6 +201,20 @@ struct CashFlowView: View {
 
                 // Metodoloji notu
                 metodoloji
+
+                // FAZ 17.8 — Gider tarafı linki
+                NavigationLink(destination: CashFlowExpenseView()) {
+                    HStack {
+                        Label("Gider Takibi", systemImage: "minus.circle.fill")
+                            .foregroundColor(.hakedisDanger)
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundColor(.secondary).font(.caption)
+                    }
+                    .padding(12)
+                    .background(Color.hakedisCard)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
