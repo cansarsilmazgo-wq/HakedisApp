@@ -751,3 +751,79 @@ final class Payment {
     }
 }
 
+// MARK: - Project Dashboard Computed Properties
+
+extension Project {
+    /// Sözleşme toplam bedeli (ilk/aktif sözleşmenin iş kalemleri toplamı)
+    var contractAmount: Double {
+        contracts.reduce(0) { $0 + $1.totalContractAmount }
+    }
+
+    /// Tahsil edilen toplam (ödenmiş hakedişlerin net tutarları)
+    var collectedAmount: Double {
+        contracts.flatMap { $0.hakedisler }
+            .filter { $0.status == .paid }
+            .reduce(0) { $0 + $1.netAmount }
+    }
+
+    /// Kalan alacak
+    var remainingReceivable: Double {
+        max(0, contractAmount - collectedAmount)
+    }
+
+    /// Proje genelinde ortalama tamamlanma yüzdesi (iş kalemleri bazlı)
+    var completionPercentage: Double {
+        let workItems = contracts.flatMap { $0.workItems }
+        guard !workItems.isEmpty else { return 0 }
+        let total = workItems.reduce(0.0) { sum, item in
+            guard item.contractedQuantity > 0 else { return sum }
+            return sum + min((item.completedQuantity / item.contractedQuantity) * 100, 100)
+        }
+        return total / Double(workItems.count)
+    }
+
+    /// Onay bekleyen hakediş sayısı
+    var pendingHakedisCount: Int {
+        contracts.flatMap { $0.hakedisler }
+            .filter { $0.status == .pendingApproval }.count
+    }
+
+    /// Geciken ödeme tutarı (onaylanmış ama ödenmemiş)
+    var overdueReceivable: Double {
+        let allHakedisler = contracts.flatMap { $0.hakedisler }
+        let overdueItems = allHakedisler.filter { $0.status == .approved && $0.remainingAmount > 0 }
+        return overdueItems.reduce(0.0) { $0 + $1.remainingAmount }
+    }
+
+    /// Toplam gider (ilerleyen fazlarda implement edilecek)
+    var totalExpense: Double { 0 }
+}
+
+// MARK: - Validation Helper
+
+struct ValidationHelper {
+    static func isValidIBAN(_ iban: String) -> Bool {
+        let cleaned = iban.replacingOccurrences(of: " ", with: "")
+        return cleaned.count == 26 && cleaned.hasPrefix("TR") &&
+               cleaned.dropFirst(2).allSatisfy(\.isNumber)
+    }
+
+    static func isValidTCKimlik(_ tc: String) -> Bool {
+        return tc.count == 11 && tc.allSatisfy(\.isNumber) && tc.first != "0"
+    }
+
+    static func isValidVergiNo(_ vkn: String) -> Bool {
+        return (vkn.count == 10 || vkn.count == 11) && vkn.allSatisfy(\.isNumber)
+    }
+
+    static func isValidPhone(_ phone: String) -> Bool {
+        let cleaned = phone
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "-", with: "")
+            .replacingOccurrences(of: "(", with: "")
+            .replacingOccurrences(of: ")", with: "")
+        return cleaned.count >= 10 && cleaned.count <= 13 &&
+               cleaned.allSatisfy { $0.isNumber || $0 == "+" }
+    }
+}
+

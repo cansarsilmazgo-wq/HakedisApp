@@ -258,6 +258,7 @@
 		TB070 /* NotificationSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T060 /* NotificationSettingsTests.swift */; };
 		TB071 /* ObjectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T061 /* ObjectionTests.swift */; };
 		TB072 /* OfflineContractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T062 /* OfflineContractorTests.swift */; };
+		TB073 /* KaliteDenetimiTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = T063 /* KaliteDenetimiTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -507,6 +508,7 @@
 		T028 /* FazC2Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC2Tests.swift; sourceTree = "<group>"; };
 		T029 /* FazC3Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FazC3Tests.swift; sourceTree = "<group>"; };
 		T030 /* AuthAndRoleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthAndRoleTests.swift; sourceTree = "<group>"; };
+		T063 /* KaliteDenetimiTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaliteDenetimiTests.swift; sourceTree = "<group>"; };
 		W001 /* HakedisWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HakedisWidget.swift; path = HakedisApp/Widget/HakedisWidget.swift; sourceTree = "<group>"; };
 		W002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = HakedisApp/Widget/Info.plist; sourceTree = "<group>"; };
 		W003 /* HakedisWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = HakedisWidget.entitlements; path = HakedisApp/Widget/HakedisWidget.entitlements; sourceTree = "<group>"; };
@@ -777,6 +779,7 @@
 				T060 /* NotificationSettingsTests.swift */,
 				T061 /* ObjectionTests.swift */,
 				T062 /* OfflineContractorTests.swift */,
+				T063 /* KaliteDenetimiTests.swift */,
 			);
 			path = HakedisAppTests;
 			sourceTree = "<group>";
@@ -1151,6 +1154,7 @@
 				TB070 /* NotificationSettingsTests.swift in Sources */,
 				TB071 /* ObjectionTests.swift in Sources */,
 				TB072 /* OfflineContractorTests.swift in Sources */,
+			TB073 /* KaliteDenetimiTests.swift in Sources */,
 			TC001 /* MaterialQRManager.swift in Sources */,
 			TC002 /* SCurveCalculator.swift in Sources */,
 			TC003 /* GeoTaggedPhotoModel.swift in Sources */,

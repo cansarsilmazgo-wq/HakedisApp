@@ -86,7 +86,7 @@ struct AddContractView: View {
     @State private var completionDeadline = Date()
     @State private var contractStartDate = Date()
     @State private var hasContractEndDate = false
-    @State private var contractEndDate = Calendar.current.date(byAdding: .year, value: 1, to: Date())!
+    @State private var contractEndDate = Calendar.current.date(byAdding: .year, value: 1, to: Date()) ?? Date()
     @State private var dailyPenaltyRate = 0.1
     @State private var maxPenaltyRate = 20.0
 
