@@ -113,7 +113,7 @@ struct OfflineSyncSettingsView: View {
                 .reduce(0, +)) ?? 0
 
             // SwiftData store dosya boyutu
-            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return }
             let storeURL = appSupport.appendingPathComponent("hakedis.store")
             var storeSize = 0
             for suffix in ["", "-shm", "-wal"] {

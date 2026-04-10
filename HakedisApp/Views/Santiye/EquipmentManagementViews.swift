@@ -205,7 +205,7 @@ struct EquipmentDetailView: View {
     private var monthlyFuelCost: Double {
         let calendar = Calendar.current
         let now = Date()
-        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now))!
+        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)) ?? now
         return item.logs
             .filter { $0.date >= startOfMonth }
             .reduce(0) { $0 + ($1.fuelCost ?? 0) }

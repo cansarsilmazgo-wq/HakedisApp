@@ -76,12 +76,10 @@ struct MonthlyDeclarationsView: View {
 
     // Muhtasar hesaplama
     private var totalStopaj: Double {
-        monthlyHakedisler.reduce(0) { $0 + $1.retentionAmount }
+        monthlyHakedisler.reduce(0) { $0 + $1.withholdingTaxAmount }
     }
     private var totalDamgaVergisi: Double {
-        monthlyHakedisler.reduce(0) { total, h in
-            total + (h.grossAmount * 0.00948)  // Sözleşme damga vergisi binde 9.48
-        }
+        monthlyHakedisler.reduce(0) { $0 + $1.stampTaxAmount }
     }
 
     // KDV hesaplama

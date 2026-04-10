@@ -25,8 +25,8 @@ struct AttendancePDFGenerator {
     ) -> Data {
         let cal = Calendar.current
         let comps = cal.dateComponents([.year, .month], from: month)
-        let firstDay = cal.date(from: comps)!
-        let daysInMonth = cal.range(of: .day, in: .month, for: firstDay)!.count
+        guard let firstDay = cal.date(from: comps) else { return Data() }
+        let daysInMonth = cal.range(of: .day, in: .month, for: firstDay)?.count ?? 30
 
         // Aya ait kayıtları filtrele
         let monthRecords = records.filter {
@@ -203,7 +203,7 @@ struct AttendancePDFGenerator {
         for day in 1...daysInMonth {
             var comps = cal.dateComponents([.year, .month], from: firstDay)
             comps.day = day
-            let dayDate = cal.date(from: comps)!
+            guard let dayDate = cal.date(from: comps) else { continue }
             let weekday = cal.component(.weekday, from: dayDate)
             let isWeekend = weekday == 1 || weekday == 7
             let dayAttr: [NSAttributedString.Key: Any] = [
@@ -357,8 +357,8 @@ struct AttendancePDFGenerator {
     ) -> Data {
         let cal = Calendar.current
         let comps = cal.dateComponents([.year, .month], from: month)
-        let firstDay = cal.date(from: comps)!
-        let daysInMonth = cal.range(of: .day, in: .month, for: firstDay)!.count
+        guard let firstDay = cal.date(from: comps) else { return Data() }
+        let daysInMonth = cal.range(of: .day, in: .month, for: firstDay)?.count ?? 30
         let monthRecords = records.filter {
             let c = cal.dateComponents([.year, .month], from: $0.date)
             return c.year == comps.year && c.month == comps.month

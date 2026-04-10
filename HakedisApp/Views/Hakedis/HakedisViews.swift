@@ -64,10 +64,10 @@ struct AddHakedisView: View {
     let contract: Contract
 
     @State private var periodName = ""
-    @State private var periodStart = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date()))!
+    @State private var periodStart = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date())) ?? Date()
     @State private var periodEnd = Date()
     @State private var hasDueDate = true
-    @State private var dueDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())!
+    @State private var dueDate = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
     @State private var showingMeasurementImport = false
     @State private var measurementOverrides: [String: Double] = [:]
     @State private var lumpSumCompletionPct: Double = 0.0
