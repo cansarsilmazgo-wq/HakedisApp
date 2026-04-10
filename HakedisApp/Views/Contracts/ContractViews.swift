@@ -301,6 +301,8 @@ struct ContractDetailView: View {
     @State private var showingEditContract = false
     @State private var showingMultipleEntry = false
     @State private var hakedisToDelete: Hakedis?
+    /// SwiftData ilişkilerini önbelleğe aldıktan sonra true olur (N+1 bloğunu önler)
+    @State private var relationshipsPrewarmed = false
 
     private var delayDays: Int { contract.delayDays() }
     private var isOverdue: Bool { delayDays > 0 }
@@ -725,6 +727,45 @@ struct ContractDetailView: View {
         }
         .navigationTitle(contract.title)
         .navigationBarTitleDisplayMode(.inline)
+        // SwiftData N+1 sorunu: tüm ilişkileri önbellekte ısıt, böylece ForEach render'ı ana thread'i bloklamaz
+        .task(id: contract.id) {
+            guard !relationshipsPrewarmed else { return }
+            // Birinci tur: üst-seviye ilişkiler
+            _ = contract.workItems
+            _ = contract.hakedisler
+            _ = contract.handoverRecords
+            _ = contract.changeOrders
+            _ = contract.retentionReleases
+            await Task.yield()
+            // İkinci tur: sektörel kayıtlar
+            _ = contract.laborRecords
+            _ = contract.materialRecords
+            _ = contract.specificationItems
+            _ = contract.correspondenceRecords
+            _ = contract.priceDifferenceRecords
+            await Task.yield()
+            // Üçüncü tur: denetim/test/kabul kayıtları
+            _ = contract.sgkLaborRecords
+            _ = contract.siteLogEntries
+            _ = contract.equipments
+            _ = contract.soilRecords
+            _ = contract.testRecords
+            _ = contract.acceptanceRecords
+            _ = contract.guarantees
+            await Task.yield()
+            // Dördüncü tur: iş kalemi bazlı günlük girişleri (en pahalı kısım)
+            for item in contract.workItems {
+                _ = item.dailyEntries
+                await Task.yield()
+            }
+            // Beşinci tur: hakediş kalemleri ve ödemeler
+            for hakedis in contract.hakedisler {
+                _ = hakedis.items
+                _ = hakedis.payments
+                await Task.yield()
+            }
+            relationshipsPrewarmed = true
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 8) {

@@ -233,6 +233,10 @@ struct ContractorDetailView: View {
         }
         .navigationTitle(contractor.name)
         .navigationBarTitleDisplayMode(.inline)
+        .task(id: contractor.id) {
+            // Eski portalPassword alanından Keychain'e tek seferlik göç (render döngüsü dışında)
+            contractor.migratePortalPasswordIfNeeded()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(destination: ContractorPerformanceView(contractor: contractor)) {

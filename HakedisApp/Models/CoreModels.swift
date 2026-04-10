@@ -259,17 +259,25 @@ final class Contractor {
 
     var keychainPortalPassword: String {
         get {
+            // Keychain'den oku; varsa dön (getter içinde model mutation YOK — SwiftUI döngüsü güvenli)
             if let kc = KeychainHelper.read(forKey: "portal_\(id.uuidString)") { return kc }
-            if !portalPassword.isEmpty {
-                KeychainHelper.write(portalPassword, forKey: "portal_\(id.uuidString)")
-                portalPassword = ""
-            }
-            return KeychainHelper.read(forKey: "portal_\(id.uuidString)") ?? ""
+            // Keychain boşsa eski alana düş (göç tamamlanmamış durum — sadece okunur)
+            return portalPassword
         }
         set {
             KeychainHelper.write(newValue, forKey: "portal_\(id.uuidString)")
             if !portalPassword.isEmpty { portalPassword = "" }
         }
+    }
+
+    /// Eski portalPassword alanını Keychain'e taşır. Görünüm değişimlerine yol açabileceğinden
+    /// render döngüsü dışında (örn. .task, .onAppear sonrası) çağrılmalıdır.
+    func migratePortalPasswordIfNeeded() {
+        guard !portalPassword.isEmpty else { return }
+        if KeychainHelper.read(forKey: "portal_\(id.uuidString)") == nil {
+            KeychainHelper.write(portalPassword, forKey: "portal_\(id.uuidString)")
+        }
+        portalPassword = ""
     }
 
     var hasPortalPassword: Bool { !keychainPortalPassword.isEmpty }
