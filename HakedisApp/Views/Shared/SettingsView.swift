@@ -44,6 +44,8 @@ struct SettingsView: View {
     @AppStorage("dashboard_showSafetyCard")       private var showSafetyCard = true
     @AppStorage("dashboard_showRFICard")          private var showRFICard = true
     @AppStorage("dashboard_showWorkOrderCard")    private var showWorkOrderCard = true
+    // ADIM4 — Hava Durumu API
+    @AppStorage("openWeatherApiKey") private var openWeatherApiKey = ""
 
     @Environment(\.modelContext) private var modelContext
     @StateObject private var authManager = AuthManager.shared
@@ -259,6 +261,32 @@ struct SettingsView: View {
                     Toggle("İSG Kartı", isOn: $showSafetyCard)
                     Toggle("RFI Kartı", isOn: $showRFICard)
                     Toggle("İş Emirleri Kartı", isOn: $showWorkOrderCard)
+                }
+
+                // MARK: Hava Durumu API
+                Section {
+                    HStack(spacing: 8) {
+                        Image(systemName: "cloud.sun.fill")
+                            .foregroundColor(.hakedisOrange)
+                            .frame(width: 24)
+                        TextField("OpenWeatherMap API Anahtarı", text: $openWeatherApiKey)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.never)
+                            .accessibilityLabel("Hava durumu API anahtarı")
+                    }
+                    if openWeatherApiKey.isEmpty {
+                        Label("API anahtarı girilmeden otomatik hava verisi çekilemez.", systemImage: "exclamationmark.circle")
+                            .font(.caption)
+                            .foregroundColor(.hakedisWarning)
+                    } else {
+                        Label("Hava otomatik çekme aktif.", systemImage: "checkmark.circle.fill")
+                            .font(.caption)
+                            .foregroundColor(.hakedisSuccess)
+                    }
+                } header: {
+                    Text("Hava Durumu")
+                } footer: {
+                    Text("openweathermap.org adresinden ücretsiz API anahtarı alabilirsiniz.")
                 }
 
                 // MARK: Uygulama

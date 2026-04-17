@@ -394,7 +394,7 @@ private struct SearchResultList: View {
         if !results.workItems.isEmpty {
             Section("İş Kalemleri (\(results.workItems.count))") {
                 ForEach(results.workItems) { i in
-                    NavigationLink(destination: WorkItemDetailView(workItem: i)) {
+                    NavigationLink(destination: LazyView(WorkItemDetailView(workItem: i))) {
                         SearchResultRow(icon: "list.bullet.rectangle", title: i.name,
                             subtitle: "[\(i.code)] • \(i.contract?.title ?? "—")",
                             badge: i.completionPercentage.percentFormatted,
@@ -406,7 +406,7 @@ private struct SearchResultList: View {
         if !results.hakedisler.isEmpty {
             Section("Hakedişler (\(results.hakedisler.count))") {
                 ForEach(results.hakedisler) { h in
-                    NavigationLink(destination: HakedisDetailView(hakedis: h)) {
+                    NavigationLink(destination: LazyView(HakedisDetailView(hakedis: h))) {
                         SearchResultRow(icon: "doc.text", title: h.periodName,
                             subtitle: h.contract?.title,
                             badge: h.status.rawValue, badgeColor: hakedisStatusColor(h.status))

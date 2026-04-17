@@ -436,7 +436,7 @@ struct ProjectDetailView: View {
                         .font(.subheadline)
                 } else {
                     ForEach(project.contracts) { contract in
-                        NavigationLink(destination: ContractDetailView(contract: contract)) {
+                        NavigationLink(destination: LazyView(ContractDetailView(contract: contract))) {
                             ContractRow(contract: contract)
                         }
                     }

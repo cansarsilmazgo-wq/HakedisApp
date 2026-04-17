@@ -192,6 +192,9 @@ struct AddHakedisView: View {
         )
         hakedis.contract = contract
         hakedis.lumpSumCompletionPercentage = lumpSumCompletionPct
+        // Sözleşmeden vergi oranlarını aktar
+        hakedis.withholdingTaxRate = contract.stopajRate
+        hakedis.stampTaxRate = contract.damgaVergisiRate
 
         // Auto-calculate: find previous hakedis cumulative quantities
         let previousHakedisler = contract.hakedisler.filter { $0.periodEnd < periodStart }

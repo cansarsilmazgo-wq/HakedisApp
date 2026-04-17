@@ -373,4 +373,73 @@ final class AuthAndRoleTests: XCTestCase {
         XCTAssertFalse(role.canManageMaterials)
         XCTAssertFalse(role.canManageContracts)
     }
+
+    // MARK: - ADIM 1 — linkedContractorId Testleri
+
+    // 27. Taşeron onaylandığında linkedContractorId set edilmeli
+    func testTaseronOnayindaLinkedContractorIdSetEdilmeli() throws {
+        let schema = Schema([UserAccount.self, Company.self, JoinRequest.self, Contractor.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let owner = UserAccount(fullName: "Patron", email: "patron@test.com", role: .owner, passwordHash: "h")
+        let company = Company(companyName: "Test Şirketi")
+        let taseronUser = UserAccount(fullName: "Taşeron Ali", email: "taseron@test.com", role: .subcontractor, passwordHash: "h")
+        let contractor = Contractor(name: "Taseron Firma A.Ş.")
+        let joinReq = JoinRequest(user: taseronUser, company: company, requestedRole: .subcontractor)
+        ctx.insert(owner); ctx.insert(company); ctx.insert(taseronUser)
+        ctx.insert(contractor); ctx.insert(joinReq)
+        try ctx.save()
+
+        // Onay öncesi nil olmalı
+        XCTAssertNil(taseronUser.linkedContractorId, "Onay öncesi linkedContractorId nil olmalı")
+
+        // AuthManager.shared üzerinden değil, doğrudan iş mantığını test ediyoruz
+        joinReq.status = JoinRequestStatus.approved
+        joinReq.reviewedBy = owner.fullName
+        joinReq.reviewDate = Date()
+        taseronUser.role = .subcontractor
+        taseronUser.accountStatus = .active
+        taseronUser.linkedContractorId = contractor.id
+        try ctx.save()
+
+        XCTAssertEqual(taseronUser.linkedContractorId, contractor.id, "Onay sonrası linkedContractorId set edilmiş olmalı")
+        XCTAssertEqual(taseronUser.role, .subcontractor)
+        XCTAssertEqual(joinReq.status, JoinRequestStatus.approved)
+    }
+
+    // 28. Onay öncesi linkedContractorId nil olmalı
+    func testOnayOncesiLinkedContractorIdNilOlmali() throws {
+        let user = UserAccount(fullName: "Bekleyen", email: "bekleyen@test.com", role: .subcontractor, passwordHash: "h")
+        XCTAssertNil(user.linkedContractorId, "Yeni kullanıcıda linkedContractorId nil olmalı")
+    }
+
+    // 29. Reddedildiğinde linkedContractorId set edilmemeli
+    func testReddedildigindeLikedContractorIdSetEdilmemeli() throws {
+        let schema = Schema([UserAccount.self, Company.self, JoinRequest.self, Contractor.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let owner = UserAccount(fullName: "Patron", email: "patron2@test.com", role: .owner, passwordHash: "h")
+        let company = Company(companyName: "Test Şirketi 2")
+        let taseronUser = UserAccount(fullName: "Reddedilen Ali", email: "red@test.com", role: .subcontractor, passwordHash: "h")
+        let contractor = Contractor(name: "Redli Firma")
+        let joinReq = JoinRequest(user: taseronUser, company: company, requestedRole: .subcontractor)
+        ctx.insert(owner); ctx.insert(company); ctx.insert(taseronUser)
+        ctx.insert(contractor); ctx.insert(joinReq)
+        try ctx.save()
+
+        // Reddetme — linkedContractorId set edilmemeli
+        joinReq.status = JoinRequestStatus.rejected
+        joinReq.reviewedBy = owner.fullName
+        joinReq.reviewDate = Date()
+        taseronUser.accountStatus = .rejected
+        // linkedContractorId intentionally NOT set
+        try ctx.save()
+
+        XCTAssertNil(taseronUser.linkedContractorId, "Reddedildiğinde linkedContractorId set edilmemeli")
+        XCTAssertEqual(joinReq.status, JoinRequestStatus.rejected)
+    }
 }

@@ -50,18 +50,11 @@ struct SubcontractorDashboardView: View {
     @Query private var materialRequests: [SubcontractorMaterialRequest]
     @Environment(\.modelContext) private var modelContext
 
-    private var currentContractor: Contractor? {
-        // Oturum açan kullanıcının contractor'ını bul
-        let email = authManager.currentUser?.email ?? ""
-        _ = email
-        // Contractor modeline email alanı eklenmiş olmalı; yoksa name ile eşleştir
-        return nil  // gerçek uygulamada UserAccount.contractor ilişkisi üzerinden çekiliyor
-    }
+    @State private var currentContractor: Contractor? = nil
 
     private var myHakedisler: [Hakedis] {
-        // Sadece kendi hakedişleri (contractor eşleşmesi)
-        // Not: UserAccount → contractor ilişkisi kurulduğunda filtreleme buraya eklenir
-        hakedisler.filter { $0.contract?.contractor?.name != nil }
+        guard let contractor = currentContractor else { return [] }
+        return hakedisler.filter { $0.contract?.contractor?.id == contractor.id }
     }
 
     private var pendingHakedisler: [Hakedis] {
@@ -111,6 +104,22 @@ struct SubcontractorDashboardView: View {
                 VStack(spacing: Spacing.section) {
                     // Hoş geldin kartı
                     welcomeCard
+
+                    if currentContractor == nil {
+                        VStack(spacing: Spacing.md) {
+                            Image(systemName: "link.badge.plus")
+                                .font(.system(size: 44))
+                                .foregroundColor(.hakedisWarning)
+                            Text("Taşeron Hesabı Bağlanmamış")
+                                .font(.headline)
+                            Text("Hesabınız henüz bir taşeron firmasına bağlanmamış. Lütfen firma yöneticinizle iletişime geçin.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                        .padding(.vertical, Spacing.section)
+                    } else {
 
                     // Bekleyen hakedişler
                     StatCard(
@@ -170,13 +179,25 @@ struct SubcontractorDashboardView: View {
                     if !openDisputes.isEmpty {
                         openDisputesSection
                     }
+                    } // end else (currentContractor != nil)
                 }
                 .padding(.vertical, Spacing.md)
             }
             .background(Color.hakedisBackground)
             .navigationTitle("Hoş Geldiniz")
             .navigationBarTitleDisplayMode(.large)
+            .task {
+                await loadLinkedContractor()
+            }
         }
+    }
+
+    private func loadLinkedContractor() async {
+        guard let linkedId = authManager.currentUser?.linkedContractorId else { return }
+        let descriptor = FetchDescriptor<Contractor>(
+            predicate: #Predicate { $0.id == linkedId }
+        )
+        currentContractor = try? modelContext.fetch(descriptor).first
     }
 
     private var welcomeCard: some View {
@@ -252,7 +273,7 @@ struct SubcontractorDashboardView: View {
 // MARK: - SubcontractorHakedisPortalView
 
 struct SubcontractorHakedisPortalView: View {
-    @Query(sort: \Hakedis.periodStart, order: .reverse) private var hakedisler: [Hakedis]
+    @Query(sort: \Hakedis.periodStart, order: .reverse) private var allHakedisler: [Hakedis]
     @Query private var disputes: [SubcontractorDispute]
     @State private var selectedHakedis: Hakedis?
     @State private var showDisputeSheet = false
@@ -260,12 +281,25 @@ struct SubcontractorHakedisPortalView: View {
     @State private var disputeDetails = ""
     @State private var disputeType = DisputeType.hakedisAmount
     @State private var requestedAmount = ""
+    @State private var linkedContractorId: UUID? = nil
     @Environment(\.modelContext) private var modelContext
+    @StateObject private var authManager = AuthManager.shared
+
+    private var hakedisler: [Hakedis] {
+        guard let contractorId = linkedContractorId else { return [] }
+        return allHakedisler.filter { $0.contract?.contractor?.id == contractorId }
+    }
 
     var body: some View {
         NavigationStack {
             Group {
-                if hakedisler.isEmpty {
+                if linkedContractorId == nil {
+                    EmptyStateView(
+                        icon: "link.badge.plus",
+                        title: "Taşeron Bağlantısı Yok",
+                        subtitle: "Hakedişlerinizi görmek için firma yöneticinizle iletişime geçin."
+                    )
+                } else if hakedisler.isEmpty {
                     EmptyStateView(
                         icon: "doc.text",
                         title: "Hakediş Yok",
@@ -284,6 +318,9 @@ struct SubcontractorHakedisPortalView: View {
             }
             .navigationTitle("Hakedişlerim")
             .navigationBarTitleDisplayMode(.large)
+            .task {
+                linkedContractorId = authManager.currentUser?.linkedContractorId
+            }
         }
     }
 

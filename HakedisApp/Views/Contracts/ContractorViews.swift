@@ -224,7 +224,7 @@ struct ContractorDetailView: View {
                     Text("Sözleşme yok").foregroundColor(.secondary)
                 } else {
                     ForEach(contractor.contracts) { contract in
-                        NavigationLink(destination: ContractDetailView(contract: contract)) {
+                        NavigationLink(destination: LazyView(ContractDetailView(contract: contract))) {
                             ContractRow(contract: contract)
                         }
                     }

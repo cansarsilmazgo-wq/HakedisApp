@@ -6,11 +6,17 @@ struct AttendanceListView: View {
     @Query(sort: \Attendance.date, order: .reverse) private var records: [Attendance]
     @Query private var projects: [Project]
     @Query private var contractors: [Contractor]
+    @Query(sort: \Worker.fullName) private var allWorkers: [Worker]
     @Environment(\.modelContext) private var modelContext
 
     @State private var showingAdd = false
     @State private var selectedProjectID: UUID? = nil
     @State private var selectedContractorID: UUID? = nil
+    @State private var showBulkToast = false
+    @State private var bulkToastMessage = ""
+    // ADIM8 — Puantaj PDF
+    @State private var pdfShareItem: PDFFileItem? = nil
+    @State private var selectedPDFMonth: Date = Date()
 
     private var filtered: [Attendance] {
         records.filter { a in
@@ -105,11 +111,121 @@ struct AttendanceListView: View {
                         Image(systemName: "tablecells")
                     }
                     .accessibilityLabel("Grid görünümü")
+                    // ADIM5 — Toplu işaret + ADIM8 PDF menüsü
+                    Menu {
+                        Button {
+                            markAllPresent()
+                        } label: {
+                            Label("Herkesi Geldi İşaretle", systemImage: "checkmark.circle.fill")
+                        }
+                        .disabled(allWorkers.isEmpty)
+                        .accessibilityLabel("Bugün tüm işçileri geldi işaretle")
+
+                        Button(role: .destructive) {
+                            clearTodayAttendance()
+                        } label: {
+                            Label("Bugünkü Kayıtları Temizle", systemImage: "trash")
+                        }
+                        .disabled(todayRecords.isEmpty)
+                        .accessibilityLabel("Bugünkü puantaj kayıtlarını sil")
+
+                        Divider()
+
+                        Button {
+                            exportPDFForCurrentMonth()
+                        } label: {
+                            Label("Bu Ay PDF Oluştur", systemImage: "doc.richtext")
+                        }
+                        .accessibilityLabel("Bu ay için puantaj PDF oluştur")
+                    } label: {
+                        Image(systemName: "checkmark.circle")
+                    }
+                    .accessibilityLabel("Toplu puantaj işlemleri")
+                    .sheet(item: $pdfShareItem) { item in
+                        ShareSheet(items: [item.url])
+                    }
+
                     Button { showingAdd = true } label: { Image(systemName: "plus") }
                         .accessibilityLabel("Yeni kayıt ekle")
                 }
             }
         }
+        .toast(isPresented: $showBulkToast, message: bulkToastMessage)
+    }
+
+    // MARK: - Computed
+
+    private var todayRecords: [Attendance] {
+        records.filter { Calendar.current.isDateInToday($0.date) }
+    }
+
+    // MARK: - Bulk Actions
+
+    /// Bugün kaydı olmayan tüm işçiler için "Geldi" Attendance oluşturur (idempotent).
+    private func markAllPresent() {
+        guard !allWorkers.isEmpty else { return }
+        let today = Calendar.current.startOfDay(for: Date())
+        // Bugün kaydı olan işçi id'leri
+        let alreadyMarkedIds = Set(
+            todayRecords.compactMap { $0.worker?.id }
+        )
+        var newCount = 0
+        for worker in allWorkers {
+            guard !alreadyMarkedIds.contains(worker.id) else { continue }
+            let attendance = Attendance(
+                date: today,
+                workerName: worker.fullName,
+                workerRole: worker.profession.rawValue
+            )
+            attendance.worker = worker
+            attendance.isPresent = true
+            attendance.normalHours = 8.0
+            modelContext.insert(attendance)
+            newCount += 1
+        }
+        do {
+            try modelContext.save()
+        } catch {}
+        if newCount > 0 {
+            bulkToastMessage = "\(newCount) işçi 'Geldi' işaretlendi"
+        } else {
+            bulkToastMessage = "Tüm işçiler zaten işaretlenmiş"
+        }
+        withAnimation { showBulkToast = true }
+    }
+
+    /// Bu ay için puantaj PDF'i oluşturur ve paylaşım sheet'ini açar.
+    private func exportPDFForCurrentMonth() {
+        let allRecords = records // @Query'den gelen tüm kayıtlar
+        let pdfData = AttendancePDFGenerator.generateMonthly(
+            records: allRecords,
+            month: Date(),
+            projectName: nil
+        )
+        let fileName = "Puantaj_\(currentMonthFileName()).pdf"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        do {
+            try pdfData.write(to: url)
+            pdfShareItem = PDFFileItem(url: url)
+        } catch {}
+    }
+
+    private func currentMonthFileName() -> String {
+        let df = DateFormatter()
+        df.dateFormat = "yyyy_MM"
+        df.locale = Locale(identifier: "tr_TR")
+        return df.string(from: Date())
+    }
+
+    /// Bugün girilen attendance kayıtlarını siler.
+    private func clearTodayAttendance() {
+        let toDelete = todayRecords
+        toDelete.forEach { modelContext.delete($0) }
+        do {
+            try modelContext.save()
+        } catch {}
+        bulkToastMessage = "\(toDelete.count) kayıt silindi"
+        withAnimation { showBulkToast = true }
     }
 }
 

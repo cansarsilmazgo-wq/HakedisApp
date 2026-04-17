@@ -64,6 +64,20 @@ struct PozLibraryView: View {
                 }
                 .background(Color.hakedisBackground)
 
+                if filtered.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 44))
+                            .foregroundColor(.secondary)
+                        Text(searchText.isEmpty ? "Bu kategoride poz bulunamadı" : "'\(searchText)' için sonuç yok")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.top, 60)
+                }
+
                 List {
                     ForEach(filtered, id: \.id) { item in
                         let suggestion = suggestedPrice(for: item)

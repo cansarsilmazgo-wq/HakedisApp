@@ -514,7 +514,7 @@ struct ContractDetailView: View {
                             .padding(.vertical, 8)
                     } else {
                         ForEach(filteredWorkItems) { item in
-                            NavigationLink(destination: WorkItemDetailView(workItem: item)) {
+                            NavigationLink(destination: LazyView(WorkItemDetailView(workItem: item))) {
                                 if showCumulative {
                                     CumulativeWorkItemRow(workItem: item, contract: contract)
                                 } else {
@@ -592,7 +592,7 @@ struct ContractDetailView: View {
                     .foregroundColor(.hakedisOrange)
                 } else {
                     ForEach(contract.hakedisler.sorted { $0.createdAt > $1.createdAt }) { hakedis in
-                        NavigationLink(destination: HakedisDetailView(hakedis: hakedis)) {
+                        NavigationLink(destination: LazyView(HakedisDetailView(hakedis: hakedis))) {
                             HakedisListRow(hakedis: hakedis)
                         }
                         .swipeActions(edge: .leading) {

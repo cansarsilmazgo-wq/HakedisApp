@@ -92,6 +92,7 @@ struct UserDetailEditView: View {
     @Bindable var user: UserAccount
     let projects: [Project]
     @State private var showToast = false
+    @Query(sort: \Contractor.name) private var contractors: [Contractor]
 
     var body: some View {
         List {
@@ -134,6 +135,29 @@ struct UserDetailEditView: View {
                         ))
                         .accessibilityLabel("\(project.name) erişimi")
                     }
+                }
+            }
+            if user.role == .subcontractor {
+                Section {
+                    Picker("Bağlı Taşeron Firma", selection: Binding(
+                        get: { user.linkedContractorId },
+                        set: { user.linkedContractorId = $0 }
+                    )) {
+                        Text("Bağlantı yok").tag(Optional<UUID>.none)
+                        ForEach(contractors) { c in
+                            Text(c.name).tag(Optional(c.id))
+                        }
+                    }
+                    if user.linkedContractorId == nil {
+                        Label("Taşeron portalı için bir firma seçin", systemImage: "exclamationmark.circle")
+                            .font(.caption)
+                            .foregroundColor(.hakedisWarning)
+                    }
+                } header: {
+                    Text("Taşeron Bağlantısı")
+                } footer: {
+                    Text("Bu kullanıcı taşeron portalında yalnızca seçili firmaya ait hakedişleri görebilir.")
+                        .font(.caption)
                 }
             }
             Section {

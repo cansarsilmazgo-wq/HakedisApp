@@ -41,6 +41,7 @@ struct ContentView: View {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var biometricAuth = BiometricAuthManager.shared
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
     @Query private var projects: [Project]
     @Query private var hakedisler: [Hakedis]
     @Query private var workers: [Worker]
@@ -105,6 +106,8 @@ struct ContentView: View {
             WidgetDataManager.update(projects: projects, hakedisler: hakedisler,
                 workers: workers, safetyIncidents: safetyIncidents, materials: materials)
             NotificationManager.shared.clearBadge()
+            // ADIM6: Uygulama açılışında mevcut veri için bildirimleri yeniden zamanla
+            NotificationManager.shared.rescheduleAllNotifications(context: modelContext)
         }
         .onChange(of: hakedisler.count) {
             WidgetDataManager.update(projects: projects, hakedisler: hakedisler,

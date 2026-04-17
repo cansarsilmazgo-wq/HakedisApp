@@ -305,6 +305,26 @@ struct SiteDiaryDetailView: View {
                     }
                 }
 
+                // ADIM7: Yarınki Plan — boş değilse göster
+                if !diary.tomorrowPlan.isEmpty {
+                    InfoSection(
+                        title: "Yarınki Plan",
+                        content: diary.tomorrowPlan,
+                        icon: "calendar.badge.plus",
+                        color: .hakedisInfo
+                    )
+                }
+
+                // Güvenlik Notu
+                if !diary.securityNote.isEmpty {
+                    InfoSection(
+                        title: "Güvenlik Notu",
+                        content: diary.securityNote,
+                        icon: "shield.checkered",
+                        color: .hakedisWarning
+                    )
+                }
+
                 // Fotoğraflar
                 if !diary.photoData.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {

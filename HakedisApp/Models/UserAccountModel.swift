@@ -24,6 +24,8 @@ final class UserAccount {
     var createdAt: Date
     var title: String = ""   // FAZ 14.3 — Unvan (Genel Müdür, Şantiye Şefi, vb.)
     @Relationship var company: Company?
+    // Taşeron rolündeki kullanıcı için bağlı Contractor.id
+    var linkedContractorId: UUID? = nil
 
     init(fullName: String, email: String, role: UserRole, passwordHash: String) {
         self.id = UUID()

@@ -96,7 +96,7 @@ struct AllHakedisListView: View {
                     .listRowBackground(Color.hakedisBackground)
 
                     ForEach(filtered, id: \.id) { hakedis in
-                        NavigationLink(destination: HakedisDetailView(hakedis: hakedis)) {
+                        NavigationLink(destination: LazyView(HakedisDetailView(hakedis: hakedis))) {
                             AllHakedisRow(hakedis: hakedis)
                         }
                     }

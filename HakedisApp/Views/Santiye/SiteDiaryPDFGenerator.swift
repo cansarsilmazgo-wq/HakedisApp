@@ -101,6 +101,13 @@ struct SiteDiaryPDFGenerator {
         drawField(title: "SORUNLAR / AKSLIKLAR", content: diary.problems)
         drawField(title: "ZİYARETÇİLER", content: diary.visitors, minH: 30)
         drawField(title: "NOTLAR", content: diary.notes)
+        // ADIM7: Yarınki plan PDF'e dahil
+        if !diary.tomorrowPlan.isEmpty {
+            drawField(title: "YARIN YAPILACAKLAR", content: diary.tomorrowPlan, minH: 60)
+        }
+        if !diary.securityNote.isEmpty {
+            drawField(title: "GÜVENLİK NOTU", content: diary.securityNote, minH: 40)
+        }
 
         // Gecikme kutusu
         if diary.hasDelay, let reason = diary.delayReason, let hours = diary.delayHours {

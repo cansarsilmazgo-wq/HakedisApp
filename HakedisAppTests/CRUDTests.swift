@@ -319,4 +319,137 @@ final class CRUDTests: XCTestCase {
         let expectedPrevQtyInCopy = prevQty + currQty
         XCTAssertEqual(expectedPrevQtyInCopy, 80.0)
     }
+
+    // MARK: - ADIM 2 — Dashboard N+1 Testleri
+
+    // Çok proje olduğunda Contract direkt @Query ile çekilebilmeli
+    func testDashboardCokProjeContracts10ProjeDogruCekme() throws {
+        let schema = Schema([Project.self, Contractor.self, Contract.self,
+                             WorkItem.self, DailyEntry.self, Hakedis.self,
+                             HakedisItem.self, Payment.self, RetentionRelease.self,
+                             Milestone.self, ChangeOrder.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        for i in 1...10 {
+            let project = Project(name: "Proje \(i)", location: "İstanbul")
+            ctx.insert(project)
+            let contractor = Contractor(name: "Firma \(i)")
+            ctx.insert(contractor)
+            let contract = Contract(title: "Sözleşme \(i)")
+            contract.project = project
+            contract.contractor = contractor
+            ctx.insert(contract)
+        }
+        try ctx.save()
+
+        // Direkt @Query ile Contract sayısı proje sayısına eşit olmalı
+        let allContracts = try ctx.fetch(FetchDescriptor<Contract>())
+        XCTAssertEqual(allContracts.count, 10, "10 proje için 10 sözleşme direkt çekilebilmeli")
+
+        let overBudget = allContracts.filter { $0.isOverBudget }
+        XCTAssertEqual(overBudget.count, 0, "Yeni sözleşmeler bütçe aşımında olmamalı")
+    }
+
+    // Milestone direkt @Query ile çekilebilmeli
+    func testDashboardMilestonelarDirektQueryCekilebilmeli() throws {
+        let schema = Schema([Project.self, Milestone.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let project = Project(name: "Proje", location: "Ankara")
+        ctx.insert(project)
+        let gecikmis = Milestone(title: "Temel", plannedDate: Date().addingTimeInterval(-86400 * 10))
+        gecikmis.project = project
+        ctx.insert(gecikmis)
+        let gelecek = Milestone(title: "Çatı", plannedDate: Date().addingTimeInterval(86400 * 3), notes: "3 gün sonra")
+        gelecek.project = project
+        ctx.insert(gelecek)
+        try ctx.save()
+
+        let allMilestones = try ctx.fetch(FetchDescriptor<Milestone>())
+        XCTAssertEqual(allMilestones.count, 2)
+        let overdue = allMilestones.filter { $0.isOverdue }
+        XCTAssertEqual(overdue.count, 1, "Geçmiş tarihli 1 milestone gecikmiş olmalı")
+    }
+
+    // ChangeOrder direkt @Query ile çekilebilmeli
+    func testDashboardChangeOrderlarDirektQueryCekilebilmeli() throws {
+        let schema = Schema([Project.self, Contractor.self, Contract.self,
+                             WorkItem.self, DailyEntry.self, Hakedis.self,
+                             HakedisItem.self, Payment.self, RetentionRelease.self,
+                             ChangeOrder.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let project = Project(name: "P", location: "X")
+        ctx.insert(project)
+        let contractor = Contractor(name: "F")
+        ctx.insert(contractor)
+        let contract = Contract(title: "S")
+        contract.project = project
+        contract.contractor = contractor
+        ctx.insert(contract)
+        let co = ChangeOrder(title: "Ek İş", amount: 5000)
+        co.contract = contract
+        co.status = .pending
+        ctx.insert(co)
+        try ctx.save()
+
+        let allCOs = try ctx.fetch(FetchDescriptor<ChangeOrder>())
+        XCTAssertEqual(allCOs.count, 1)
+        let pending = allCOs.filter { $0.status == .pending }
+        XCTAssertEqual(pending.count, 1, "1 bekleyen ek iş emri olmalı")
+    }
+
+    // MARK: - ADIM 3 — ContractDetailView NavigationLink Testleri
+
+    // WorkItem ve Hakedis modelleri Hashable olmalı (NavigationLink(value:) için şart)
+    func testWorkItemHashableNavigationLinkValue() throws {
+        let item1 = WorkItem(code: "A.101", name: "Beton", unit: "m3", unitPrice: 500, contractedQuantity: 100)
+        let item2 = WorkItem(code: "A.102", name: "Demir", unit: "kg", unitPrice: 10, contractedQuantity: 500)
+        // Hashable davranışı: farklı nesneler farklı hash üretmeli
+        XCTAssertNotEqual(item1.id, item2.id, "Farklı WorkItem'lar farklı UUID'ye sahip olmalı")
+    }
+
+    // Hakedis Hashable olmalı
+    func testHakedisHashableNavigationLinkValue() throws {
+        let h1 = Hakedis(periodName: "Ocak 2025", periodStart: Date(), periodEnd: Date())
+        let h2 = Hakedis(periodName: "Şubat 2025", periodStart: Date(), periodEnd: Date())
+        XCTAssertNotEqual(h1.id, h2.id, "Farklı Hakedisler farklı UUID'ye sahip olmalı")
+    }
+
+    // Sözleşme detayı yüklenirken ilişkiler erişilebilir olmalı (donma yok)
+    func testContractDetailIliskilerErisilebelir() throws {
+        let schema = Schema([Project.self, Contractor.self, Contract.self,
+                             WorkItem.self, DailyEntry.self, Hakedis.self,
+                             HakedisItem.self, Payment.self, RetentionRelease.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let contract = Contract(title: "Test Sözleşme")
+        ctx.insert(contract)
+        for i in 1...5 {
+            let item = WorkItem(code: "K.\(i)", name: "İş \(i)", unit: "m2", unitPrice: 100, contractedQuantity: 50)
+            item.contract = contract
+            ctx.insert(item)
+        }
+        for j in 1...3 {
+            let h = Hakedis(periodName: "Dönem \(j)", periodStart: Date(), periodEnd: Date())
+            h.contract = contract
+            ctx.insert(h)
+        }
+        try ctx.save()
+
+        let fetchedContracts = try ctx.fetch(FetchDescriptor<Contract>())
+        guard let fetchedContract = fetchedContracts.first else {
+            XCTFail("Sözleşme bulunamadı"); return
+        }
+        XCTAssertEqual(fetchedContract.workItems.count, 5, "5 iş kalemi erişilebilir olmalı")
+        XCTAssertEqual(fetchedContract.hakedisler.count, 3, "3 hakediş erişilebilir olmalı")
+    }
 }

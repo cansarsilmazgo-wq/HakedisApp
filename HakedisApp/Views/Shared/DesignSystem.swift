@@ -286,6 +286,16 @@ extension Date {
     var monthYear: String { let f = DateFormatter(); f.locale = Locale(identifier: "tr_TR"); f.dateFormat = "MMMM yyyy"; return f.string(from: self) }
 }
 
+// MARK: - LazyView
+/// NavigationLink(destination:) hedef view'ını tembel yükler.
+/// Eski API ile oluşturulmuş NavigationStack hiyerarşisinde, hedef view'ın
+/// body'si ekrana gelene kadar SwiftData ilişkilerini tetiklemez.
+struct LazyView<Content: View>: View {
+    private let build: () -> Content
+    init(_ build: @autoclosure @escaping () -> Content) { self.build = build }
+    var body: Content { build() }
+}
+
 // MARK: - ErrorHelper
 
 enum ErrorHelper {

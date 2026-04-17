@@ -117,4 +117,41 @@ final class Module3WeatherTests: XCTestCase {
         XCTAssertTrue(ws.isConfigured)
         ws.apiKey = originalKey  // restore
     }
+
+    // MARK: - ADIM 4 — API Key Settings Testleri
+
+    // API key boşken isConfigured false olmalı
+    func testAPIKeyBoskenCrashOlmamali() {
+        let ws = WeatherService.shared
+        let originalKey = ws.apiKey
+        ws.apiKey = ""
+        XCTAssertFalse(ws.isConfigured, "API key boşken isConfigured false olmalı")
+        // fetchWeather çağrılırsa nil döndürmeli (crash yok)
+        let expectation = self.expectation(description: "fetchWeather nil döndürmeli")
+        Task {
+            let result = await ws.fetchWeather(latitude: 41.0, longitude: 29.0)
+            XCTAssertNil(result, "API key yokken fetchWeather nil dönmeli")
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 5)
+        ws.apiKey = originalKey
+    }
+
+    // API key girildiğinde isConfigured true olmalı
+    func testAPIKeyGirildigindeConfigure() {
+        let ws = WeatherService.shared
+        let originalKey = ws.apiKey
+        ws.apiKey = "abc123geçerli"
+        XCTAssertTrue(ws.isConfigured, "API key girildiğinde isConfigured true olmalı")
+        ws.apiKey = originalKey
+    }
+
+    // UserDefaults'a kaydedilen key geri okunabilmeli
+    func testAPIKeyUserDefaultsKalici() {
+        let testKey = "test_weather_key_\(UUID().uuidString)"
+        UserDefaults.standard.set(testKey, forKey: "openWeatherApiKey")
+        let readBack = UserDefaults.standard.string(forKey: "openWeatherApiKey")
+        XCTAssertEqual(readBack, testKey, "API key UserDefaults'a kaydedilip okunabilmeli")
+        UserDefaults.standard.removeObject(forKey: "openWeatherApiKey")
+    }
 }

@@ -45,20 +45,25 @@ Ek olarak, `WorkItemRow` her iş kalemi için `dailyEntries` yükler:
 - 50 iş kalemi × 1 sorgu = 50 ek SQLite sorgusu
 - Toplam: **~65+ senkron SQLite sorgusu** tek render pass'te
 
-### 2. `Contractor.keychainPortalPassword` Getter İçinde Model Mutation — İkincil Risk
+### 2. `NavigationLink(destination:)` Eager Instantiation — Yeni Bulunan Kök Neden
+
+**Nerede:** `ProjectDetailView.body` → `ForEach(project.contracts)` içinde
+
+**Mekanizma:**
+Eski stil `NavigationLink(destination: ContractDetailView(contract: contract))` kullanımı,
+`ProjectDetailView` body'si render edildiğinde **TÜM contractlar için ContractDetailView örnekleri
+oluşturur**. Her ContractDetailView body'si hesaplanır → yukarıdaki 65+ SQLite sorgusu × kontrat sayısı
+kadar tetiklenir.
+
+"Yeni Sözleşme" butonuna tıklandığında `showingAddContract = true` → body yeniden render →
+tüm ContractDetailView'lar yeniden oluşturulur → **FREEZE.**
+
+### 3. `Contractor.keychainPortalPassword` Getter İçinde Model Mutation — İkincil Risk
 
 **Dosya:** `CoreModels.swift` — `Contractor.keychainPortalPassword.get`
 
 **Risk:** Getter içinde `portalPassword = ""` yazılıyordu. Bu SwiftData gözlem sistemini tetikleyerek
-görünüm yeniden render döngüsüne girebilir (render sırasında model değişikliği → yeniden render → ...).
-
-```swift
-// YANLIŞ (eski kod):
-get {
-    ...
-    portalPassword = ""  // ← Getter içinde mutation → potansiyel infinite render loop
-}
-```
+görünüm yeniden render döngüsüne girebilir.
 
 ---
 
@@ -69,47 +74,79 @@ get {
 **Dosya:** `ContractViews.swift` — `ContractDetailView`
 
 SwiftData ilişkileri, `.task` modifier içinde asenkron olarak önbelleğe alındı.
-`await Task.yield()` ile her tur arasında ana run-loop'a dönüş yapılıyor — UI
-bloklanmadan arka planda kademeli yükleme yapılıyor.
-
-```swift
-.task(id: contract.id) {
-    guard !relationshipsPrewarmed else { return }
-    _ = contract.workItems; _ = contract.hakedisler ...
-    await Task.yield()
-    // İş kalemi başına dailyEntries yükle
-    for item in contract.workItems {
-        _ = item.dailyEntries
-        await Task.yield()
-    }
-    relationshipsPrewarmed = true
-}
-```
-
-**Sonuç:** İlk render hızlı (önbellek yok ama bölüm başına boş veri); arka planda kademeli
-yükleme tamamlandıkça görünüm güncellenir. Ana thread bloklanmaz.
 
 ### Düzeltme 2: Güvenli `keychainPortalPassword` Getter
 
 **Dosya:** `CoreModels.swift` — `Contractor`
 
-Getter içindeki model mutation kaldırıldı. Geçiş işlemi için ayrı `migratePortalPasswordIfNeeded()`
-metodu eklendi ve `ContractorDetailView.task` içinden çağrıldı (render döngüsü dışında).
+Getter içindeki model mutation kaldırıldı.
+
+### Düzeltme 3: NavigationLink Eager Instantiation — LazyView ile Kalıcı Çözüm ✅
+
+**Dosyalar:** `ProjectViews.swift`, `ContractViews.swift`, `AllHakedisListView.swift`, `ContractorViews.swift`, `SearchFilterView.swift`
+**Tarih:** 2026-04-16
+
+**Sorun (tekrar eden):** `NavigationLink(value:)` ile `.navigationDestination(for:)` kombinasyonu,
+eski-stil NavigationLink ile push edilen view'lar içinde çalışmıyordu. iOS, push edilmiş view'ın içinde
+kayıtlı `.navigationDestination`'ı bulamıyor ve "!" gösteriyordu.
+
+**Çözüm:** `DesignSystem.swift` içine `LazyView<Content>` yardımcı yapısı eklendi.
+Her kritik `NavigationLink(destination:)` için `LazyView` wrapper kullandı:
+
+```swift
+// Eski (eager body evaluation → freeze):
+NavigationLink(destination: ContractDetailView(contract: contract)) { ... }
+
+// Yeni (lazy body evaluation → freeze yok, "!" yok):
+NavigationLink(destination: LazyView(ContractDetailView(contract: contract))) { ... }
+```
+
+**Sonuç:** 
+- ContractDetailView body'si ekrana gelene kadar değerlendirilmez → SwiftData N+1 tetiklenmiyor
+- Tüm navigation eski-stil → "!" ünlem sorunu yok
+- "Yeni Sözleşme" butonuna tıklandığında freeze yok
 
 ---
 
-## Test Edilmesi Gerekenler
+## Tarih: 2026-04-15 — Kapsamlı Analiz
 
-- [ ] ContractDetailView navigasyonu: donma / gecikme olmadan açılıyor mu?
-- [ ] Çok sayıda iş kalemi olan sözleşme (50+) hızlı açılıyor mu?
-- [ ] Portal şifresi olan taşeron görüntüleme: sonsuz döngü yok mu?
-- [ ] SwiftData verileri kayıpsız görüntüleniyor mu?
+### Bulunan ve Düzeltilen Ek Buglar
+
+| # | Ekran | Sorun | Öncelik | Durum |
+|---|-------|-------|---------|-------|
+| 1 | ProjectDetailView → AddContractView | Freeze: NavigationLink eager instantiation | Kritik | ✅ Düzeltildi |
+| 2 | SubcontractorPortalView | Veri izolasyonu: tüm taşeronların hakedişleri görünüyor | Kritik | ✅ Düzeltildi |
+| 3 | SubcontractorHakedisPortalView | @Query tüm hakedişleri çekiyor, filtre yok | Kritik | ✅ Düzeltildi |
+| 4 | HakedisViews — create() | Stopaj ve damga vergisi sözleşmeden aktarılmıyor (sabit %3 ve %0.948) | Yüksek | ✅ Düzeltildi |
+| 5 | PozLibraryView | Boş arama sonucunda EmptyState yok | Orta | ✅ Düzeltildi |
+| 6 | UserDetailEditView | Taşeron kullanıcısına Contractor bağlama alanı yok | Yüksek | ✅ Düzeltildi |
+| 7 | UserAccountModel | linkedContractorId alanı yoktu | Yüksek | ✅ Eklendi |
+
+### Bekleyen Konular
+
+✅ Tüm bekleyen konular 2026-04-15 tarihinde çözüldü (ADIM 1-8):
+
+| # | Konu | Tarih | Durum |
+|---|------|-------|-------|
+| A1 | linkedContractorId otomatik set — JoinRequest onayında | 2026-04-15 | ✅ Düzeltildi |
+| A2 | DashboardView N+1 — @Query ile Contract/Milestone/ChangeOrder | 2026-04-15 | ✅ Düzeltildi |
+| A3 | ContractDetailView — WorkItem/Hakedis ForEach lazy NavigationLink | 2026-04-15 | ✅ Düzeltildi |
+| A4 | WeatherService API key — Settings ekranına eklendi | 2026-04-15 | ✅ Eklendi |
+| A5 | AttendanceListView — Toplu "Herkesi Geldi İşaretle" butonu | 2026-04-15 | ✅ Eklendi |
+| A6 | NotificationManager — app açılışında yeniden schedule | 2026-04-15 | ✅ Eklendi |
+| A7 | SiteDiaryDetailView — tomorrowPlan görüntüleme + PDF | 2026-04-15 | ✅ Eklendi |
+| A8 | AttendanceListView — Aylık puantaj PDF butonu bağlantısı | 2026-04-15 | ✅ Eklendi |
 
 ---
 
-## Gelecekte Yapılabilecek İyileştirmeler
+## Tarih: 2026-04-16 — Kritik Navigasyon Düzeltmeleri
 
-1. `NavigationLink(destination:)` → `NavigationLink(value:) + .navigationDestination` geçişi
-   (destination view'ların eager instantiation'ını önler)
-2. `WorkItemRow` için pre-computed progress değerleri (N+1 tamamen ortadan kalkar)
-3. SwiftData `@Model` için background ModelActor kullanımı (iOS 17.4+)
+### Bulunan ve Düzeltilen Buglar
+
+| # | Sorun | Kök Neden | Durum |
+|---|-------|-----------|-------|
+| 1 | Build 200+ hata | `CoreModels.swift` satır 1: `wimport` yazım hatası | ✅ |
+| 2 | Sözleşmelere "!" ünlem, navigate edilemiyor | `NavigationLink(value:)` eski-stil push içinde çalışmıyor | ✅ |
+| 3 | Sözleşme açılırken freeze riski (tekrar) | Önceki fix `NavigationLink(value:)` kaldırılmış, eager eval dönmüş | ✅ `LazyView` ile kalıcı çözüm |
+
+**Test Durumu:** 844 test — 0 hata (2026-04-16)

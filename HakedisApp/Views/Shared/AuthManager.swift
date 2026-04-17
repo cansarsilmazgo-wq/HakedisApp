@@ -241,14 +241,24 @@ class AuthManager: ObservableObject {
 
     // MARK: - Approve / Reject Join Request
 
-    func approveJoinRequest(_ request: JoinRequest, role: UserRole? = nil, context: ModelContext) {
+    func approveJoinRequest(_ request: JoinRequest, role: UserRole? = nil,
+                            contractorId: UUID? = nil, context: ModelContext) {
         guard let reviewer = currentUser else { return }
         request.status = .approved
         request.reviewedBy = reviewer.fullName
         request.reviewDate = Date()
-        if let role = role { request.user?.role = role }
+        let effectiveRole = role ?? request.requestedRole
+        request.user?.role = effectiveRole
         request.user?.accountStatus = .active
-        try? context.save()
+        // Taşeron rolü onaylandığında linkedContractorId'yi set et
+        if effectiveRole == .subcontractor, let cid = contractorId {
+            request.user?.linkedContractorId = cid
+        }
+        do {
+            try context.save()
+        } catch {
+            // save hatası UI'da silent — bildirim yine de gönderilsin
+        }
         if let user = request.user {
             NotificationManager.shared.scheduleApprovalNotification(for: user)
         }

@@ -1,5 +1,6 @@
 import SwiftUI
 import UserNotifications
+import SwiftData
 
 class NotificationManager: ObservableObject {
     static let shared = NotificationManager()
@@ -499,6 +500,83 @@ class NotificationManager: ObservableObject {
         UNUserNotificationCenter.current().removePendingNotificationRequests(
             withIdentifiers: ["corrdeadline_\(correspondenceID.uuidString)"]
         )
+    }
+
+    // MARK: - ADIM6: Uygulama Açılışında Yeniden Schedule
+
+    /// Uygulama her açıldığında mevcut veriler için bildirimleri yeniden zamanlar.
+    /// Eski bekleyen bildirimler temizlenir ve güncel veriye göre yeniden kurulur.
+    func rescheduleAllNotifications(context: ModelContext) {
+        guard isAuthorized else { return }
+
+        // Geçici (date-based) bildirimleri temizle; daily_reminder gibi sabit tetikleyiciler korunur
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let toRemove = requests
+                .map { $0.identifier }
+                .filter { id in
+                    id.hasPrefix("overdue_") || id.hasPrefix("duedate_") ||
+                    id.hasPrefix("deadline_") || id.hasPrefix("guarantee_") ||
+                    id.hasPrefix("cert_") || id.hasPrefix("sgk_") ||
+                    id.hasPrefix("ministry_") || id.hasPrefix("budget_") ||
+                    id.hasPrefix("corrdeadline_")
+                }
+            UNUserNotificationCenter.current()
+                .removePendingNotificationRequests(withIdentifiers: toRemove)
+
+            // Yeni schedule için main thread'e geç
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.rescheduleFromModel(context: context)
+            }
+        }
+    }
+
+    private func rescheduleFromModel(context: ModelContext) {
+        // 1. Geciken ödemeler — günlük 09:00 tekrarlı
+        if let hakedisler = try? context.fetch(FetchDescriptor<Hakedis>()) {
+            let overdue = hakedisler.filter { $0.status == .approved && $0.remainingAmount > 0 }
+            for h in overdue {
+                schedulePaymentOverdueAlert(hakedis: h, daysOverdue: h.daysOverdue)
+            }
+            // Yaklaşan vade tarihleri
+            for h in hakedisler where h.dueDate != nil {
+                scheduleHakedisDueDateAlerts(hakedis: h)
+            }
+        }
+
+        // 2. Sözleşme bitiş tarihi bildirimleri
+        if let contracts = try? context.fetch(FetchDescriptor<Contract>()) {
+            for c in contracts where c.completionDeadline != nil {
+                scheduleContractDeadlineAlerts(contract: c)
+            }
+        }
+
+        // 3. Teminat mektubu bitiş bildirimleri
+        if let guarantees = try? context.fetch(FetchDescriptor<Guarantee>()) {
+            for g in guarantees where !g.isReturned {
+                scheduleGuaranteeNotification(guarantee: g)
+            }
+        }
+
+        // 4. Sertifika bitiş bildirimleri
+        if let workers = try? context.fetch(FetchDescriptor<Worker>()) {
+            for w in workers {
+                scheduleCertificateExpiryAlerts(worker: w)
+            }
+        }
+
+        // 5. İş kazası SGK bildirimleri
+        if let incidents = try? context.fetch(FetchDescriptor<SafetyIncident>()) {
+            let unreported = incidents.filter {
+                $0.incidentType == .majorInjury && !$0.reportedToSGK
+            }
+            for i in unreported {
+                scheduleWorkAccidentSGKAlert(incident: i)
+            }
+        }
+
+        // 6. Günlük saha girişi hatırlatıcısı yenile
+        scheduleDailyEntryReminder()
     }
 }
 

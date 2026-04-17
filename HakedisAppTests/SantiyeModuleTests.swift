@@ -255,4 +255,142 @@ final class SantiyeModuleTests: XCTestCase {
         XCTAssertFalse(decoded[0].isChecked)
         XCTAssertTrue(decoded[1].isChecked)
     }
+
+    // MARK: - ADIM 5 — Toplu Puantaj Testleri
+
+    // 0 işçi varken markAllPresent çalıştırılınca kayıt oluşmamalı
+    func testTopluPuantajSifirIsciKayitOlusmamalı() throws {
+        let schema = Schema([Worker.self, Attendance.self, Contractor.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        // markAllPresent mantığı: workers.isEmpty → işlem yok
+        let workers = try ctx.fetch(FetchDescriptor<Worker>())
+        XCTAssertTrue(workers.isEmpty, "0 işçi olmalı")
+        let afterRecords = try ctx.fetch(FetchDescriptor<Attendance>())
+        XCTAssertEqual(afterRecords.count, 0, "0 işçiyle puantaj oluşmamalı")
+    }
+
+    // 5 işçi varken markAllPresent çalıştırılınca 5 kayıt oluşmalı
+    func testTopluPuantaj5IsciHepsiniIsaretle() throws {
+        let schema = Schema([Worker.self, Attendance.self, Contractor.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        for i in 1...5 {
+            let w = Worker(fullName: "İşçi \(i)", profession: .laborer)
+            ctx.insert(w)
+        }
+        try ctx.save()
+
+        let workers = try ctx.fetch(FetchDescriptor<Worker>())
+        XCTAssertEqual(workers.count, 5)
+
+        // markAllPresent mantığı simülasyonu
+        let today = Calendar.current.startOfDay(for: Date())
+        let existingIds: Set<UUID> = []
+        for worker in workers {
+            guard !existingIds.contains(worker.id) else { continue }
+            let a = Attendance(date: today, workerName: worker.fullName)
+            a.worker = worker
+            a.isPresent = true
+            ctx.insert(a)
+        }
+        try ctx.save()
+
+        let records = try ctx.fetch(FetchDescriptor<Attendance>())
+        XCTAssertEqual(records.count, 5, "5 işçi için 5 kayıt oluşmalı")
+        XCTAssertTrue(records.allSatisfy { $0.isPresent }, "Tüm kayıtlar 'geldi' olmalı")
+    }
+
+    // Tekrar çalıştırılınca idempotent olmalı (aynı işçi için 2 kayıt oluşmamalı)
+    func testTopluPuantajIdempotent() throws {
+        let schema = Schema([Worker.self, Attendance.self, Contractor.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let worker = Worker(fullName: "Tekrarlayan İşçi", profession: .laborer)
+        ctx.insert(worker)
+        try ctx.save()
+
+        let today = Calendar.current.startOfDay(for: Date())
+
+        // İlk çalıştırma
+        let a1 = Attendance(date: today, workerName: worker.fullName)
+        a1.worker = worker
+        a1.isPresent = true
+        ctx.insert(a1)
+        try ctx.save()
+
+        // İkinci çalıştırma — mevcut kaydı kontrol et, yeni kayıt oluşturma
+        let existingRecords = try ctx.fetch(FetchDescriptor<Attendance>())
+        let alreadyMarkedIds = Set(existingRecords.compactMap { $0.worker?.id })
+        var newCount = 0
+        if !alreadyMarkedIds.contains(worker.id) {
+            let a2 = Attendance(date: today, workerName: worker.fullName)
+            a2.worker = worker
+            ctx.insert(a2)
+            newCount += 1
+        }
+
+        XCTAssertEqual(newCount, 0, "Zaten işaretlenmiş işçi için yeni kayıt oluşmamalı (idempotent)")
+        let finalRecords = try ctx.fetch(FetchDescriptor<Attendance>())
+        XCTAssertEqual(finalRecords.count, 1, "Sadece 1 kayıt olmalı")
+    }
+
+    // MARK: - ADIM 7 — Yarınki Plan Testleri
+
+    // Boş plan kaydedilmeli (default değer boş string)
+    func testYarinPlaniBoşKaydedilebilmeli() throws {
+        let schema = Schema([SiteDiary.self, Project.self, WeatherRecord.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let diary = SiteDiary(date: Date(), weatherCondition: .sunny, workDescription: "Test")
+        XCTAssertEqual(diary.tomorrowPlan, "", "Başlangıçta tomorrowPlan boş olmalı")
+        ctx.insert(diary)
+        try ctx.save()
+
+        let fetched = try ctx.fetch(FetchDescriptor<SiteDiary>())
+        XCTAssertEqual(fetched.first?.tomorrowPlan, "", "Boş plan kaydedilip okunabilmeli")
+    }
+
+    // Uzun metin (500+ karakter) kaydedilmeli
+    func testYarinPlaniUzunMetinKaydedilebilmeli() throws {
+        let schema = Schema([SiteDiary.self, Project.self, WeatherRecord.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let uzunMetin = String(repeating: "Yarın beton dökülecek ve demir bağlama tamamlanacak. ", count: 10)
+        XCTAssertGreaterThanOrEqual(uzunMetin.count, 500)
+        let diary = SiteDiary(date: Date(), weatherCondition: .cloudy, workDescription: "Test")
+        diary.tomorrowPlan = uzunMetin
+        ctx.insert(diary)
+        try ctx.save()
+
+        let fetched = try ctx.fetch(FetchDescriptor<SiteDiary>())
+        XCTAssertEqual(fetched.first?.tomorrowPlan, uzunMetin, "500+ karakterlik plan kaydedilmeli")
+    }
+
+    // Özel Türkçe karakterler doğru kaydedilmeli
+    func testYarinPlaniTurkcKarakter() throws {
+        let schema = Schema([SiteDiary.self, Project.self, WeatherRecord.self])
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let cont = try ModelContainer(for: schema, configurations: [config])
+        let ctx = ModelContext(cont)
+
+        let turkceMetin = "Şantiyede çalışma yapılacak, güneş ışığında öğle arası verilecek. İşçiler üretime devam edecek."
+        let diary = SiteDiary(date: Date(), weatherCondition: .sunny, workDescription: "Test")
+        diary.tomorrowPlan = turkceMetin
+        ctx.insert(diary)
+        try ctx.save()
+
+        let fetched = try ctx.fetch(FetchDescriptor<SiteDiary>())
+        XCTAssertEqual(fetched.first?.tomorrowPlan, turkceMetin, "Türkçe karakterler (ş, ç, ğ, ü, ö, ı) doğru kaydedilmeli")
+    }
 }

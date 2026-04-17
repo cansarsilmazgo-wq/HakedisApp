@@ -148,8 +148,10 @@ private struct RequestRow: View {
     let onReject: (() -> Void)?
 
     @State private var selectedRole: UserRole
+    @State private var selectedContractorId: UUID? = nil
     @StateObject private var authManager = AuthManager.shared
     @Environment(\.modelContext) private var modelContext
+    @Query private var contractors: [Contractor]
 
     init(request: JoinRequest, isPending: Bool,
          onApprove: (() -> Void)?, onReject: (() -> Void)?) {
@@ -212,12 +214,30 @@ private struct RequestRow: View {
                         .font(.caption)
                     }
 
+                    // Taşeron rolü seçildiğinde firma bağlama zorunluluğu
+                    if selectedRole == .subcontractor {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Picker("Bağlı Taşeron Firma", selection: $selectedContractorId) {
+                                Text("Firma seçin…").tag(Optional<UUID>.none)
+                                ForEach(contractors, id: \.id) { c in
+                                    Text(c.name).tag(Optional(c.id))
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .font(.caption)
+                            if selectedContractorId == nil {
+                                Label("Taşeron portalı için firma bağlantısı gerekli", systemImage: "exclamationmark.circle")
+                                    .font(.caption2)
+                                    .foregroundColor(.hakedisWarning)
+                            }
+                        }
+                    }
+
                     HStack(spacing: 10) {
                         Button {
-                            if let request = request as? JoinRequest {
-                                authManager.approveJoinRequest(request, role: selectedRole,
-                                                                context: modelContext)
-                            }
+                            authManager.approveJoinRequest(request, role: selectedRole,
+                                                           contractorId: selectedContractorId,
+                                                           context: modelContext)
                             onApprove?()
                         } label: {
                             Label("Onayla", systemImage: "checkmark")

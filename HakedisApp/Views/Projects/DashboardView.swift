@@ -27,6 +27,11 @@ struct DashboardView: View {
     @Query private var allCorrectiveActions: [CorrectiveAction]
     @Query private var allActivities: [ProjectActivity]
     @Query private var seismicAssessments: [SeismicAssessment]
+    // N+1 FIX: Contract, Milestone ve ChangeOrder için doğrudan @Query —
+    // projects.flatMap { $0.contracts } yerine tek bir SQLite sorgusu kullanılır.
+    @Query private var allContracts: [Contract]
+    @Query private var allMilestones: [Milestone]
+    @Query private var allChangeOrders: [ChangeOrder]
 
     private var activeProjects: [Project] {
         projects.filter { $0.status == .active }
@@ -38,19 +43,19 @@ struct DashboardView: View {
         hakedisler.filter { $0.status == .approved && $0.remainingAmount > 0 }
     }
     private var overBudgetContracts: [Contract] {
-        projects.flatMap { $0.contracts }.filter { $0.isOverBudget }
+        allContracts.filter { $0.isOverBudget }
     }
     private var nearBudgetContracts: [Contract] {
-        projects.flatMap { $0.contracts }.filter { !$0.isOverBudget && $0.budgetUtilization >= 80 }
+        allContracts.filter { !$0.isOverBudget && $0.budgetUtilization >= 80 }
     }
     private var pendingChangeOrders: [ChangeOrder] {
-        projects.flatMap { $0.contracts }.flatMap { $0.changeOrders }.filter { $0.status == .pending }
+        allChangeOrders.filter { $0.status == .pending }
     }
     private var overdueMilestones: [Milestone] {
-        projects.flatMap { $0.milestones }.filter { $0.isOverdue }
+        allMilestones.filter { $0.isOverdue }
     }
     private var upcomingMilestones: [Milestone] {
-        projects.flatMap { $0.milestones }
+        allMilestones
             .filter { !$0.isCompleted && !$0.isOverdue && $0.daysUntilDue <= 7 }
             .sorted { $0.plannedDate < $1.plannedDate }
     }
@@ -83,24 +88,24 @@ struct DashboardView: View {
     }
 
     private var contractsWithDeficiencies: [Contract] {
-        projects.flatMap { $0.contracts }.filter { $0.openDeficiencyCount > 0 }
+        allContracts.filter { $0.openDeficiencyCount > 0 }
     }
     private var overdueCorrespondence: [(contract: Contract, record: CorrespondenceRecord)] {
-        projects.flatMap { $0.contracts }.flatMap { contract in
+        allContracts.flatMap { contract in
             contract.correspondenceRecords
                 .filter { $0.isSureDoldu }
                 .map { (contract: contract, record: $0) }
         }
     }
     private var blockingTests: [(contract: Contract, record: TestRecord)] {
-        projects.flatMap { $0.contracts }.flatMap { contract in
+        allContracts.flatMap { contract in
             contract.testRecords
                 .filter { $0.blocksApproval }
                 .map { (contract: contract, record: $0) }
         }
     }
     private var nearExpiryWarranties: [(contract: Contract, record: AcceptanceRecord)] {
-        projects.flatMap { $0.contracts }.flatMap { contract in
+        allContracts.flatMap { contract in
             contract.acceptanceRecords
                 .filter { $0.isNearingWarrantyExpiry }
                 .map { (contract: contract, record: $0) }
@@ -109,7 +114,7 @@ struct DashboardView: View {
 
     // Financial totals across all projects
     private var totalContractValue: Double {
-        projects.flatMap { $0.contracts }.reduce(0) { $0 + $1.totalContractAmount }
+        allContracts.reduce(0) { $0 + $1.totalContractAmount }
     }
     private var totalInvoiced: Double {
         hakedisler.filter { $0.status != .draft }.reduce(0) { $0 + $1.netAmount }
@@ -657,7 +662,6 @@ struct DashboardView: View {
 
     private func triggerBudgetNotificationsIfNeeded() {
         guard notificationManager.budgetAlertsEnabled else { return }
-        let allContracts = projects.flatMap { $0.contracts }
         for contract in allContracts where contract.isOverBudget || contract.budgetUtilization >= 80 {
             notificationManager.scheduleBudgetOverrunAlert(contract: contract)
         }
